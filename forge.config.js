@@ -1,16 +1,35 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+const path = require('path');
 
 module.exports = {
   packagerConfig: {
     asar: true,
-    extraResource: ['./dist']
+    extraResource: ['./dist'],
+    icon: path.resolve(__dirname, 'src/assets/icon'),
+    executableName: 'Inventory Pro',
+    appCopyright: `Copyright ${new Date().getFullYear()}`,
+    // Ensure all the necessary files are included
+    ignore: [
+      /^\/node_modules$/,
+      /^\/src\/(?!index\.js|preload\.js)/,
+      /^\/\.git/,
+      /^\/\.vscode/,
+      /^\/\.webpack/,
+      /^\/out/,
+    ],
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        name: 'InventoryPro',
+        authors: 'Yasin KANSU',
+        description: 'A comprehensive stock management application',
+        iconUrl: path.resolve(__dirname, 'src/assets/icon.ico'),
+        setupIcon: path.resolve(__dirname, 'src/assets/icon.ico'),
+      },
     },
     {
       name: '@electron-forge/maker-zip',
@@ -18,11 +37,23 @@ module.exports = {
     },
     {
       name: '@electron-forge/maker-deb',
-      config: {},
+      config: {
+        options: {
+          maintainer: 'Yasin KANSU',
+          homepage: 'https://github.com/yasinkansu/inventory-pro',
+          icon: path.resolve(__dirname, 'src/assets/icon.png'),
+        },
+      },
     },
     {
       name: '@electron-forge/maker-rpm',
-      config: {},
+      config: {
+        options: {
+          maintainer: 'Yasin KANSU',
+          homepage: 'https://github.com/yasinkansu/inventory-pro',
+          icon: path.resolve(__dirname, 'src/assets/icon.png'),
+        },
+      },
     },
   ],
   plugins: [
@@ -42,4 +73,11 @@ module.exports = {
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
   ],
+  hooks: {
+    // This hook runs before packaging
+    packageAfterCopy: async (config, buildPath, electronVersion, platform, arch) => {
+      // You can perform additional tasks here if needed
+      console.log('Packaging for production...');
+    },
+  },
 };

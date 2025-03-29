@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './components/App';
+// Import CSS files
 import './index.css';
 import './styles/pages.css';
 
@@ -14,3 +15,8 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// Accept HMR updates
+if (module.hot) {
+  module.hot.accept();
+}
