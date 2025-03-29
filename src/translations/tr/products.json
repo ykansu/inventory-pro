@@ -1,0 +1,10 @@
+{
+  "title": "Ürün Yönetimi",
+  "add_product": "Yeni Ürün Ekle",
+  "edit_product": "Ürünü Düzenle",
+  "delete_product": "Ürünü Sil",
+  "product_name": "Ürün Adı",
+  "category": "Kategori",
+  "price": "Fiyat",
+  "stock_quantity": "Stok Miktarı"
+}

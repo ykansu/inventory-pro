@@ -1,0 +1,68 @@
+{
+  "title": "Ayarlar",
+  "tabs": {
+    "general": "Genel",
+    "businessInformation": "İşletme Bilgileri",
+    "taxSettings": "Vergi Ayarları",
+    "receiptCustomization": "Fiş Özelleştirme",
+    "databaseManagement": "Veritabanı Yönetimi"
+  },
+  "general": {
+    "title": "Genel Ayarlar",
+    "language": "Dil",
+    "currency": "Para Birimi",
+    "dateFormat": "Tarih Formatı",
+    "enableLowStockNotifications": "Düşük Stok Bildirimlerini Etkinleştir"
+  },
+  "languages": {
+    "en": "İngilizce",
+    "tr": "Türkçe"
+  },
+  "business": {
+    "title": "İşletme Bilgileri",
+    "businessName": "İşletme Adı",
+    "businessNamePlaceholder": "İşletme Adınız",
+    "address": "Adres",
+    "addressPlaceholder": "İşletme Adresi",
+    "phoneNumber": "Telefon Numarası",
+    "phonePlaceholder": "Telefon Numarası",
+    "email": "E-posta",
+    "emailPlaceholder": "İşletme E-postası",
+    "taxId": "Vergi Kimlik No / İşletme Numarası",
+    "taxIdPlaceholder": "Vergi Kimlik No veya İşletme Numarası"
+  },
+  "tax": {
+    "title": "Vergi Ayarları",
+    "enableTaxCalculation": "Vergi Hesaplamayı Etkinleştir",
+    "defaultTaxRate": "Varsayılan Vergi Oranı (%)",
+    "taxName": "Vergi Adı",
+    "taxNamePlaceholder": "Örn. Satış Vergisi, KDV, GSV"
+  },
+  "receipt": {
+    "title": "Fiş Özelleştirme",
+    "header": "Fiş Başlığı",
+    "headerPlaceholder": "Fişin üstünde görünecek metin",
+    "footer": "Fiş Altbilgisi",
+    "footerPlaceholder": "Teşekkür mesajı veya iade politikası",
+    "showLogo": "İşletme Logosunu Fişte Göster",
+    "showTaxDetails": "Detaylı Vergi Bilgilerini Göster"
+  },
+  "database": {
+    "title": "Veritabanı Yönetimi",
+    "backup": {
+      "title": "Veritabanını Yedekle",
+      "description": "Mevcut veritabanınızın yedeğini oluşturun.",
+      "action": "Yedek Oluştur"
+    },
+    "restore": {
+      "title": "Veritabanını Geri Yükle",
+      "description": "Daha önce oluşturulmuş bir yedekten geri yükleyin.",
+      "action": "Yedekten Geri Yükle"
+    },
+    "reset": {
+      "title": "Veritabanını Sıfırla",
+      "description": "Uyarı: Bu, tüm verilerinizi silecek ve geri alınamayacaktır.",
+      "action": "Veritabanını Sıfırla"
+    }
+  }
+}

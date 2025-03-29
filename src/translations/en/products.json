@@ -1,0 +1,10 @@
+{
+  "title": "Product Management",
+  "add_product": "Add New Product",
+  "edit_product": "Edit Product",
+  "delete_product": "Delete Product",
+  "product_name": "Product Name",
+  "category": "Category",
+  "price": "Price",
+  "stock_quantity": "Stock Quantity"
+}

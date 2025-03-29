@@ -1,0 +1,11 @@
+{
+  "title": "Raporlar",
+  "daily_sales": "Günlük Satışlar",
+  "inventory_valuation": "Envanter Değerlemesi",
+  "low_stock": "Düşük Stoklu Ürünler",
+  "top_selling_products": "En Çok Satan Ürünler",
+  "profit_margin": "Kar Marjı",
+  "date_range": "Tarih Aralığı",
+  "export_pdf": "PDF Olarak Dışa Aktar",
+  "export_csv": "CSV Olarak Dışa Aktar"
+}

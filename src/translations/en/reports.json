@@ -1,0 +1,11 @@
+{
+  "title": "Reports",
+  "daily_sales": "Daily Sales",
+  "inventory_valuation": "Inventory Valuation",
+  "low_stock": "Low Stock Items",
+  "top_selling_products": "Top Selling Products",
+  "profit_margin": "Profit Margin",
+  "date_range": "Date Range",
+  "export_pdf": "Export PDF",
+  "export_csv": "Export CSV"
+}

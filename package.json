@@ -31,8 +31,10 @@
   "license": "MIT",
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
+    "i18next": "^24.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-i18next": "^15.4.1",
     "react-router-dom": "^7.4.1"
   },
   "devDependencies": {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { useTranslation } from '../hooks/useTranslation';
 
 // Import page components (we'll create these next)
 import Dashboard from '../pages/Dashboard';
@@ -10,6 +11,8 @@ import Reports from '../pages/Reports';
 import Settings from '../pages/Settings';
 
 const App = () => {
+  const { t } = useTranslation(['common']);
+  
   return (
     <Router>
       <div className="app-container">
@@ -22,37 +25,37 @@ const App = () => {
               <li>
                 <NavLink to="/" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                   <span className="nav-icon">📊</span>
-                  <span className="nav-text">Dashboard</span>
+                  <span className="nav-text">{t('dashboard')}</span>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/products" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                   <span className="nav-icon">📦</span>
-                  <span className="nav-text">Products</span>
+                  <span className="nav-text">{t('products')}</span>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/pos" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                   <span className="nav-icon">💰</span>
-                  <span className="nav-text">Point of Sale</span>
+                  <span className="nav-text">{t('pointOfSale')}</span>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/sales" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                   <span className="nav-icon">📝</span>
-                  <span className="nav-text">Sales History</span>
+                  <span className="nav-text">{t('salesHistory')}</span>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/reports" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                   <span className="nav-icon">📈</span>
-                  <span className="nav-text">Reports</span>
+                  <span className="nav-text">{t('reports')}</span>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
                   <span className="nav-icon">⚙️</span>
-                  <span className="nav-text">Settings</span>
+                  <span className="nav-text">{t('settings')}</span>
                 </NavLink>
               </li>
             </ul>
@@ -65,7 +68,7 @@ const App = () => {
           <header className="main-header">
             <div className="header-title">
               {/* Page title will be dynamic based on current route */}
-              <h1>Dashboard</h1>
+              <h1>{t('dashboard')}</h1>
             </div>
             <div className="header-actions">
               {/* Placeholder for actions like search, notifications, etc. */}

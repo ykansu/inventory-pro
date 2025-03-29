@@ -1,0 +1,9 @@
+{
+  "title": "Dashboard",
+  "welcome": "Welcome to Inventory Pro",
+  "total_products": "Total Products",
+  "low_stock": "Low Stock Items",
+  "recent_sales": "Recent Sales",
+  "view_all": "View All",
+  "add_product": "Add Product"
+}

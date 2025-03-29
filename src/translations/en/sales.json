@@ -1,0 +1,9 @@
+{
+  "title": "Sales History",
+  "date": "Date",
+  "product": "Product",
+  "quantity": "Quantity",
+  "total_amount": "Total Amount",
+  "payment_method": "Payment Method",
+  "filter_by_date": "Filter by Date"
+}

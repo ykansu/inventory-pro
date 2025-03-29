@@ -1,0 +1,9 @@
+{
+  "title": "Satış Geçmişi",
+  "date": "Tarih",
+  "product": "Ürün",
+  "quantity": "Miktar",
+  "total_amount": "Toplam Tutar",
+  "payment_method": "Ödeme Yöntemi",
+  "filter_by_date": "Tarihe Göre Filtrele"
+}

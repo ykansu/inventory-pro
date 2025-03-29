@@ -1,0 +1,68 @@
+{
+  "title": "Settings",
+  "tabs": {
+    "general": "General",
+    "businessInformation": "Business Information",
+    "taxSettings": "Tax Settings",
+    "receiptCustomization": "Receipt Customization",
+    "databaseManagement": "Database Management"
+  },
+  "general": {
+    "title": "General Settings",
+    "language": "Language",
+    "currency": "Currency",
+    "dateFormat": "Date Format",
+    "enableLowStockNotifications": "Enable Low Stock Notifications"
+  },
+  "languages": {
+    "en": "English",
+    "tr": "Turkish"
+  },
+  "business": {
+    "title": "Business Information",
+    "businessName": "Business Name",
+    "businessNamePlaceholder": "Your Business Name",
+    "address": "Address",
+    "addressPlaceholder": "Business Address",
+    "phoneNumber": "Phone Number",
+    "phonePlaceholder": "Phone Number",
+    "email": "Email",
+    "emailPlaceholder": "Business Email",
+    "taxId": "Tax ID / Business Number",
+    "taxIdPlaceholder": "Tax ID or Business Number"
+  },
+  "tax": {
+    "title": "Tax Settings",
+    "enableTaxCalculation": "Enable Tax Calculation",
+    "defaultTaxRate": "Default Tax Rate (%)",
+    "taxName": "Tax Name",
+    "taxNamePlaceholder": "e.g. Sales Tax, VAT, GST"
+  },
+  "receipt": {
+    "title": "Receipt Customization",
+    "header": "Receipt Header",
+    "headerPlaceholder": "Text to appear at the top of receipts",
+    "footer": "Receipt Footer",
+    "footerPlaceholder": "Thank you message or return policy",
+    "showLogo": "Show Business Logo on Receipt",
+    "showTaxDetails": "Show Detailed Tax Information"
+  },
+  "database": {
+    "title": "Database Management",
+    "backup": {
+      "title": "Backup Database",
+      "description": "Create a backup of your current database.",
+      "action": "Create Backup"
+    },
+    "restore": {
+      "title": "Restore Database",
+      "description": "Restore from a previously created backup.",
+      "action": "Restore from Backup"
+    },
+    "reset": {
+      "title": "Reset Database",
+      "description": "Warning: This will delete all your data and cannot be undone.",
+      "action": "Reset Database"
+    }
+  }
+}
