@@ -1,10 +1,55 @@
 {
   "title": "Product Management",
-  "add_product": "Add New Product",
-  "edit_product": "Edit Product",
-  "delete_product": "Delete Product",
-  "product_name": "Product Name",
-  "category": "Category",
-  "price": "Price",
-  "stock_quantity": "Stock Quantity"
+  "tabs": {
+    "list": "Product List",
+    "add": "Add Product"
+  },
+  "search": {
+    "placeholder": "Search products..."
+  },
+  "filters": {
+    "allCategories": "All Categories",
+    "allStockLevels": "All Stock Levels",
+    "inStock": "In Stock",
+    "lowStock": "Low Stock",
+    "outOfStock": "Out of Stock"
+  },
+  "categories": {
+    "electronics": "Electronics",
+    "clothing": "Clothing",
+    "food": "Food"
+  },
+  "table": {
+    "headers": {
+      "name": "Product Name",
+      "sku": "SKU/Barcode",
+      "category": "Category",
+      "price": "Price",
+      "stock": "Stock",
+      "actions": "Actions"
+    }
+  },
+  "emptyState": "No products found. Add your first product to get started.",
+  "form": {
+    "name": "Product Name",
+    "namePlaceholder": "Enter product name",
+    "barcode": "Barcode/SKU",
+    "barcodePlaceholder": "Enter barcode or SKU",
+    "category": "Category",
+    "selectCategory": "Select a category",
+    "unit": "Unit of Measurement",
+    "selectUnit": "Select a unit",
+    "sellingPrice": "Selling Price",
+    "costPrice": "Cost Price",
+    "stockQuantity": "Current Stock Quantity",
+    "minStockThreshold": "Minimum Stock Threshold",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter product description",
+    "saveProduct": "Save Product"
+  },
+  "units": {
+    "pieces": "Pieces (pcs)",
+    "kilograms": "Kilograms (kg)",
+    "liters": "Liters (l)"
+  }
 }

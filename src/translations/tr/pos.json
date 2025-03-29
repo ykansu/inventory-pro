@@ -1,10 +1,33 @@
 {
   "title": "Satış Noktası",
   "new_sale": "Yeni Satış",
-  "cart": "Sepet",
-  "total": "Toplam",
-  "payment": "Ödeme",
-  "cash": "Nakit",
-  "card": "Kart",
+  "search": {
+    "placeholder": "Barkod taratın veya ürünleri arayın...",
+    "button": "Ara"
+  },
+  "categories": {
+    "all": "Tümü",
+    "electronics": "Elektronik",
+    "clothing": "Giyim",
+    "food": "Gıda"
+  },
+  "productGrid": {
+    "empty": "Ürün bulunmamaktadır. Önce envanterinize ürün ekleyin."
+  },
+  "cart": {
+    "title": "Sepet",
+    "clear": "Temizle",
+    "empty": "Sepette ürün yok",
+    "addInstructions": "Taratarak veya arayarak ürün ekleyin"
+  },
+  "summary": {
+    "subtotal": "Ara Toplam",
+    "tax": "Vergi ({{rate}})",
+    "total": "Toplam"
+  },
+  "payment": {
+    "cash": "Nakit Ödeme",
+    "card": "Kart Ödeme"
+  },
   "complete_sale": "Satışı Tamamla"
 }

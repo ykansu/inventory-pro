@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Reports = () => {
   const [reportType, setReportType] = useState('daily');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const { t } = useTranslation(['reports', 'common']);
 
   return (
     <div className="reports-page">
       <div className="page-header">
-        <h2>Reports</h2>
+        <h2>{t('reports:title')}</h2>
       </div>
 
       <div className="reports-container">
         <div className="report-sidebar">
-          <h3>Report Types</h3>
+          <h3>{t('reports:sidebar.title')}</h3>
           <ul className="report-types">
             <li>
               <button 
                 className={`report-type-button ${reportType === 'daily' ? 'active' : ''}`}
                 onClick={() => setReportType('daily')}
               >
-                Daily Sales (Z-Report)
+                {t('reports:types.daily')}
               </button>
             </li>
             <li>
@@ -27,7 +29,7 @@ const Reports = () => {
                 className={`report-type-button ${reportType === 'inventory' ? 'active' : ''}`}
                 onClick={() => setReportType('inventory')}
               >
-                Inventory Valuation
+                {t('reports:types.inventory')}
               </button>
             </li>
             <li>
@@ -35,7 +37,7 @@ const Reports = () => {
                 className={`report-type-button ${reportType === 'lowStock' ? 'active' : ''}`}
                 onClick={() => setReportType('lowStock')}
               >
-                Low Stock Report
+                {t('reports:types.lowStock')}
               </button>
             </li>
             <li>
@@ -43,7 +45,7 @@ const Reports = () => {
                 className={`report-type-button ${reportType === 'topSelling' ? 'active' : ''}`}
                 onClick={() => setReportType('topSelling')}
               >
-                Top Selling Products
+                {t('reports:types.topSelling')}
               </button>
             </li>
             <li>
@@ -51,7 +53,7 @@ const Reports = () => {
                 className={`report-type-button ${reportType === 'profitMargin' ? 'active' : ''}`}
                 onClick={() => setReportType('profitMargin')}
               >
-                Profit Margin Analysis
+                {t('reports:types.profitMargin')}
               </button>
             </li>
           </ul>
@@ -61,7 +63,7 @@ const Reports = () => {
           <div className="report-filters">
             <div className="date-filters">
               <div className="form-group">
-                <label htmlFor="startDate">From</label>
+                <label htmlFor="startDate">{t('reports:filters.from')}</label>
                 <input 
                   type="date" 
                   id="startDate" 
@@ -70,7 +72,7 @@ const Reports = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="endDate">To</label>
+                <label htmlFor="endDate">{t('reports:filters.to')}</label>
                 <input 
                   type="date" 
                   id="endDate" 
@@ -78,54 +80,54 @@ const Reports = () => {
                   onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
                 />
               </div>
-              <button className="filter-button">Generate Report</button>
+              <button className="filter-button">{t('reports:filters.generate')}</button>
             </div>
 
             <div className="export-options">
-              <button className="export-button">Export to CSV</button>
-              <button className="print-button">Print Report</button>
+              <button className="export-button">{t('reports:export.csv')}</button>
+              <button className="print-button">{t('reports:export.print')}</button>
             </div>
           </div>
 
           <div className="report-display">
             {reportType === 'daily' && (
               <div className="daily-report">
-                <h3>Daily Sales Report (Z-Report)</h3>
-                <p className="report-date">For period: {dateRange.start || 'Not selected'} to {dateRange.end || 'Not selected'}</p>
+                <h3>{t('reports:daily.title')}</h3>
+                <p className="report-date">{t('reports:daily.period', { start: dateRange.start || t('reports:notSelected'), end: dateRange.end || t('reports:notSelected') })}</p>
                 
                 <div className="report-summary">
                   <div className="summary-card">
-                    <h4>Total Sales</h4>
+                    <h4>{t('reports:daily.summary.totalSales')}</h4>
                     <div className="summary-value">$0.00</div>
                   </div>
                   <div className="summary-card">
-                    <h4>Number of Transactions</h4>
+                    <h4>{t('reports:daily.summary.transactions')}</h4>
                     <div className="summary-value">0</div>
                   </div>
                   <div className="summary-card">
-                    <h4>Average Transaction Value</h4>
+                    <h4>{t('reports:daily.summary.averageValue')}</h4>
                     <div className="summary-value">$0.00</div>
                   </div>
                   <div className="summary-card">
-                    <h4>Gross Profit</h4>
+                    <h4>{t('reports:daily.summary.grossProfit')}</h4>
                     <div className="summary-value">$0.00</div>
                   </div>
                 </div>
 
                 <div className="report-section">
-                  <h4>Payment Method Breakdown</h4>
+                  <h4>{t('reports:daily.paymentBreakdown.title')}</h4>
                   <table className="report-table">
                     <thead>
                       <tr>
-                        <th>Payment Method</th>
-                        <th>Amount</th>
-                        <th>Percentage</th>
+                        <th>{t('reports:daily.paymentBreakdown.headers.method')}</th>
+                        <th>{t('reports:daily.paymentBreakdown.headers.amount')}</th>
+                        <th>{t('reports:daily.paymentBreakdown.headers.percentage')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="empty-state">
                         <td colSpan="3">
-                          <p>No data available for the selected period.</p>
+                          <p>{t('reports:noData')}</p>
                         </td>
                       </tr>
                     </tbody>
@@ -133,19 +135,19 @@ const Reports = () => {
                 </div>
 
                 <div className="report-section">
-                  <h4>Sales by Category</h4>
+                  <h4>{t('reports:daily.salesByCategory.title')}</h4>
                   <table className="report-table">
                     <thead>
                       <tr>
-                        <th>Category</th>
-                        <th>Items Sold</th>
-                        <th>Total Sales</th>
+                        <th>{t('reports:daily.salesByCategory.headers.category')}</th>
+                        <th>{t('reports:daily.salesByCategory.headers.itemsSold')}</th>
+                        <th>{t('reports:daily.salesByCategory.headers.totalSales')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="empty-state">
                         <td colSpan="3">
-                          <p>No data available for the selected period.</p>
+                          <p>{t('reports:noData')}</p>
                         </td>
                       </tr>
                     </tbody>
@@ -156,12 +158,9 @@ const Reports = () => {
 
             {reportType !== 'daily' && (
               <div className="placeholder-report">
-                <h3>{reportType === 'inventory' ? 'Inventory Valuation Report' : 
-                    reportType === 'lowStock' ? 'Low Stock Report' :
-                    reportType === 'topSelling' ? 'Top Selling Products Report' :
-                    'Profit Margin Analysis'}</h3>
+                <h3>{t(`reports:types.${reportType}`)}</h3>
                 <div className="placeholder-content">
-                  <p>Select a date range and click "Generate Report" to view this report.</p>
+                  <p>{t('reports:generateInstructions')}</p>
                 </div>
               </div>
             )}

@@ -1,6 +1,6 @@
 {
   "title": "Ayarlar",
-  "tabs": {
+  "sections": {
     "general": "Genel",
     "businessInformation": "İşletme Bilgileri",
     "taxSettings": "Vergi Ayarları",
@@ -21,47 +21,47 @@
   "business": {
     "title": "İşletme Bilgileri",
     "businessName": "İşletme Adı",
-    "businessNamePlaceholder": "İşletme Adınız",
+    "businessNamePlaceholder": "İşletmenizin Adı",
     "address": "Adres",
     "addressPlaceholder": "İşletme Adresi",
     "phoneNumber": "Telefon Numarası",
     "phonePlaceholder": "Telefon Numarası",
     "email": "E-posta",
     "emailPlaceholder": "İşletme E-postası",
-    "taxId": "Vergi Kimlik No / İşletme Numarası",
-    "taxIdPlaceholder": "Vergi Kimlik No veya İşletme Numarası"
+    "taxId": "Vergi Numarası / İşletme Numarası",
+    "taxIdPlaceholder": "Vergi Numarası veya İşletme Numarası"
   },
   "tax": {
     "title": "Vergi Ayarları",
     "enableTaxCalculation": "Vergi Hesaplamayı Etkinleştir",
     "defaultTaxRate": "Varsayılan Vergi Oranı (%)",
     "taxName": "Vergi Adı",
-    "taxNamePlaceholder": "Örn. Satış Vergisi, KDV, GSV"
+    "taxNamePlaceholder": "örn. KDV, ÖTV"
   },
   "receipt": {
     "title": "Fiş Özelleştirme",
     "header": "Fiş Başlığı",
-    "headerPlaceholder": "Fişin üstünde görünecek metin",
-    "footer": "Fiş Altbilgisi",
+    "headerPlaceholder": "Fişlerin üst kısmında görünecek metin",
+    "footer": "Fiş Alt Bilgisi",
     "footerPlaceholder": "Teşekkür mesajı veya iade politikası",
-    "showLogo": "İşletme Logosunu Fişte Göster",
+    "showLogo": "Fişte İşletme Logosunu Göster",
     "showTaxDetails": "Detaylı Vergi Bilgilerini Göster"
   },
   "database": {
     "title": "Veritabanı Yönetimi",
     "backup": {
-      "title": "Veritabanını Yedekle",
-      "description": "Mevcut veritabanınızın yedeğini oluşturun.",
+      "title": "Veritabanı Yedekleme",
+      "description": "Mevcut veritabanınızın bir yedeğini oluşturun.",
       "action": "Yedek Oluştur"
     },
     "restore": {
-      "title": "Veritabanını Geri Yükle",
+      "title": "Veritabanı Geri Yükleme",
       "description": "Daha önce oluşturulmuş bir yedekten geri yükleyin.",
       "action": "Yedekten Geri Yükle"
     },
     "reset": {
       "title": "Veritabanını Sıfırla",
-      "description": "Uyarı: Bu, tüm verilerinizi silecek ve geri alınamayacaktır.",
+      "description": "Uyarı: Bu işlem tüm verilerinizi silecek ve geri alınamayacaktır.",
       "action": "Veritabanını Sıfırla"
     }
   }

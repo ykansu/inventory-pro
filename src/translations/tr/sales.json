@@ -1,9 +1,42 @@
 {
   "title": "Satış Geçmişi",
-  "date": "Tarih",
-  "product": "Ürün",
-  "quantity": "Miktar",
-  "total_amount": "Toplam Tutar",
-  "payment_method": "Ödeme Yöntemi",
-  "filter_by_date": "Tarihe Göre Filtrele"
+  "filters": {
+    "from": "Başlangıç",
+    "to": "Bitiş",
+    "apply": "Filtreyi Uygula",
+    "allPaymentMethods": "Tüm Ödeme Yöntemleri",
+    "searchPlaceholder": "Fiş numarasına göre ara"
+  },
+  "paymentMethods": {
+    "cash": "Nakit",
+    "card": "Kart"
+  },
+  "table": {
+    "headers": {
+      "receipt": "Fiş #",
+      "dateTime": "Tarih & Saat",
+      "items": "Ürünler",
+      "total": "Toplam",
+      "payment": "Ödeme",
+      "actions": "İşlemler"
+    },
+    "noRecords": "Seçilen döneme için satış kaydı bulunamadı."
+  },
+  "details": {
+    "title": "Satış Detayları"
+  },
+  "receipt": {
+    "number": "Fiş #{{number}}",
+    "item": "Ürün",
+    "quantity": "Adet",
+    "price": "Fiyat",
+    "total": "Toplam",
+    "subtotal": "Ara Toplam",
+    "tax": "Vergi",
+    "paymentMethod": "Ödeme Yöntemi"
+  },
+  "actions": {
+    "printReceipt": "Fişi Yazdır",
+    "processReturn": "İade İşlemi"
+  }
 }

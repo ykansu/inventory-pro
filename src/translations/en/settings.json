@@ -1,6 +1,6 @@
 {
   "title": "Settings",
-  "tabs": {
+  "sections": {
     "general": "General",
     "businessInformation": "Business Information",
     "taxSettings": "Tax Settings",

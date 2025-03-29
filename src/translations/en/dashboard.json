@@ -1,9 +1,18 @@
 {
-  "title": "Dashboard",
-  "welcome": "Welcome to Inventory Pro",
-  "total_products": "Total Products",
-  "low_stock": "Low Stock Items",
-  "recent_sales": "Recent Sales",
-  "view_all": "View All",
-  "add_product": "Add Product"
+  "overview": "Dashboard Overview",
+  "welcome": "Welcome to your inventory management dashboard",
+  "stats": {
+    "totalProducts": "Total Products",
+    "lowStockItems": "Low Stock Items",
+    "todaySales": "Today's Sales",
+    "monthlyRevenue": "Monthly Revenue"
+  },
+  "sections": {
+    "recentSales": "Recent Sales",
+    "popularProducts": "Popular Products"
+  },
+  "placeholders": {
+    "noSalesData": "No recent sales data available",
+    "noProductData": "No product data available"
+  }
 }

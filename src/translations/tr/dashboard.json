@@ -1,9 +1,18 @@
 {
-  "title": "Pano",
-  "welcome": "Stok Takip Pro'ya Hoş Geldiniz",
-  "total_products": "Toplam Ürün",
-  "low_stock": "Azalan Stoklar",
-  "recent_sales": "Son Satışlar",
-  "view_all": "Tümünü Gör",
-  "add_product": "Ürün Ekle"
+  "overview": "Gösterge Paneli",
+  "welcome": "Envanter yönetim paneline hoş geldiniz",
+  "stats": {
+    "totalProducts": "Toplam Ürünler",
+    "lowStockItems": "Düşük Stok Ürünleri",
+    "todaySales": "Bugünkü Satışlar",
+    "monthlyRevenue": "Aylık Gelir"
+  },
+  "sections": {
+    "recentSales": "Son Satışlar",
+    "popularProducts": "Popüler Ürünler"
+  },
+  "placeholders": {
+    "noSalesData": "Yakın zamanda satış verisi bulunmamaktadır",
+    "noProductData": "Ürün verisi bulunmamaktadır"
+  }
 }

@@ -1,10 +1,55 @@
 {
   "title": "Ürün Yönetimi",
-  "add_product": "Yeni Ürün Ekle",
-  "edit_product": "Ürünü Düzenle",
-  "delete_product": "Ürünü Sil",
-  "product_name": "Ürün Adı",
-  "category": "Kategori",
-  "price": "Fiyat",
-  "stock_quantity": "Stok Miktarı"
+  "tabs": {
+    "list": "Ürün Listesi",
+    "add": "Ürün Ekle"
+  },
+  "search": {
+    "placeholder": "Ürünleri ara..."
+  },
+  "filters": {
+    "allCategories": "Tüm Kategoriler",
+    "allStockLevels": "Tüm Stok Seviyeleri",
+    "inStock": "Stokta",
+    "lowStock": "Düşük Stok",
+    "outOfStock": "Stokta Yok"
+  },
+  "categories": {
+    "electronics": "Elektronik",
+    "clothing": "Giyim",
+    "food": "Gıda"
+  },
+  "table": {
+    "headers": {
+      "name": "Ürün Adı",
+      "sku": "SKU/Barkod",
+      "category": "Kategori",
+      "price": "Fiyat",
+      "stock": "Stok",
+      "actions": "İşlemler"
+    }
+  },
+  "emptyState": "Ürün bulunamadı. Başlamak için ilk ürününüzü ekleyin.",
+  "form": {
+    "name": "Ürün Adı",
+    "namePlaceholder": "Ürün adını girin",
+    "barcode": "Barkod/SKU",
+    "barcodePlaceholder": "Barkod veya SKU girin",
+    "category": "Kategori",
+    "selectCategory": "Bir kategori seçin",
+    "unit": "Ölçü Birimi",
+    "selectUnit": "Bir birim seçin",
+    "sellingPrice": "Satış Fiyatı",
+    "costPrice": "Maliyet Fiyatı",
+    "stockQuantity": "Mevcut Stok Miktarı",
+    "minStockThreshold": "Minimum Stok Eşiği",
+    "description": "Açıklama",
+    "descriptionPlaceholder": "Ürün açıklamasını girin",
+    "saveProduct": "Ürünü Kaydet"
+  },
+  "units": {
+    "pieces": "Adet (ad)",
+    "kilograms": "Kilogram (kg)",
+    "liters": "Litre (l)"
+  }
 }

@@ -25,7 +25,7 @@ const Settings = () => {
                 className={`settings-tab-button ${activeTab === 'general' ? 'active' : ''}`}
                 onClick={() => setActiveTab('general')}
               >
-                {t('settings:tabs.general')}
+                {t('settings:sections.general')}
               </button>
             </li>
             <li>
@@ -33,7 +33,7 @@ const Settings = () => {
                 className={`settings-tab-button ${activeTab === 'business' ? 'active' : ''}`}
                 onClick={() => setActiveTab('business')}
               >
-                {t('settings:tabs.businessInformation')}
+                {t('settings:sections.businessInformation')}
               </button>
             </li>
             <li>
@@ -41,7 +41,7 @@ const Settings = () => {
                 className={`settings-tab-button ${activeTab === 'tax' ? 'active' : ''}`}
                 onClick={() => setActiveTab('tax')}
               >
-                {t('settings:tabs.taxSettings')}
+                {t('settings:sections.taxSettings')}
               </button>
             </li>
             <li>
@@ -49,7 +49,7 @@ const Settings = () => {
                 className={`settings-tab-button ${activeTab === 'receipt' ? 'active' : ''}`}
                 onClick={() => setActiveTab('receipt')}
               >
-                {t('settings:tabs.receiptCustomization')}
+                {t('settings:sections.receiptCustomization')}
               </button>
             </li>
             <li>
@@ -57,7 +57,7 @@ const Settings = () => {
                 className={`settings-tab-button ${activeTab === 'database' ? 'active' : ''}`}
                 onClick={() => setActiveTab('database')}
               >
-                {t('settings:tabs.databaseManagement')}
+                {t('settings:sections.databaseManagement')}
               </button>
             </li>
           </ul>
@@ -66,7 +66,7 @@ const Settings = () => {
         <div className="settings-content">
           {activeTab === 'general' && (
             <div className="general-settings">
-              <h3>{t('settings:general.title')}</h3>
+              <h3>{t('settings:sections.general')}</h3>
               
               <form className="settings-form">
                 <div className="form-group">
@@ -120,7 +120,7 @@ const Settings = () => {
 
           {activeTab === 'business' && (
             <div className="business-settings">
-              <h3>{t('settings:business.title')}</h3>
+              <h3>{t('settings:sections.businessInformation')}</h3>
               
               <form className="settings-form">
                 <div className="form-group">
@@ -159,7 +159,7 @@ const Settings = () => {
 
           {activeTab === 'tax' && (
             <div className="tax-settings">
-              <h3>{t('settings:tax.title')}</h3>
+              <h3>{t('settings:sections.taxSettings')}</h3>
               
               <form className="settings-form">
                 <div className="form-group checkbox-group">
@@ -188,7 +188,7 @@ const Settings = () => {
 
           {activeTab === 'receipt' && (
             <div className="receipt-settings">
-              <h3>{t('settings:receipt.title')}</h3>
+              <h3>{t('settings:sections.receiptCustomization')}</h3>
               
               <form className="settings-form">
                 <div className="form-group">
@@ -222,7 +222,7 @@ const Settings = () => {
 
           {activeTab === 'database' && (
             <div className="database-settings">
-              <h3>{t('settings:database.title')}</h3>
+              <h3>{t('settings:sections.databaseManagement')}</h3>
               
               <div className="database-actions">
                 <div className="action-card">

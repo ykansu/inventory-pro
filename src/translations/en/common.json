@@ -6,5 +6,16 @@
   "salesHistory": "Sales History",
   "reports": "Reports",
   "settings": "Settings",
-  "saveChanges": "Save Changes"
+  "saveChanges": "Save Changes",
+  "cancel": "Cancel",
+  "search": "Search",
+  "add": "Add",
+  "edit": "Edit",
+  "delete": "Delete",
+  "save": "Save",
+  "close": "Close",
+  "confirm": "Confirm",
+  "actions": "Actions",
+  "loading": "Loading...",
+  "noData": "No data available"
 }

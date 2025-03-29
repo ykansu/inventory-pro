@@ -1,10 +1,31 @@
 {
   "title": "Point of Sale",
-  "new_sale": "New Sale",
-  "cart": "Cart",
-  "total": "Total",
-  "payment": "Payment",
-  "cash": "Cash",
-  "card": "Card",
-  "complete_sale": "Complete Sale"
+  "search": {
+    "placeholder": "Scan barcode or search products...",
+    "button": "Search"
+  },
+  "categories": {
+    "all": "All",
+    "electronics": "Electronics",
+    "clothing": "Clothing",
+    "food": "Food"
+  },
+  "productGrid": {
+    "empty": "No products available. Add products to your inventory first."
+  },
+  "cart": {
+    "title": "Current Sale",
+    "clear": "Clear",
+    "empty": "No items in cart",
+    "addInstructions": "Add products by scanning or searching"
+  },
+  "summary": {
+    "subtotal": "Subtotal",
+    "tax": "Tax ({{rate}})",
+    "total": "Total"
+  },
+  "payment": {
+    "cash": "Cash Payment",
+    "card": "Card Payment"
+  }
 }

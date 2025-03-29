@@ -1,11 +1,51 @@
 {
   "title": "Reports",
-  "daily_sales": "Daily Sales",
-  "inventory_valuation": "Inventory Valuation",
-  "low_stock": "Low Stock Items",
-  "top_selling_products": "Top Selling Products",
-  "profit_margin": "Profit Margin",
-  "date_range": "Date Range",
-  "export_pdf": "Export PDF",
-  "export_csv": "Export CSV"
+  "sidebar": {
+    "title": "Report Types"
+  },
+  "types": {
+    "daily": "Daily Sales (Z-Report)",
+    "inventory": "Inventory Valuation",
+    "lowStock": "Low Stock Report",
+    "topSelling": "Top Selling Products",
+    "profitMargin": "Profit Margin Analysis"
+  },
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "generate": "Generate Report"
+  },
+  "export": {
+    "csv": "Export to CSV",
+    "print": "Print Report"
+  },
+  "daily": {
+    "title": "Daily Sales Report (Z-Report)",
+    "period": "For period: {{start}} to {{end}}",
+    "summary": {
+      "totalSales": "Total Sales",
+      "transactions": "Number of Transactions",
+      "averageValue": "Average Transaction Value",
+      "grossProfit": "Gross Profit"
+    },
+    "paymentBreakdown": {
+      "title": "Payment Method Breakdown",
+      "headers": {
+        "method": "Payment Method",
+        "amount": "Amount",
+        "percentage": "Percentage"
+      }
+    },
+    "salesByCategory": {
+      "title": "Sales by Category",
+      "headers": {
+        "category": "Category",
+        "itemsSold": "Items Sold",
+        "totalSales": "Total Sales"
+      }
+    }
+  },
+  "noData": "No data available for the selected period.",
+  "notSelected": "Not selected",
+  "generateInstructions": "Select a date range and click \"Generate Report\" to view this report."
 }

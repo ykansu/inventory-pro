@@ -1,11 +1,51 @@
 {
   "title": "Raporlar",
-  "daily_sales": "Günlük Satışlar",
-  "inventory_valuation": "Envanter Değerlemesi",
-  "low_stock": "Düşük Stoklu Ürünler",
-  "top_selling_products": "En Çok Satan Ürünler",
-  "profit_margin": "Kar Marjı",
-  "date_range": "Tarih Aralığı",
-  "export_pdf": "PDF Olarak Dışa Aktar",
-  "export_csv": "CSV Olarak Dışa Aktar"
+  "sidebar": {
+    "title": "Rapor Türleri"
+  },
+  "types": {
+    "daily": "Günlük Satışlar (Z-Raporu)",
+    "inventory": "Envanter Değerlendirmesi",
+    "lowStock": "Düşük Stok Raporu",
+    "topSelling": "En Çok Satan Ürünler",
+    "profitMargin": "Kar Marjı Analizi"
+  },
+  "filters": {
+    "from": "Başlangıç",
+    "to": "Bitiş",
+    "generate": "Rapor Oluştur"
+  },
+  "export": {
+    "csv": "CSV Olarak Dışa Aktar",
+    "print": "Raporu Yazdır"
+  },
+  "daily": {
+    "title": "Günlük Satış Raporu (Z-Raporu)",
+    "period": "Dönem: {{start}} - {{end}}",
+    "summary": {
+      "totalSales": "Toplam Satışlar",
+      "transactions": "İşlem Sayısı",
+      "averageValue": "Ortalama İşlem Değeri",
+      "grossProfit": "Brüt Kar"
+    },
+    "paymentBreakdown": {
+      "title": "Ödeme Yöntemi Dağılımı",
+      "headers": {
+        "method": "Ödeme Yöntemi",
+        "amount": "Tutar",
+        "percentage": "Yüzde"
+      }
+    },
+    "salesByCategory": {
+      "title": "Kategoriye Göre Satışlar",
+      "headers": {
+        "category": "Kategori",
+        "itemsSold": "Satılan Ürünler",
+        "totalSales": "Toplam Satış"
+      }
+    }
+  },
+  "noData": "Seçilen dönem için veri bulunamadı.",
+  "notSelected": "Seçilmedi",
+  "generateInstructions": "Raporu görüntülemek için bir tarih aralığı seçin ve \"Rapor Oluştur\" düğmesine tıklayın."
 }

@@ -1,9 +1,42 @@
 {
   "title": "Sales History",
-  "date": "Date",
-  "product": "Product",
-  "quantity": "Quantity",
-  "total_amount": "Total Amount",
-  "payment_method": "Payment Method",
-  "filter_by_date": "Filter by Date"
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "apply": "Apply Filter",
+    "allPaymentMethods": "All Payment Methods",
+    "searchPlaceholder": "Search by receipt #"
+  },
+  "paymentMethods": {
+    "cash": "Cash",
+    "card": "Card"
+  },
+  "table": {
+    "headers": {
+      "receipt": "Receipt #",
+      "dateTime": "Date & Time",
+      "items": "Items",
+      "total": "Total",
+      "payment": "Payment",
+      "actions": "Actions"
+    },
+    "noRecords": "No sales records found for the selected period."
+  },
+  "details": {
+    "title": "Sale Details"
+  },
+  "receipt": {
+    "number": "Receipt #{{number}}",
+    "item": "Item",
+    "quantity": "Qty",
+    "price": "Price",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "paymentMethod": "Payment Method"
+  },
+  "actions": {
+    "printReceipt": "Print Receipt",
+    "processReturn": "Process Return"
+  }
 }

@@ -65,15 +65,6 @@ const App = () => {
           </div>
         </aside>
         <main className="main-content">
-          <header className="main-header">
-            <div className="header-title">
-              {/* Page title will be dynamic based on current route */}
-              <h1>{t('dashboard')}</h1>
-            </div>
-            <div className="header-actions">
-              {/* Placeholder for actions like search, notifications, etc. */}
-            </div>
-          </header>
           <div className="content-container">
             <Routes>
               <Route path="/" element={<Dashboard />} />

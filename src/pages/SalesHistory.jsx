@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 
 const SalesHistory = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedSale, setSelectedSale] = useState(null);
+  const { t } = useTranslation(['sales', 'common']);
 
   return (
     <div className="sales-history-page">
       <div className="page-header">
-        <h2>Sales History</h2>
+        <h2>{t('sales:title')}</h2>
       </div>
 
       <div className="sales-filters">
         <div className="date-filters">
           <div className="form-group">
-            <label htmlFor="startDate">From</label>
+            <label htmlFor="startDate">{t('sales:filters.from')}</label>
             <input 
               type="date" 
               id="startDate" 
@@ -22,7 +24,7 @@ const SalesHistory = () => {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="endDate">To</label>
+            <label htmlFor="endDate">{t('sales:filters.to')}</label>
             <input 
               type="date" 
               id="endDate" 
@@ -30,18 +32,18 @@ const SalesHistory = () => {
               onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
             />
           </div>
-          <button className="filter-button">Apply Filter</button>
+          <button className="filter-button">{t('sales:filters.apply')}</button>
         </div>
 
         <div className="additional-filters">
           <select className="filter-select">
-            <option value="">All Payment Methods</option>
-            <option value="cash">Cash</option>
-            <option value="card">Card</option>
+            <option value="">{t('sales:filters.allPaymentMethods')}</option>
+            <option value="cash">{t('sales:paymentMethods.cash')}</option>
+            <option value="card">{t('sales:paymentMethods.card')}</option>
           </select>
           <input 
             type="text" 
-            placeholder="Search by receipt #" 
+            placeholder={t('sales:filters.searchPlaceholder')} 
             className="search-input"
           />
         </div>
@@ -52,18 +54,18 @@ const SalesHistory = () => {
           <table className="sales-table">
             <thead>
               <tr>
-                <th>Receipt #</th>
-                <th>Date & Time</th>
-                <th>Items</th>
-                <th>Total</th>
-                <th>Payment</th>
-                <th>Actions</th>
+                <th>{t('sales:table.headers.receipt')}</th>
+                <th>{t('sales:table.headers.dateTime')}</th>
+                <th>{t('sales:table.headers.items')}</th>
+                <th>{t('sales:table.headers.total')}</th>
+                <th>{t('sales:table.headers.payment')}</th>
+                <th>{t('sales:table.headers.actions')}</th>
               </tr>
             </thead>
             <tbody>
               <tr className="empty-state">
                 <td colSpan="6">
-                  <p>No sales records found for the selected period.</p>
+                  <p>{t('sales:table.noRecords')}</p>
                 </td>
               </tr>
             </tbody>
@@ -73,23 +75,23 @@ const SalesHistory = () => {
         {selectedSale && (
           <div className="sale-details">
             <div className="sale-details-header">
-              <h3>Sale Details</h3>
+              <h3>{t('sales:details.title')}</h3>
               <button className="close-button" onClick={() => setSelectedSale(null)}>×</button>
             </div>
             <div className="receipt">
               <div className="receipt-header">
                 <h4>Inventory Pro</h4>
-                <p>Receipt #{selectedSale.receiptNumber}</p>
+                <p>{t('sales:receipt.number', { number: selectedSale.receiptNumber })}</p>
                 <p>{selectedSale.date}</p>
               </div>
               <div className="receipt-items">
                 <table>
                   <thead>
                     <tr>
-                      <th>Item</th>
-                      <th>Qty</th>
-                      <th>Price</th>
-                      <th>Total</th>
+                      <th>{t('sales:receipt.item')}</th>
+                      <th>{t('sales:receipt.quantity')}</th>
+                      <th>{t('sales:receipt.price')}</th>
+                      <th>{t('sales:receipt.total')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -99,25 +101,25 @@ const SalesHistory = () => {
               </div>
               <div className="receipt-summary">
                 <div className="summary-row">
-                  <span>Subtotal:</span>
+                  <span>{t('sales:receipt.subtotal')}:</span>
                   <span>$0.00</span>
                 </div>
                 <div className="summary-row">
-                  <span>Tax:</span>
+                  <span>{t('sales:receipt.tax')}:</span>
                   <span>$0.00</span>
                 </div>
                 <div className="summary-row total">
-                  <span>Total:</span>
+                  <span>{t('sales:receipt.total')}:</span>
                   <span>$0.00</span>
                 </div>
                 <div className="summary-row">
-                  <span>Payment Method:</span>
-                  <span>Cash</span>
+                  <span>{t('sales:receipt.paymentMethod')}:</span>
+                  <span>{t('sales:paymentMethods.cash')}</span>
                 </div>
               </div>
               <div className="receipt-actions">
-                <button className="button secondary">Print Receipt</button>
-                <button className="button primary">Process Return</button>
+                <button className="button secondary">{t('sales:actions.printReceipt')}</button>
+                <button className="button primary">{t('sales:actions.processReturn')}</button>
               </div>
             </div>
           </div>
