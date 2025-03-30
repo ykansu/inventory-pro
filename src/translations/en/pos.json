@@ -61,6 +61,7 @@
     "email": "Email"
   },
   "notifications": {
-    "saleCompleted": "Sale completed: {{amount}}"
+    "saleCompleted": "Sale completed: {{amount}}",
+    "lowStock": "is low on stock! Current: {{current}}, Threshold: {{threshold}}"
   }
 }

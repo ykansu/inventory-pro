@@ -16,16 +16,17 @@ const POS = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [settings, setSettings] = useState({
+    taxRate: 18,
+    enableTax: true,
+    currency: 'usd',
     businessName: 'Inventory Pro',
     businessAddress: '',
     businessPhone: '',
     businessEmail: '',
-    taxRate: 18,
-    enableTax: true,
-    currency: 'usd',
-    dateFormat: 'mm/dd/yyyy',
     receiptHeader: '',
-    receiptFooter: 'Thank you for your purchase!'
+    receiptFooter: '',
+    dateFormat: 'mm/dd/yyyy',
+    enableNotifications: true
   });
   
   // State for totals calculation
@@ -42,6 +43,8 @@ const POS = () => {
   // State for receipt modal
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [currentReceipt, setCurrentReceipt] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isReceipt, setIsReceipt] = useState(false);
   
   // Refs
   const searchInputRef = useRef(null);
@@ -73,7 +76,8 @@ const POS = () => {
             currency: allSettings.currency?.toLowerCase() || 'usd',
             dateFormat: allSettings.date_format || 'mm/dd/yyyy',
             receiptHeader: allSettings.receipt_header || '',
-            receiptFooter: allSettings.receipt_footer || 'Thank you for your purchase!'
+            receiptFooter: allSettings.receipt_footer || 'Thank you for your purchase!',
+            enableNotifications: allSettings.enable_notifications !== undefined ? allSettings.enable_notifications : true
           });
         }
       } catch (error) {
@@ -242,87 +246,26 @@ const POS = () => {
       return;
     }
     
-    // Generate receipt number (timestamp-based)
-    const receiptNumber = `INV-${format(new Date(), 'yyyyMMdd-HHmmss')}`;
-    
-    // Prepare sale data
-    const saleData = {
-      receipt_number: receiptNumber,
-      subtotal: subtotal,
-      tax_amount: tax,
-      total_amount: total,
-      payment_method: paymentMethod,
-      amount_paid: parseFloat(amountReceived) || total,
-      change_amount: parseFloat(change) || 0,
-      created_at: new Date(),
-      updated_at: new Date()
-    };
-    
-    // Prepare sale items
-    const saleItems = cartItems.map(item => ({
-      product_id: item.id,
-      product_name: item.name,
-      quantity: item.quantity,
-      unit_price: item.price,
-      discount_amount: 0, // Discount functionality could be added later
-      total_price: item.totalPrice
-    }));
-
     try {
-      // Create the sale
-      const saleResult = await SaleService.createSale(saleData, saleItems);
+      setIsProcessing(true);
       
-      // Show success toast notification
-      toast.success(
-        t('pos:notifications.saleCompleted', { amount: formatCurrency(total, settings.currency) }), 
-        { 
-          duration: 3000,
-          icon: '💰'
-        }
+      // Call the completeSale function
+      await completeSale(
+        paymentMethod, 
+        parseFloat(amountReceived) || total, 
+        parseFloat(change) || 0
       );
       
-      // Set receipt data for display
-      setCurrentReceipt({
-        ...saleResult,
-        items: saleItems,
-        businessName: settings.businessName,
-        businessAddress: settings.businessAddress,
-        businessPhone: settings.businessPhone,
-        businessEmail: settings.businessEmail,
-        receiptHeader: settings.receiptHeader,
-        receiptFooter: settings.receiptFooter,
-        receiptNumber: receiptNumber,
-        date: formatDate(new Date()),
-        subtotal: subtotal,
-        tax: tax,
-        total: total,
-        paymentMethod: paymentMethod,
-        amountPaid: parseFloat(amountReceived) || total,
-        changeAmount: parseFloat(change) || 0
-      });
-      
-      // Close payment modal and show receipt
+      // Close payment modal
       setShowPaymentModal(false);
-      setShowReceiptModal(true);
       
-      // Reset cart and payment state
-      setCartItems([]);
-      setAmountReceived('');
-      setChange(0);
-      setPaymentMethod('cash');
-      searchInputRef.current.focus();
+      // Show receipt modal
+      setShowReceiptModal(true);
     } catch (error) {
       console.error('Error processing payment:', error);
-      
-      // Show error toast notification
-      toast.error(
-        t('pos:payment.error'), 
-        {
-          duration: 4000
-        }
-      );
-      
-      alert(t('pos:payment.error'));
+      toast.error(t('pos:payment.error'));
+    } finally {
+      setIsProcessing(false);
     }
   };
   
@@ -387,6 +330,151 @@ const POS = () => {
       case 'mm/dd/yyyy':
       default:
         return format(d, 'MM/dd/yyyy HH:mm:ss');
+    }
+  };
+  
+  // Complete sale function
+  const completeSale = async (paymentMethod, amountReceived = 0, change = 0) => {
+    if (cartItems.length === 0) {
+      toast.error(t('pos:payment.emptyCart'));
+      return;
+    }
+    
+    try {
+      // Format cart items for the database
+      const receiptNumber = `INV-${format(new Date(), 'yyyyMMdd-HHmmss')}`;
+    
+      // Prepare sale data
+      const saleData = {
+        receipt_number: receiptNumber,
+        subtotal: subtotal,
+        tax_amount: tax,
+        total_amount: total,
+        payment_method: paymentMethod,
+        amount_paid: parseFloat(amountReceived) || total,
+        change_amount: parseFloat(change) || 0,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+      
+      // Prepare sale items
+      const saleItems = cartItems.map(item => ({
+        product_id: item.id,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        discount_amount: 0, // Discount functionality could be added later
+        total_price: item.totalPrice
+      }));
+      
+      // Create the sale
+      const sale = await SaleService.createSale(saleData, saleItems);
+      
+      // Keep track of items that went below threshold after sale
+      const lowStockItems = [];
+      
+      // Check for low stock items if notifications are enabled
+      if (settings.enableNotifications) {
+        for (const item of cartItems) {
+          const product = item.product;
+          // Calculate the new stock level after this sale
+          const newStockLevel = product.stock_quantity - item.quantity;
+          
+          console.log(`Stock check - ${product.name}: Current: ${product.stock_quantity}, After sale: ${newStockLevel}, Threshold: ${product.min_stock_threshold}`);
+          
+          // Show notification if stock will be at or below threshold
+          if (newStockLevel <= product.min_stock_threshold) {
+            console.log(`Adding low stock notification for ${product.name}`);
+            lowStockItems.push({
+              name: product.name,
+              currentStock: newStockLevel,
+              threshold: product.min_stock_threshold
+            });
+          }
+        }
+      }
+      
+      // Log notification status
+      console.log(`Low stock items detected: ${lowStockItems.length}`);
+      
+      // Show receipt
+      setCurrentReceipt({
+        ...saleData,
+        items: cartItems,
+        businessName: settings.businessName,
+        businessAddress: settings.businessAddress,
+        businessPhone: settings.businessPhone,
+        businessEmail: settings.businessEmail,
+        receiptHeader: settings.receiptHeader,
+        receiptFooter: settings.receiptFooter || t('pos:receipt.thankYou'),
+        amountPaid: amountReceived,
+        changeAmount: change,
+        total: total,
+        tax: tax,
+        subtotal: subtotal,
+        date: formatDate(new Date())
+      });
+      
+      // Show success message
+      toast.success(t('pos:notifications.saleCompleted', { 
+        amount: formatPriceWithCurrency(total) 
+      }), {
+        duration: 5000,
+        icon: '💰',
+        style: {
+          background: '#ecfdf5',
+          color: '#065f46',
+          border: '1px solid #6ee7b7',
+          fontWeight: 'bold'
+        }
+      });
+      
+      // Show low stock notifications if any
+      if (lowStockItems.length > 0) {
+        
+        // Then show individual notifications
+        setTimeout(() => {
+          lowStockItems.forEach((item, index) => {
+            setTimeout(() => {
+              console.log(`Showing notification for ${item.name}`);
+              toast(
+                `${item.name} ${t('pos:notifications.lowStock', { 
+                  current: item.currentStock,
+                  threshold: item.threshold
+                })}`,
+                { 
+                  duration: 8000,
+                  icon: '⚠️',
+                  style: {
+                    background: '#fffbeb',
+                    color: '#92400e',
+                    border: '1px solid #fbbf24',
+                    fontWeight: 'bold',
+                    padding: '16px',
+                    fontSize: '16px'
+                  }
+                }
+              );
+            }, index * 800); // Stagger notifications
+          });
+        }, 1200); // Delay after the summary notification
+      }
+      
+      // Clear cart
+      clearCart();
+      setIsReceipt(true);
+      
+      // Reset payment state
+      setAmountReceived('');
+      setChange(0);
+      setPaymentMethod('cash');
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    } catch (error) {
+      console.error('Error completing sale:', error);
+      toast.error(t('pos:payment.error'));
+      throw error; // Re-throw the error to be caught by processPayment
     }
   };
   
@@ -587,9 +675,9 @@ const POS = () => {
               <button 
                 className="button primary"
                 onClick={processPayment}
-                disabled={paymentMethod === 'cash' && (parseFloat(amountReceived) || 0) < total}
+                disabled={paymentMethod === 'cash' && (parseFloat(amountReceived) || 0) < total || isProcessing}
               >
-                {t('pos:payment.complete')}
+                {isProcessing ? t('common:processing') : t('pos:payment.complete')}
               </button>
             </div>
           </div>
@@ -628,10 +716,10 @@ const POS = () => {
                     <tbody>
                       {currentReceipt.items.map((item, index) => (
                         <tr key={index}>
-                          <td>{item.product_name}</td>
+                          <td>{item.name}</td>
                           <td>{item.quantity}</td>
-                          <td>{formatPriceWithCurrency(item.unit_price)}</td>
-                          <td>{formatPriceWithCurrency(item.total_price)}</td>
+                          <td>{formatPriceWithCurrency(item.price)}</td>
+                          <td>{formatPriceWithCurrency(item.totalPrice)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -654,9 +742,9 @@ const POS = () => {
                   </div>
                   <div className="summary-row">
                     <span>{t('pos:receipt.paymentMethod')}:</span>
-                    <span>{t(`pos:paymentMethods.${currentReceipt.paymentMethod}`)}</span>
+                    <span>{t(`pos:paymentMethods.${currentReceipt.payment_method}`)}</span>
                   </div>
-                  {currentReceipt.paymentMethod === 'cash' && (
+                  {currentReceipt.payment_method === 'cash' && (
                     <>
                       <div className="summary-row">
                         <span>{t('pos:receipt.amountReceived')}:</span>

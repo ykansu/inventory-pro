@@ -62,6 +62,7 @@
     "email": "E-posta"
   },
   "notifications": {
-    "saleCompleted": "Satış tamamlandı: {{amount}}"
+    "saleCompleted": "Satış tamamlandı: {{amount}}",
+    "lowStock": "stok seviyesi düşük! Mevcut: {{current}}, Eşik: {{threshold}}"
   }
 }

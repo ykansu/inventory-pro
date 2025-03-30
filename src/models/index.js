@@ -275,62 +275,50 @@ class Sale extends BaseModel {
       let formattedStartDate = startDate;
       let formattedEndDate = endDate;
 
-      // Ensure dates use the current year, not 2025
-      const currentYear = new Date().getFullYear();
-      
-      if (startDate && startDate.includes('-')) {
-        // Extract the month-day part (MM-DD) and prepend current year
-        const dateParts = startDate.split('-');
-        if (dateParts.length === 3 && dateParts[0] !== currentYear.toString()) {
-          formattedStartDate = `${currentYear}-${dateParts[1]}-${dateParts[2]}`;
-        }
-        
-        // Add time component if not present
-        if (!formattedStartDate.includes('T')) {
-          formattedStartDate = `${formattedStartDate}T00:00:00.000Z`;
-        }
+      // Add time component if not present for start date
+      if (startDate && !formattedStartDate.includes('T')) {
+        formattedStartDate = `${formattedStartDate}T00:00:00.000`;
       }
       
-      if (endDate && endDate.includes('-')) {
-        // Extract the month-day part (MM-DD) and prepend current year
-        const dateParts = endDate.split('-');
-        if (dateParts.length === 3 && dateParts[0] !== currentYear.toString()) {
-          formattedEndDate = `${currentYear}-${dateParts[1]}-${dateParts[2]}`;
-        }
-        
-        // Add time component for end of day if not present
-        if (!formattedEndDate.includes('T')) {
-          formattedEndDate = `${formattedEndDate}T23:59:59.999Z`;
-        }
+      // Add time component for end of day if not present
+      if (endDate && !formattedEndDate.includes('T')) {
+        formattedEndDate = `${formattedEndDate}T23:59:59.999`;
       }
+      formattedStartDate = new Date(formattedStartDate).toISOString();
+      formattedEndDate = new Date(formattedEndDate).toISOString();
+
+      console.log('Formatted start date:', formattedStartDate);
+      console.log('Formatted end date:', formattedEndDate);
       
-      // Get all sales from the database
-      const allSales = await this.db(this.tableName).select('*');
+      // Query sales directly with date filtering in SQLite
+      const query = this.db(this.tableName)
+        .select(`${this.tableName}.*`)
+        .where('created_at', '>=', formattedStartDate)
+        .where('created_at', '<=', formattedEndDate);
+      
+      // Execute the query
+      const filteredSales = await query;
       
       // If there are no sales, return an empty array
-      if (allSales.length === 0) {
+      if (filteredSales.length === 0) {
         return [];
       }
       
-      // Filter in memory using JavaScript date objects for more reliable comparison
-      const startTimestamp = new Date(formattedStartDate).getTime();
-      const endTimestamp = new Date(formattedEndDate).getTime();
+      // Enhancement: Include item count for each sale using a more efficient join
+      const salesWithItemCounts = await this.db(this.tableName)
+        .select(`${this.tableName}.id`)
+        .count('sale_items.id as item_count')
+        .leftJoin('sale_items', `${this.tableName}.id`, 'sale_items.sale_id')
+        .whereIn(`${this.tableName}.id`, filteredSales.map(sale => sale.id))
+        .groupBy(`${this.tableName}.id`);
       
-      // Filter based on date range
-      const filteredSales = allSales.filter(sale => {
-        const saleDate = new Date(sale.created_at).getTime();
-        return saleDate >= startTimestamp && saleDate <= endTimestamp;
+      // Map the item counts to the filtered sales
+      const salesMap = new Map(salesWithItemCounts.map(item => [item.id, item.item_count]));
+      
+      // Add item count to each sale
+      filteredSales.forEach(sale => {
+        sale.item_count = salesMap.get(sale.id) || 0;
       });
-      
-      // Enhancement: Include item count for each sale
-      for (const sale of filteredSales) {
-        const items = await this.db('sale_items')
-          .where({ sale_id: sale.id })
-          .count('id as item_count')
-          .first();
-        
-        sale.item_count = items ? items.item_count : 0;
-      }
       
       return filteredSales;
     } catch (error) {
