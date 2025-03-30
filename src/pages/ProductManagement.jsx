@@ -4,7 +4,7 @@ import { useDatabase } from '../context/DatabaseContext';
 import { toast } from 'react-hot-toast';
 
 const ProductManagement = () => {
-  const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', or 'edit'
+  const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', 'edit', 'categories', or 'suppliers'
   const { t } = useTranslation(['products', 'common']);
   const { products, categories, suppliers, isLoading } = useDatabase();
   
@@ -38,6 +38,26 @@ const ProductManagement = () => {
     min_stock_threshold: 5,
     supplier_id: '',
     description: ''
+  });
+
+  // State for category form data
+  const [categoryFormData, setCategoryFormData] = useState({
+    id: null,
+    name: '',
+    description: ''
+  });
+
+  // State for supplier form data
+  const [supplierFormData, setSupplierFormData] = useState({
+    id: null,
+    company_name: '',
+    contact_person: '',
+    phone: '',
+    email: '',
+    address: '',
+    tax_id: '',
+    website: '',
+    notes: ''
   });
 
   // Load products, categories, and suppliers on mount
@@ -150,6 +170,30 @@ const ProductManagement = () => {
     });
   }, []);
 
+  // Reset category form
+  const resetCategoryForm = useCallback(() => {
+    setCategoryFormData({
+      id: null,
+      name: '',
+      description: ''
+    });
+  }, []);
+
+  // Reset supplier form
+  const resetSupplierForm = useCallback(() => {
+    setSupplierFormData({
+      id: null,
+      company_name: '',
+      contact_person: '',
+      phone: '',
+      email: '',
+      address: '',
+      tax_id: '',
+      website: '',
+      notes: ''
+    });
+  }, []);
+
   // Handle form submission for new product
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -255,6 +299,160 @@ const ProductManagement = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Handle category form input changes
+  const handleCategoryInputChange = (e) => {
+    const { name, value } = e.target;
+    setCategoryFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission for category
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setLoading(true);
+      
+      if (categoryFormData.id) {
+        // Update existing category
+        await categories.updateCategory(categoryFormData.id, categoryFormData);
+        toast.success(t('products:notifications.categoryUpdateSuccess', { fallback: 'Category updated successfully' }));
+      } else {
+        // Create new category
+        await categories.createCategory(categoryFormData);
+        toast.success(t('products:notifications.categoryCreateSuccess', { fallback: 'Category created successfully' }));
+      }
+      
+      // Reset form and refresh category list
+      resetCategoryForm();
+      
+      // Reload categories
+      const updatedCategories = await categories.getAllCategories();
+      setCategoryList(updatedCategories || []);
+    } catch (err) {
+      console.error('Failed to save category:', err);
+      setError('Failed to save category. Please try again.');
+      toast.error(categoryFormData.id 
+        ? t('products:errors.categoryUpdateFailed', { fallback: 'Failed to update category' }) 
+        : t('products:errors.categoryCreateFailed', { fallback: 'Failed to create category' }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle category deletion
+  const handleDeleteCategory = async (id) => {
+    if (window.confirm(t('products:categoryDeleteConfirmation', { fallback: 'Are you sure you want to delete this category?' }))) {
+      try {
+        setLoading(true);
+        await categories.deleteCategory(id);
+        
+        // Reload categories
+        const updatedCategories = await categories.getAllCategories();
+        setCategoryList(updatedCategories || []);
+        setError(null);
+        toast.success(t('products:notifications.categoryDeleteSuccess', { fallback: 'Category deleted successfully' }));
+      } catch (err) {
+        console.error(`Failed to delete category ${id}:`, err);
+        setError('Failed to delete category. Please try again.');
+        toast.error(t('products:errors.categoryDeleteFailed', { fallback: 'Failed to delete category' }));
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Handle category edit
+  const handleEditCategory = (category) => {
+    setCategoryFormData({
+      id: category.id,
+      name: category.name,
+      description: category.description || ''
+    });
+  };
+
+  // Handle supplier form input changes
+  const handleSupplierInputChange = (e) => {
+    const { name, value } = e.target;
+    setSupplierFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission for supplier
+  const handleSupplierSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setLoading(true);
+      
+      if (supplierFormData.id) {
+        // Update existing supplier
+        await suppliers.updateSupplier(supplierFormData.id, supplierFormData);
+        toast.success(t('products:notifications.supplierUpdateSuccess', { fallback: 'Supplier updated successfully' }));
+      } else {
+        // Create new supplier
+        await suppliers.createSupplier(supplierFormData);
+        toast.success(t('products:notifications.supplierCreateSuccess', { fallback: 'Supplier created successfully' }));
+      }
+      
+      // Reset form and refresh supplier list
+      resetSupplierForm();
+      
+      // Reload suppliers
+      const updatedSuppliers = await suppliers.getAllSuppliers();
+      setSupplierList(updatedSuppliers || []);
+    } catch (err) {
+      console.error('Failed to save supplier:', err);
+      setError('Failed to save supplier. Please try again.');
+      toast.error(supplierFormData.id 
+        ? t('products:errors.supplierUpdateFailed', { fallback: 'Failed to update supplier' }) 
+        : t('products:errors.supplierCreateFailed', { fallback: 'Failed to create supplier' }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle supplier deletion
+  const handleDeleteSupplier = async (id) => {
+    if (window.confirm(t('products:supplierDeleteConfirmation', { fallback: 'Are you sure you want to delete this supplier?' }))) {
+      try {
+        setLoading(true);
+        await suppliers.deleteSupplier(id);
+        
+        // Reload suppliers
+        const updatedSuppliers = await suppliers.getAllSuppliers();
+        setSupplierList(updatedSuppliers || []);
+        setError(null);
+        toast.success(t('products:notifications.supplierDeleteSuccess', { fallback: 'Supplier deleted successfully' }));
+      } catch (err) {
+        console.error(`Failed to delete supplier ${id}:`, err);
+        setError('Failed to delete supplier. Please try again.');
+        toast.error(t('products:errors.supplierDeleteFailed', { fallback: 'Failed to delete supplier' }));
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Handle supplier edit
+  const handleEditSupplier = (supplier) => {
+    setSupplierFormData({
+      id: supplier.id,
+      company_name: supplier.company_name,
+      contact_person: supplier.contact_person,
+      phone: supplier.phone,
+      email: supplier.email || '',
+      address: supplier.address || '',
+      tax_id: supplier.tax_id || '',
+      website: supplier.website || '',
+      notes: supplier.notes || ''
+    });
+  };
+
   if (isLoading || loading) {
     return (
       <div className="product-management-page">
@@ -294,6 +492,24 @@ const ProductManagement = () => {
             }}
           >
             {t('products:tabs.add')}
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'categories' ? 'active' : ''}`}
+            onClick={() => {
+              resetCategoryForm();
+              setActiveTab('categories');
+            }}
+          >
+            {t('products:tabs.categories', { fallback: 'Categories' })}
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'suppliers' ? 'active' : ''}`}
+            onClick={() => {
+              resetSupplierForm();
+              setActiveTab('suppliers');
+            }}
+          >
+            {t('products:tabs.suppliers', { fallback: 'Suppliers' })}
           </button>
           {activeTab === 'edit' && (
             <button 
@@ -435,6 +651,261 @@ const ProductManagement = () => {
               </button>
             </div>
           )}
+        </div>
+      ) : activeTab === 'categories' ? (
+        <div className="category-management-container">
+          <div className="category-form-container">
+            <h3>{categoryFormData.id ? t('products:categories.editCategory', { fallback: 'Edit Category' }) : t('products:categories.addCategory', { fallback: 'Add Category' })}</h3>
+            <form className="category-form" onSubmit={handleCategorySubmit}>
+              <div className="form-group">
+                <label htmlFor="name">{t('products:form.name')} *</label>
+                <input 
+                  type="text" 
+                  id="name" 
+                  name="name" 
+                  value={categoryFormData.name}
+                  onChange={handleCategoryInputChange}
+                  placeholder={t('products:categories.namePlaceholder', { fallback: 'Enter category name' })}
+                  required
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="description">{t('products:form.description')}</label>
+                <textarea 
+                  id="description" 
+                  name="description" 
+                  value={categoryFormData.description}
+                  onChange={handleCategoryInputChange}
+                  placeholder={t('products:categories.descriptionPlaceholder', { fallback: 'Enter category description (optional)' })}
+                  rows="3"
+                ></textarea>
+              </div>
+              
+              <div className="form-actions">
+                <button type="button" className="button secondary" onClick={resetCategoryForm}>
+                  {t('common:cancel')}
+                </button>
+                <button type="submit" className="button primary" disabled={loading}>
+                  {loading ? t('common:saving') : categoryFormData.id ? t('products:categories.update', { fallback: 'Update Category' }) : t('products:categories.save', { fallback: 'Save Category' })}
+                </button>
+              </div>
+            </form>
+          </div>
+          
+          <div className="category-list-container">
+            <h3>{t('products:categories.list', { fallback: 'Categories List' })}</h3>
+            <table className="category-table">
+              <thead>
+                <tr>
+                  <th>{t('products:categories.name', { fallback: 'Name' })}</th>
+                  <th>{t('products:categories.description', { fallback: 'Description' })}</th>
+                  <th>{t('products:categories.productCount', { fallback: 'Products' })}</th>
+                  <th>{t('products:table.headers.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categoryList.length === 0 ? (
+                  <tr className="empty-state">
+                    <td colSpan="4">
+                      <p>{t('products:categories.emptyState', { fallback: 'No categories found. Add your first category.' })}</p>
+                    </td>
+                  </tr>
+                ) : (
+                  categoryList.map(category => (
+                    <tr key={category.id}>
+                      <td>{category.name}</td>
+                      <td>{category.description || '-'}</td>
+                      <td>{category.product_count || 0}</td>
+                      <td className="action-buttons">
+                        <button 
+                          className="action-button edit"
+                          onClick={() => handleEditCategory(category)}
+                        >
+                          {t('common:edit')}
+                        </button>
+                        <button 
+                          className="action-button delete"
+                          onClick={() => handleDeleteCategory(category.id)}
+                          disabled={category.product_count > 0}
+                          title={category.product_count > 0 ? t('products:categories.cannotDelete', { fallback: 'Cannot delete category with products' }) : ''}
+                        >
+                          {t('common:delete')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : activeTab === 'suppliers' ? (
+        <div className="supplier-management-container">
+          <div className="supplier-form-container">
+            <h3>{supplierFormData.id ? t('products:suppliers.editSupplier', { fallback: 'Edit Supplier' }) : t('products:suppliers.addSupplier', { fallback: 'Add Supplier' })}</h3>
+            <form className="supplier-form" onSubmit={handleSupplierSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="company_name">{t('products:suppliers.companyName', { fallback: 'Company Name' })} *</label>
+                  <input 
+                    type="text" 
+                    id="company_name" 
+                    name="company_name" 
+                    value={supplierFormData.company_name}
+                    onChange={handleSupplierInputChange}
+                    placeholder={t('products:suppliers.companyNamePlaceholder', { fallback: 'Enter company name' })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="contact_person">{t('products:suppliers.contactPerson', { fallback: 'Contact Person' })} *</label>
+                  <input 
+                    type="text" 
+                    id="contact_person" 
+                    name="contact_person" 
+                    value={supplierFormData.contact_person}
+                    onChange={handleSupplierInputChange}
+                    placeholder={t('products:suppliers.contactPersonPlaceholder', { fallback: 'Enter contact person name' })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="phone">{t('products:suppliers.phone', { fallback: 'Phone' })} *</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    value={supplierFormData.phone}
+                    onChange={handleSupplierInputChange}
+                    placeholder={t('products:suppliers.phonePlaceholder', { fallback: 'Enter phone number' })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="email">{t('products:suppliers.email', { fallback: 'Email' })}</label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    value={supplierFormData.email}
+                    onChange={handleSupplierInputChange}
+                    placeholder={t('products:suppliers.emailPlaceholder', { fallback: 'Enter email address' })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group full-width">
+                <label htmlFor="address">{t('products:suppliers.address', { fallback: 'Address' })}</label>
+                <textarea 
+                  id="address" 
+                  name="address" 
+                  value={supplierFormData.address}
+                  onChange={handleSupplierInputChange}
+                  placeholder={t('products:suppliers.addressPlaceholder', { fallback: 'Enter address' })}
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="tax_id">{t('products:suppliers.taxId', { fallback: 'Tax ID' })}</label>
+                  <input 
+                    type="text" 
+                    id="tax_id" 
+                    name="tax_id" 
+                    value={supplierFormData.tax_id}
+                    onChange={handleSupplierInputChange}
+                    placeholder={t('products:suppliers.taxIdPlaceholder', { fallback: 'Enter tax ID' })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="website">{t('products:suppliers.website', { fallback: 'Website' })}</label>
+                  <input 
+                    type="url" 
+                    id="website" 
+                    name="website" 
+                    value={supplierFormData.website}
+                    onChange={handleSupplierInputChange}
+                    placeholder={t('products:suppliers.websitePlaceholder', { fallback: 'Enter website URL' })}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group full-width">
+                <label htmlFor="notes">{t('products:suppliers.notes', { fallback: 'Notes' })}</label>
+                <textarea 
+                  id="notes" 
+                  name="notes" 
+                  value={supplierFormData.notes}
+                  onChange={handleSupplierInputChange}
+                  placeholder={t('products:suppliers.notesPlaceholder', { fallback: 'Enter additional notes' })}
+                  rows="3"
+                ></textarea>
+              </div>
+              
+              <div className="form-actions">
+                <button type="button" className="button secondary" onClick={resetSupplierForm}>
+                  {t('common:cancel')}
+                </button>
+                <button type="submit" className="button primary" disabled={loading}>
+                  {loading ? t('common:saving') : supplierFormData.id ? t('products:suppliers.update', { fallback: 'Update Supplier' }) : t('products:suppliers.save', { fallback: 'Save Supplier' })}
+                </button>
+              </div>
+            </form>
+          </div>
+          
+          <div className="supplier-list-container">
+            <h3>{t('products:suppliers.list', { fallback: 'Suppliers List' })}</h3>
+            <table className="supplier-table">
+              <thead>
+                <tr>
+                  <th>{t('products:suppliers.companyName', { fallback: 'Company Name' })}</th>
+                  <th>{t('products:suppliers.contactPerson', { fallback: 'Contact Person' })}</th>
+                  <th>{t('products:suppliers.phone', { fallback: 'Phone' })}</th>
+                  <th>{t('products:suppliers.productCount', { fallback: 'Products' })}</th>
+                  <th>{t('products:table.headers.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {supplierList.length === 0 ? (
+                  <tr className="empty-state">
+                    <td colSpan="5">
+                      <p>{t('products:suppliers.emptyState', { fallback: 'No suppliers found. Add your first supplier.' })}</p>
+                    </td>
+                  </tr>
+                ) : (
+                  supplierList.map(supplier => (
+                    <tr key={supplier.id}>
+                      <td>{supplier.company_name}</td>
+                      <td>{supplier.contact_person}</td>
+                      <td>{supplier.phone}</td>
+                      <td>{supplier.product_count || 0}</td>
+                      <td className="action-buttons">
+                        <button 
+                          className="action-button edit"
+                          onClick={() => handleEditSupplier(supplier)}
+                        >
+                          {t('common:edit')}
+                        </button>
+                        <button 
+                          className="action-button delete"
+                          onClick={() => handleDeleteSupplier(supplier.id)}
+                          disabled={supplier.product_count > 0}
+                          title={supplier.product_count > 0 ? t('products:suppliers.cannotDelete', { fallback: 'Cannot delete supplier with products' }) : ''}
+                        >
+                          {t('common:delete')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="product-form-container">

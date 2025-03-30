@@ -3,7 +3,9 @@
   "tabs": {
     "list": "Ürün Listesi",
     "add": "Ürün Ekle",
-    "edit": "Ürün Düzenle"
+    "edit": "Ürün Düzenle",
+    "categories": "Kategoriler",
+    "suppliers": "Tedarikçiler"
   },
   "search": {
     "placeholder": "Ürünleri ara..."
@@ -18,7 +20,45 @@
   "categories": {
     "electronics": "Elektronik",
     "clothing": "Giyim",
-    "food": "Gıda"
+    "food": "Gıda",
+    "addCategory": "Kategori Ekle",
+    "editCategory": "Kategori Düzenle",
+    "list": "Kategori Listesi",
+    "name": "İsim",
+    "description": "Açıklama",
+    "productCount": "Ürünler",
+    "namePlaceholder": "Kategori adını girin",
+    "descriptionPlaceholder": "Kategori açıklamasını girin (isteğe bağlı)",
+    "save": "Kategori Kaydet",
+    "update": "Kategori Güncelle",
+    "emptyState": "Kategori bulunamadı. İlk kategorinizi ekleyin.",
+    "cannotDelete": "Ürün içeren kategori silinemez"
+  },
+  "suppliers": {
+    "addSupplier": "Tedarikçi Ekle",
+    "editSupplier": "Tedarikçi Düzenle",
+    "list": "Tedarikçi Listesi",
+    "companyName": "Şirket Adı",
+    "contactPerson": "İlgili Kişi",
+    "phone": "Telefon",
+    "email": "E-posta",
+    "address": "Adres",
+    "taxId": "Vergi No",
+    "website": "Web Sitesi",
+    "notes": "Notlar",
+    "productCount": "Ürünler",
+    "companyNamePlaceholder": "Şirket adını girin",
+    "contactPersonPlaceholder": "İlgili kişi adını girin",
+    "phonePlaceholder": "Telefon numarasını girin",
+    "emailPlaceholder": "E-posta adresini girin",
+    "addressPlaceholder": "Adresi girin",
+    "taxIdPlaceholder": "Vergi numarasını girin",
+    "websitePlaceholder": "Web sitesi URL'sini girin",
+    "notesPlaceholder": "Ek notları girin",
+    "save": "Tedarikçi Kaydet",
+    "update": "Tedarikçi Güncelle",
+    "emptyState": "Tedarikçi bulunamadı. İlk tedarikçinizi ekleyin.",
+    "cannotDelete": "Ürün içeren tedarikçi silinemez"
   },
   "table": {
     "headers": {
@@ -70,7 +110,13 @@
     "createSuccess": "Ürün başarıyla oluşturuldu",
     "updateSuccess": "Ürün başarıyla güncellendi",
     "deleteSuccess": "Ürün başarıyla silindi",
-    "stockUpdateSuccess": "Stok başarıyla güncellendi"
+    "stockUpdateSuccess": "Stok başarıyla güncellendi",
+    "categoryCreateSuccess": "Kategori başarıyla oluşturuldu",
+    "categoryUpdateSuccess": "Kategori başarıyla güncellendi",
+    "categoryDeleteSuccess": "Kategori başarıyla silindi",
+    "supplierCreateSuccess": "Tedarikçi başarıyla oluşturuldu",
+    "supplierUpdateSuccess": "Tedarikçi başarıyla güncellendi",
+    "supplierDeleteSuccess": "Tedarikçi başarıyla silindi"
   },
   "errors": {
     "loadFailed": "Ürün verilerini yüklerken hata oluştu",
@@ -79,7 +125,15 @@
     "deleteFailed": "Ürün silinirken hata oluştu",
     "loadEditFailed": "Düzenleme için ürün yüklenirken hata oluştu",
     "stockUpdateFailed": "Stok güncellenirken hata oluştu",
-    "invalidQuantity": "Lütfen geçerli bir pozitif sayı girin"
+    "invalidQuantity": "Lütfen geçerli bir pozitif sayı girin",
+    "categoryCreateFailed": "Kategori oluşturulurken hata oluştu",
+    "categoryUpdateFailed": "Kategori güncellenirken hata oluştu",
+    "categoryDeleteFailed": "Kategori silinirken hata oluştu",
+    "supplierCreateFailed": "Tedarikçi oluşturulurken hata oluştu",
+    "supplierUpdateFailed": "Tedarikçi güncellenirken hata oluştu",
+    "supplierDeleteFailed": "Tedarikçi silinirken hata oluştu"
   },
-  "deleteConfirmation": "Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  "deleteConfirmation": "Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+  "categoryDeleteConfirmation": "Bu kategoriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+  "supplierDeleteConfirmation": "Bu tedarikçiyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
 }

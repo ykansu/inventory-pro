@@ -3,7 +3,9 @@
   "tabs": {
     "list": "Product List",
     "add": "Add Product",
-    "edit": "Edit Product"
+    "edit": "Edit Product",
+    "categories": "Categories",
+    "suppliers": "Suppliers"
   },
   "search": {
     "placeholder": "Search products..."
@@ -18,7 +20,45 @@
   "categories": {
     "electronics": "Electronics",
     "clothing": "Clothing",
-    "food": "Food"
+    "food": "Food",
+    "addCategory": "Add Category",
+    "editCategory": "Edit Category",
+    "list": "Categories List",
+    "name": "Name",
+    "description": "Description",
+    "productCount": "Products",
+    "namePlaceholder": "Enter category name",
+    "descriptionPlaceholder": "Enter category description (optional)",
+    "save": "Save Category",
+    "update": "Update Category",
+    "emptyState": "No categories found. Add your first category.",
+    "cannotDelete": "Cannot delete category with products"
+  },
+  "suppliers": {
+    "addSupplier": "Add Supplier",
+    "editSupplier": "Edit Supplier",
+    "list": "Suppliers List",
+    "companyName": "Company Name",
+    "contactPerson": "Contact Person",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "taxId": "Tax ID",
+    "website": "Website",
+    "notes": "Notes",
+    "productCount": "Products",
+    "companyNamePlaceholder": "Enter company name",
+    "contactPersonPlaceholder": "Enter contact person name",
+    "phonePlaceholder": "Enter phone number",
+    "emailPlaceholder": "Enter email address",
+    "addressPlaceholder": "Enter address",
+    "taxIdPlaceholder": "Enter tax ID",
+    "websitePlaceholder": "Enter website URL",
+    "notesPlaceholder": "Enter additional notes",
+    "save": "Save Supplier",
+    "update": "Update Supplier",
+    "emptyState": "No suppliers found. Add your first supplier.",
+    "cannotDelete": "Cannot delete supplier with products"
   },
   "table": {
     "headers": {
@@ -70,7 +110,13 @@
     "createSuccess": "Product created successfully",
     "updateSuccess": "Product updated successfully",
     "deleteSuccess": "Product deleted successfully",
-    "stockUpdateSuccess": "Stock updated successfully"
+    "stockUpdateSuccess": "Stock updated successfully",
+    "categoryCreateSuccess": "Category created successfully",
+    "categoryUpdateSuccess": "Category updated successfully",
+    "categoryDeleteSuccess": "Category deleted successfully",
+    "supplierCreateSuccess": "Supplier created successfully",
+    "supplierUpdateSuccess": "Supplier updated successfully",
+    "supplierDeleteSuccess": "Supplier deleted successfully"
   },
   "errors": {
     "loadFailed": "Failed to load product data",
@@ -79,7 +125,15 @@
     "deleteFailed": "Failed to delete product",
     "loadEditFailed": "Failed to load product for editing",
     "stockUpdateFailed": "Failed to update stock",
-    "invalidQuantity": "Please enter a valid positive number"
+    "invalidQuantity": "Please enter a valid positive number",
+    "categoryCreateFailed": "Failed to create category",
+    "categoryUpdateFailed": "Failed to update category",
+    "categoryDeleteFailed": "Failed to delete category",
+    "supplierCreateFailed": "Failed to create supplier",
+    "supplierUpdateFailed": "Failed to update supplier",
+    "supplierDeleteFailed": "Failed to delete supplier"
   },
-  "deleteConfirmation": "Are you sure you want to delete this product? This action cannot be undone."
+  "deleteConfirmation": "Are you sure you want to delete this product? This action cannot be undone.",
+  "categoryDeleteConfirmation": "Are you sure you want to delete this category? This action cannot be undone.",
+  "supplierDeleteConfirmation": "Are you sure you want to delete this supplier? This action cannot be undone."
 }
