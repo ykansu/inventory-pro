@@ -19,5 +19,7 @@
   "loading": "Loading...",
   "noData": "No data available",
   "pagination": "Page {{current}} of {{total}}",
-  "saving": "Saving..."
+  "saving": "Saving...",
+  "processing": "Processing...",
+  "refresh": "Refresh"
 }

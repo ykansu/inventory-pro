@@ -155,8 +155,44 @@ class Sale extends BaseModel {
   async createWithItems(saleData, items) {
     return this.db.transaction(async trx => {
       try {
+        // Get current real date for proper storage
+        const now = new Date();
+        const nowISOString = now.toISOString();
+        
+        // Make a copy to avoid modifying the original object
+        const formattedSaleData = {
+          ...saleData
+        };
+        
+        // Use ISO string format for dates if they exist, ensuring we use the current real year
+        if (formattedSaleData.created_at) {
+          // Extract the current year from the real date
+          const realYear = now.getFullYear();
+          
+          // Convert to ISO string and replace the year with the real year
+          let dateISOString = formattedSaleData.created_at.toISOString();
+          dateISOString = dateISOString.replace(/^\d{4}/, realYear.toString());
+          
+          formattedSaleData.created_at = dateISOString;
+        } else {
+          formattedSaleData.created_at = nowISOString;
+        }
+        
+        if (formattedSaleData.updated_at) {
+          // Extract the current year from the real date
+          const realYear = now.getFullYear();
+          
+          // Convert to ISO string and replace the year with the real year
+          let dateISOString = formattedSaleData.updated_at.toISOString();
+          dateISOString = dateISOString.replace(/^\d{4}/, realYear.toString());
+          
+          formattedSaleData.updated_at = dateISOString;
+        } else {
+          formattedSaleData.updated_at = nowISOString;
+        }
+        
         // Insert the sale
-        const [saleId] = await trx(this.tableName).insert(saleData);
+        const [saleId] = await trx(this.tableName).insert(formattedSaleData);
         
         // Prepare the items with sale_id
         const saleItems = items.map(item => ({
@@ -167,8 +203,8 @@ class Sale extends BaseModel {
           unit_price: item.unit_price,
           discount_amount: item.discount_amount || 0,
           total_price: item.total_price,
-          created_at: new Date(),
-          updated_at: new Date()
+          created_at: nowISOString,
+          updated_at: nowISOString
         }));
         
         // Insert the sale items
@@ -185,9 +221,9 @@ class Sale extends BaseModel {
             product_id: item.product_id,
             quantity_change: -item.quantity,
             adjustment_type: 'sale',
-            reference: saleData.receipt_number,
-            created_at: new Date(),
-            updated_at: new Date()
+            reference: formattedSaleData.receipt_number,
+            created_at: nowISOString,
+            updated_at: nowISOString
           });
         }
         
@@ -234,9 +270,73 @@ class Sale extends BaseModel {
   
   // Get sales by date range
   async getByDateRange(startDate, endDate) {
-    return this.db(this.tableName)
-      .whereBetween('created_at', [startDate, endDate])
-      .select('*');
+    try {
+      // Format dates to ensure proper string format for SQLite
+      let formattedStartDate = startDate;
+      let formattedEndDate = endDate;
+
+      // Ensure dates use the current year, not 2025
+      const currentYear = new Date().getFullYear();
+      
+      if (startDate && startDate.includes('-')) {
+        // Extract the month-day part (MM-DD) and prepend current year
+        const dateParts = startDate.split('-');
+        if (dateParts.length === 3 && dateParts[0] !== currentYear.toString()) {
+          formattedStartDate = `${currentYear}-${dateParts[1]}-${dateParts[2]}`;
+        }
+        
+        // Add time component if not present
+        if (!formattedStartDate.includes('T')) {
+          formattedStartDate = `${formattedStartDate}T00:00:00.000Z`;
+        }
+      }
+      
+      if (endDate && endDate.includes('-')) {
+        // Extract the month-day part (MM-DD) and prepend current year
+        const dateParts = endDate.split('-');
+        if (dateParts.length === 3 && dateParts[0] !== currentYear.toString()) {
+          formattedEndDate = `${currentYear}-${dateParts[1]}-${dateParts[2]}`;
+        }
+        
+        // Add time component for end of day if not present
+        if (!formattedEndDate.includes('T')) {
+          formattedEndDate = `${formattedEndDate}T23:59:59.999Z`;
+        }
+      }
+      
+      // Get all sales from the database
+      const allSales = await this.db(this.tableName).select('*');
+      
+      // If there are no sales, return an empty array
+      if (allSales.length === 0) {
+        return [];
+      }
+      
+      // Filter in memory using JavaScript date objects for more reliable comparison
+      const startTimestamp = new Date(formattedStartDate).getTime();
+      const endTimestamp = new Date(formattedEndDate).getTime();
+      
+      // Filter based on date range
+      const filteredSales = allSales.filter(sale => {
+        const saleDate = new Date(sale.created_at).getTime();
+        return saleDate >= startTimestamp && saleDate <= endTimestamp;
+      });
+      
+      // Enhancement: Include item count for each sale
+      for (const sale of filteredSales) {
+        const items = await this.db('sale_items')
+          .where({ sale_id: sale.id })
+          .count('id as item_count')
+          .first();
+        
+        sale.item_count = items ? items.item_count : 0;
+      }
+      
+      return filteredSales;
+    } catch (error) {
+      console.error('Error in getByDateRange:', error);
+      throw error;
+    }
   }
   
   // Process a return/refund

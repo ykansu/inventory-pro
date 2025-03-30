@@ -37,6 +37,22 @@
   },
   "actions": {
     "printReceipt": "Print Receipt",
-    "processReturn": "Process Return"
-  }
+    "processReturn": "Process Return",
+    "viewDetails": "View Details"
+  },
+  "return": {
+    "title": "Process Return",
+    "receiptInfo": "Original Receipt: #{{number}} ({{date}})",
+    "originalQuantity": "Original Qty",
+    "returnQuantity": "Return Qty",
+    "note": "Return Reason",
+    "notePlaceholder": "Reason for return...",
+    "totalRefund": "Total Refund",
+    "confirm": "Confirm Return",
+    "success": "Return processed successfully",
+    "errorNoItems": "Please select at least one item to return",
+    "errorProcessing": "Error processing return. Please try again."
+  },
+  "loading": "Loading sales data...",
+  "error": "Error loading sales data"
 }

@@ -3,20 +3,70 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  padding-bottom: 2rem;
 }
 
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.refresh-button {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Filters Section */
 .sales-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 1rem;
   justify-content: space-between;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .date-filters {
   display: flex;
   gap: 0.5rem;
   align-items: flex-end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.form-group input[type="date"] {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 0.875rem;
 }
 
 .filter-button {
@@ -26,6 +76,11 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.filter-button:hover {
+  background-color: #1d4ed8;
 }
 
 .additional-filters {
@@ -33,15 +88,35 @@
   gap: 0.5rem;
 }
 
+.filter-select {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 0.875rem;
+}
+
+.search-input {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  width: 200px;
+  font-size: 0.875rem;
+}
+
+/* Sales Container */
 .sales-container {
   display: flex;
   gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .sales-list {
   flex: 1;
+  min-width: 300px; /* Prevent too narrow layouts */
 }
 
+/* Sales Table */
 .sales-table {
   width: 100%;
   border-collapse: collapse;
@@ -51,11 +126,81 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.sales-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background-color: #f3f4f6;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sales-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+}
+
+.sales-table tr:last-child td {
+  border-bottom: none;
+}
+
+.sales-table tr.empty-state td {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.sales-table tr.selected {
+  background-color: #eff6ff;
+}
+
+.loading-state, .error-state {
+  background-color: white;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.error-state {
+  color: #dc2626;
+}
+
+/* Action Buttons */
+.action-button {
+  padding: 0.25rem 0.5rem;
+  background-color: #e5e7eb;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #4b5563;
+  transition: background-color 0.2s;
+}
+
+.action-button.view {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.action-button.view:hover {
+  background-color: #bfdbfe;
+}
+
+/* Sale Details Panel */
 .sale-details {
   width: 350px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  height: fit-content;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
 }
 
 .sale-details-header {
@@ -64,6 +209,7 @@
   align-items: center;
   padding: 1rem;
   border-bottom: 1px solid #e5e7eb;
+  background-color: #f3f4f6;
 }
 
 .sale-details-header h3 {
@@ -72,21 +218,39 @@
   color: #1e40af;
 }
 
-.close-button {
+.sale-details .close-button {
   background: none;
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
   color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
 }
 
+.sale-details .close-button:hover {
+  color: #1f2937;
+}
+
+/* Receipt Styles */
 .receipt {
   padding: 1rem;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .receipt-header {
   text-align: center;
   margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  padding-bottom: 0.5rem;
+  z-index: 5;
 }
 
 .receipt-header h4 {
@@ -102,10 +266,13 @@
 
 .receipt-items {
   margin-bottom: 1rem;
+  overflow-x: auto;
+  flex: 1;
 }
 
 .receipt-items table {
   width: 100%;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
 }
@@ -115,6 +282,7 @@
   padding: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
   font-weight: 500;
+  background-color: #f3f4f6;
 }
 
 .receipt-items td {
@@ -125,10 +293,190 @@
 .receipt-summary {
   font-size: 0.875rem;
   margin-bottom: 1rem;
+  background-color: white;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+}
+
+.summary-row.total {
+  font-weight: bold;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .receipt-actions {
   display: flex;
   gap: 0.5rem;
   justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f3f4f6;
+  background-color: white;
+}
+
+/* Button styles */
+.button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button.primary {
+  background-color: #2563eb;
+  color: white;
+}
+
+.button.primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.button.secondary {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.button.secondary:hover:not(:disabled) {
+  background-color: #d1d5db;
+}
+
+/* Return Modal Content Styles (just the internal content) */
+.return-items {
+  margin-bottom: 1rem;
+}
+
+.return-items table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.return-items th {
+  text-align: left;
+  padding: 0.5rem;
+  font-weight: 500;
+  background-color: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.return-items td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.return-items input[type="number"] {
+  width: 60px;
+  padding: 0.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.return-note {
+  margin-bottom: 1rem;
+}
+
+.return-note label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.return-note textarea {
+  width: 100%;
+  height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.return-summary {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #f3f4f6;
+  border-radius: 4px;
+}
+
+.return-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.return-info {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.error-message {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .sales-container {
+    flex-direction: column;
+  }
+  
+  .sale-details {
+    width: 100%;
+    position: relative;
+    top: 0;
+    max-height: 80vh;
+    margin-top: 1rem;
+  }
+  
+  .additional-filters {
+    margin-top: 0.5rem;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .sales-table {
+    font-size: 0.8rem;
+  }
+  
+  .sales-table th,
+  .sales-table td {
+    padding: 0.5rem;
+  }
+  
+  .filter-select,
+  .search-input {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .date-filters {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .form-group {
+    flex: 1;
+  }
+  
+  .form-group input[type="date"] {
+    width: 100%;
+  }
 } 

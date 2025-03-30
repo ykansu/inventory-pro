@@ -58,5 +58,8 @@
     "print": "Fişi Yazdır",
     "close": "Kapat",
     "thankYou": "Alışverişiniz için teşekkürler!"
+  },
+  "notifications": {
+    "saleCompleted": "Satış tamamlandı: {{amount}}"
   }
 }

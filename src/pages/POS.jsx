@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ProductService, CategoryService, SaleService, SettingService } from '../services/DatabaseService';
 import { format } from 'date-fns';
+import { toast } from 'react-hot-toast';
+import { formatCurrency } from '../utils/calculations';
 
 const POS = () => {
   const { t } = useTranslation(['pos', 'common']);
@@ -249,10 +251,19 @@ const POS = () => {
       discount_amount: 0, // Discount functionality could be added later
       total_price: item.totalPrice
     }));
-    
+
     try {
       // Create the sale
       const saleResult = await SaleService.createSale(saleData, saleItems);
+      
+      // Show success toast notification
+      toast.success(
+        t('pos:notifications.saleCompleted', { amount: formatCurrency(total) }), 
+        { 
+          duration: 3000,
+          icon: '💰'
+        }
+      );
       
       // Set receipt data for display
       setCurrentReceipt({
@@ -281,6 +292,15 @@ const POS = () => {
       searchInputRef.current.focus();
     } catch (error) {
       console.error('Error processing payment:', error);
+      
+      // Show error toast notification
+      toast.error(
+        t('pos:payment.error'), 
+        {
+          duration: 4000
+        }
+      );
+      
       alert(t('pos:payment.error'));
     }
   };
@@ -323,14 +343,6 @@ const POS = () => {
       printWindow.print();
       printWindow.close();
     }
-  };
-  
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('tr-TR', { 
-      style: 'currency', 
-      currency: settings.currency
-    }).format(amount);
   };
   
   return (

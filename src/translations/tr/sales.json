@@ -37,6 +37,23 @@
   },
   "actions": {
     "printReceipt": "Fişi Yazdır",
-    "processReturn": "İade İşlemi"
+    "processReturn": "İade İşlemi",
+    "viewDetails": "Detayları Görüntüle"
+  },
+  "loading": "Satış verileri yükleniyor...",
+  "error": "Satış verileri yüklenirken bir hata oluştu.",
+  "return": {
+    "title": "İade İşlemi",
+    "receiptInfo": "Fiş #{{number}} - {{date}} tarihli satışı iade ediyorsunuz",
+    "originalQuantity": "Satın Alınan Adet",
+    "returnQuantity": "İade Adedi",
+    "note": "İade Nedeni",
+    "notePlaceholder": "İade nedeni girin...",
+    "totalRefund": "Toplam İade Tutarı",
+    "confirm": "İadeyi İşle",
+    "errorNoItems": "İade edilecek en az bir ürün seçmelisiniz",
+    "errorProcessing": "İade işlemi sırasında bir hata oluştu",
+    "success": "İade işlemi başarıyla tamamlandı",
+    "notImplemented": "İade işlemi için veritabanı entegrasyonu henüz tamamlanmadı"
   }
 }

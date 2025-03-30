@@ -57,5 +57,8 @@
     "print": "Print Receipt",
     "close": "Close",
     "thankYou": "Thank you for your purchase!"
+  },
+  "notifications": {
+    "saleCompleted": "Sale completed: {{amount}}"
   }
 }
