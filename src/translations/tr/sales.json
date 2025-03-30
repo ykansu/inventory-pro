@@ -47,12 +47,17 @@
     "receiptInfo": "Fiş #{{number}} - {{date}} tarihli satışı iade ediyorsunuz",
     "originalQuantity": "Satın Alınan Adet",
     "returnQuantity": "İade Adedi",
+    "product": "Ürün",
+    "price": "Fiyat",
     "note": "İade Nedeni",
     "notePlaceholder": "İade nedeni girin...",
+    "subtotal": "Ara Toplam",
+    "tax": "Vergi (%{{rate}})",
     "totalRefund": "Toplam İade Tutarı",
     "confirm": "İadeyi İşle",
     "errorNoItems": "İade edilecek en az bir ürün seçmelisiniz",
     "errorProcessing": "İade işlemi sırasında bir hata oluştu",
+    "error": "İade işlemi sırasında bir hata oluştu",
     "success": "İade işlemi başarıyla tamamlandı",
     "notImplemented": "İade işlemi için veritabanı entegrasyonu henüz tamamlanmadı"
   }
