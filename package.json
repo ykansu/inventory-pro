@@ -15,7 +15,12 @@
     "watch": "webpack --config webpack.config.js --watch",
     "dev": "concurrently -k \"cross-env NODE_ENV=development webpack serve --config webpack.config.js\" \"cross-env NODE_ENV=development electron-forge start\"",
     "predist": "npm run build:prod",
-    "dist": "electron-forge make"
+    "dist": "electron-forge make",
+    "migrate": "knex migrate:latest --knexfile src/database/knexfile.js",
+    "migrate:make": "knex migrate:make --knexfile src/database/knexfile.js",
+    "migrate:run": "node src/database/run-migrations.js",
+    "seed": "knex seed:run --knexfile src/database/knexfile.js",
+    "seed:make": "knex seed:make --knexfile src/database/knexfile.js"
   },
   "keywords": [
     "electron",
@@ -31,11 +36,14 @@
   "license": "MIT",
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^8.2.0",
     "i18next": "^24.2.3",
+    "knex": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^15.4.1",
-    "react-router-dom": "^7.4.1"
+    "react-router-dom": "^7.4.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@babel/core": "^7.23.5",

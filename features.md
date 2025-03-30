@@ -94,8 +94,7 @@
       - Cash (record amount received and calculate change)
       - Card (record transaction details if needed)
       - Store Credit (if implemented as a feature)
-    - Option to add customer information to the sale (optional, linked to a future customer management module)
-    - Hold/Unhold Sale functionality (save a current sale and resume it later)
+    - Option to hold/unhold sale functionality (save a current sale and resume it later)
 
 - Receipt Generation
   - Detailed sales ticket
@@ -114,7 +113,6 @@
   - Print option (support for standard receipt printers)
   - Save to sales history (automatically record the completed sale)
   - Basic receipt customization (business name, logo - if possible, contact information)
-  - Option to email receipt to customer (if customer information is captured)
 
 ## 3. Sales History Page
 
@@ -129,7 +127,6 @@
     - Receipt number (link to full receipt view)
     - Discounts applied
     - Tax amount
-    - Customer information (if captured)
     - Notes (optional, for returns or other relevant information)
 
   - Search and Filter Options
@@ -182,7 +179,6 @@
   - Sales Trends Report (visual representation of sales over time)
   - Profitability Report (profit margins for products or categories)
   - Top Selling Products Report
-  - Customer Sales Report (if customer tracking is implemented)
 
 ## 5. Dashboard Page
 
