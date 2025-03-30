@@ -35,6 +35,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "date-fns": "^4.1.0",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^8.2.0",
     "i18next": "^24.2.3",

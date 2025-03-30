@@ -12,13 +12,17 @@
     "food": "Gıda"
   },
   "productGrid": {
-    "empty": "Ürün bulunmamaktadır. Önce envanterinize ürün ekleyin."
+    "empty": "Ürün bulunmamaktadır. Önce envanterinize ürün ekleyin.",
+    "outOfStock": "Stokta Yok",
+    "inStock": "Stok: {{count}}"
   },
   "cart": {
-    "title": "Sepet",
+    "title": "Mevcut Satış",
     "clear": "Temizle",
     "empty": "Sepette ürün yok",
-    "addInstructions": "Taratarak veya arayarak ürün ekleyin"
+    "addInstructions": "Taratarak veya arayarak ürün ekleyin",
+    "outOfStock": "Bu ürün stokta yok",
+    "insufficientStock": "Yetersiz stok mevcut"
   },
   "summary": {
     "subtotal": "Ara Toplam",
@@ -27,7 +31,32 @@
   },
   "payment": {
     "cash": "Nakit Ödeme",
-    "card": "Kart Ödeme"
+    "card": "Kart Ödeme",
+    "cashTitle": "Nakit Ödeme",
+    "cardTitle": "Kart Ödeme",
+    "complete": "Satışı Tamamla",
+    "amountReceived": "Alınan Tutar",
+    "change": "Para Üstü",
+    "emptyCart": "Sepet boş. İşleme devam etmeden önce ürün ekleyin.",
+    "insufficientAmount": "Alınan tutar toplam tutardan az.",
+    "error": "Ödeme işlemi sırasında bir hata oluştu."
   },
-  "complete_sale": "Satışı Tamamla"
+  "paymentMethods": {
+    "cash": "Nakit",
+    "card": "Kart"
+  },
+  "receipt": {
+    "title": "Fiş",
+    "number": "Fiş #{{number}}",
+    "item": "Ürün",
+    "quantity": "Adet",
+    "price": "Fiyat",
+    "total": "Toplam",
+    "paymentMethod": "Ödeme Yöntemi",
+    "amountReceived": "Alınan Tutar",
+    "change": "Para Üstü",
+    "print": "Fişi Yazdır",
+    "close": "Kapat",
+    "thankYou": "Alışverişiniz için teşekkürler!"
+  }
 }

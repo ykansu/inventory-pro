@@ -382,3 +382,16 @@ ipcMain.handle('database:resetDatabase', async () => {
     throw error;
   }
 });
+
+// Set up graceful shutdown
+app.on('before-quit', async (event) => {
+  console.log('Application is quitting...');
+  // Prevent the default behavior to allow async operations
+  event.preventDefault();
+  
+  // Close database connections
+  await db.closeConnection();
+  
+  // Now actually quit
+  app.exit(0);
+});

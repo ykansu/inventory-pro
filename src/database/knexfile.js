@@ -26,6 +26,11 @@ module.exports = {
   },
   // Adjust SQLite pool settings
   pool: {
+    min: 2,
+    max: 10,
+    acquireTimeoutMillis: 30000, // 30 seconds
+    createTimeoutMillis: 30000,  // 30 seconds
+    idleTimeoutMillis: 30000,    // 30 seconds
     afterCreate: (conn, cb) => {
       // Enable foreign keys support
       conn.run('PRAGMA foreign_keys = ON', cb);

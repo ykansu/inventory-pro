@@ -154,63 +154,82 @@ class Sale extends BaseModel {
   // Create a sale with items
   async createWithItems(saleData, items) {
     return this.db.transaction(async trx => {
-      // Insert the sale
-      const [saleId] = await trx(this.tableName).insert(saleData);
-      
-      // Prepare the items with sale_id
-      const saleItems = items.map(item => ({
-        sale_id: saleId,
-        product_id: item.product_id,
-        product_name: item.product_name,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        discount_amount: item.discount_amount || 0,
-        total_price: item.total_price,
-        created_at: new Date(),
-        updated_at: new Date()
-      }));
-      
-      // Insert the sale items
-      await trx('sale_items').insert(saleItems);
-      
-      // Update product stock for each item
-      for (const item of items) {
-        await trx('products')
-          .where({ id: item.product_id })
-          .decrement('stock_quantity', item.quantity);
-          
-        // Record stock adjustment
-        await trx('stock_adjustments').insert({
+      try {
+        // Insert the sale
+        const [saleId] = await trx(this.tableName).insert(saleData);
+        
+        // Prepare the items with sale_id
+        const saleItems = items.map(item => ({
+          sale_id: saleId,
           product_id: item.product_id,
-          quantity_change: -item.quantity,
-          adjustment_type: 'sale',
-          reference: saleData.receipt_number,
+          product_name: item.product_name,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          discount_amount: item.discount_amount || 0,
+          total_price: item.total_price,
           created_at: new Date(),
           updated_at: new Date()
-        });
+        }));
+        
+        // Insert the sale items
+        await trx('sale_items').insert(saleItems);
+        
+        // Update product stock for each item
+        for (const item of items) {
+          await trx('products')
+            .where({ id: item.product_id })
+            .decrement('stock_quantity', item.quantity);
+            
+          // Record stock adjustment
+          await trx('stock_adjustments').insert({
+            product_id: item.product_id,
+            quantity_change: -item.quantity,
+            adjustment_type: 'sale',
+            reference: saleData.receipt_number,
+            created_at: new Date(),
+            updated_at: new Date()
+          });
+        }
+        
+        // Get the created sale
+        const sale = await trx(this.tableName).where({ id: saleId }).first();
+        
+        // Get the created sale items
+        const createdItems = await trx('sale_items').where({ sale_id: saleId }).select('*');
+        
+        // Return the complete sale with items
+        return {
+          ...sale,
+          items: createdItems
+        };
+      } catch (error) {
+        console.error('Error in createWithItems transaction:', error);
+        throw error;
       }
-      
-      // Return the complete sale with items
-      return this.getWithItems(saleId);
     });
   }
   
   // Get sale with items
   async getWithItems(id) {
-    const sale = await this.db(this.tableName).where({ id }).first();
-    
-    if (!sale) {
-      return null;
-    }
-    
-    const items = await this.db('sale_items')
-      .where({ sale_id: id })
-      .select('*');
+    try {
+      const sale = await this.db(this.tableName).where({ id }).first();
       
-    return {
-      ...sale,
-      items
-    };
+      if (!sale) {
+        return null;
+      }
+      
+      const items = await this.db('sale_items')
+        .where({ sale_id: id })
+        .select('*');
+        
+      return {
+        ...sale,
+        items
+      };
+    } catch (error) {
+      console.error(`Error in getWithItems for id ${id}:`, error);
+      throw error;
+    }
   }
   
   // Get sales by date range
@@ -223,34 +242,49 @@ class Sale extends BaseModel {
   // Process a return/refund
   async processReturn(id, returnData, itemsToReturn) {
     return this.db.transaction(async trx => {
-      // Update the sale as returned
-      await trx(this.tableName)
-        .where({ id })
-        .update({
-          is_returned: true,
-          notes: returnData.notes,
-          updated_at: new Date()
-        });
-      
-      // Update product stock for each returned item
-      for (const item of itemsToReturn) {
-        await trx('products')
-          .where({ id: item.product_id })
-          .increment('stock_quantity', item.quantity);
-          
-        // Record stock adjustment
-        await trx('stock_adjustments').insert({
-          product_id: item.product_id,
-          quantity_change: item.quantity,
-          adjustment_type: 'return',
-          reason: returnData.reason,
-          reference: `Return-${id}`,
-          created_at: new Date(),
-          updated_at: new Date()
-        });
+      try {
+        // Update the sale as returned
+        await trx(this.tableName)
+          .where({ id })
+          .update({
+            is_returned: true,
+            notes: returnData.notes,
+            updated_at: new Date()
+          });
+        
+        // Update product stock for each returned item
+        for (const item of itemsToReturn) {
+          await trx('products')
+            .where({ id: item.product_id })
+            .increment('stock_quantity', item.quantity);
+            
+          // Record stock adjustment
+          await trx('stock_adjustments').insert({
+            product_id: item.product_id,
+            quantity_change: item.quantity,
+            adjustment_type: 'return',
+            reason: returnData.reason,
+            reference: `Return-${id}`,
+            created_at: new Date(),
+            updated_at: new Date()
+          });
+        }
+        
+        // Get the updated sale
+        const sale = await trx(this.tableName).where({ id }).first();
+        
+        // Get the sale items
+        const items = await trx('sale_items').where({ sale_id: id }).select('*');
+        
+        // Return the complete sale with items
+        return {
+          ...sale,
+          items
+        };
+      } catch (error) {
+        console.error(`Error in processReturn for sale ${id}:`, error);
+        throw error;
       }
-      
-      return this.getWithItems(id);
     });
   }
 }

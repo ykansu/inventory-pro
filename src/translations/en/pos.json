@@ -11,13 +11,17 @@
     "food": "Food"
   },
   "productGrid": {
-    "empty": "No products available. Add products to your inventory first."
+    "empty": "No products available. Add products to your inventory first.",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock: {{count}}"
   },
   "cart": {
     "title": "Current Sale",
     "clear": "Clear",
     "empty": "No items in cart",
-    "addInstructions": "Add products by scanning or searching"
+    "addInstructions": "Add products by scanning or searching",
+    "outOfStock": "This product is out of stock",
+    "insufficientStock": "Insufficient stock available"
   },
   "summary": {
     "subtotal": "Subtotal",
@@ -26,6 +30,32 @@
   },
   "payment": {
     "cash": "Cash Payment",
-    "card": "Card Payment"
+    "card": "Card Payment",
+    "cashTitle": "Cash Payment",
+    "cardTitle": "Card Payment",
+    "complete": "Complete Sale",
+    "amountReceived": "Amount Received",
+    "change": "Change",
+    "emptyCart": "The cart is empty. Add items before proceeding.",
+    "insufficientAmount": "The amount received is less than the total amount.",
+    "error": "An error occurred while processing the payment."
+  },
+  "paymentMethods": {
+    "cash": "Cash",
+    "card": "Card"
+  },
+  "receipt": {
+    "title": "Receipt",
+    "number": "Receipt #{{number}}",
+    "item": "Item",
+    "quantity": "Qty",
+    "price": "Price",
+    "total": "Total",
+    "paymentMethod": "Payment Method",
+    "amountReceived": "Amount Received",
+    "change": "Change",
+    "print": "Print Receipt",
+    "close": "Close",
+    "thankYou": "Thank you for your purchase!"
   }
 }
