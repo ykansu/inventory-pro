@@ -17,5 +17,7 @@
   "confirm": "Confirm",
   "actions": "Actions",
   "loading": "Loading...",
-  "noData": "No data available"
+  "noData": "No data available",
+  "pagination": "Page {{current}} of {{total}}",
+  "saving": "Saving..."
 }

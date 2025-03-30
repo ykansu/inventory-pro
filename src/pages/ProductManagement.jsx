@@ -1,21 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
+import { toast } from 'react-hot-toast';
 
 const ProductManagement = () => {
-  const [activeTab, setActiveTab] = useState('list'); // 'list' or 'add'
+  const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', or 'edit'
   const { t } = useTranslation(['products', 'common']);
   const { products, categories, suppliers, isLoading } = useDatabase();
   
   // State for product data
   const [productList, setProductList] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // State for search and filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [stockFilter, setStockFilter] = useState('');
+  
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  
   // State for form data
   const [formData, setFormData] = useState({
+    id: null,
     name: '',
     barcode: '',
     category_id: '',
@@ -43,30 +55,102 @@ const ProductManagement = () => {
         ]);
         
         setProductList(productsData || []);
+        setFilteredProducts(productsData || []);
         setCategoryList(categoriesData || []);
         setSupplierList(suppliersData || []);
         setError(null);
       } catch (err) {
         console.error('Failed to load product data:', err);
         setError('Failed to load product data. Please check the database connection.');
+        toast.error(t('products:errors.loadFailed'));
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [products, categories, suppliers]);
+  }, [products, categories, suppliers, t]);
+
+  // Apply filters and search
+  useEffect(() => {
+    let results = [...productList];
+    
+    // Apply search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      results = results.filter(product => 
+        product.name.toLowerCase().includes(query) || 
+        (product.barcode && product.barcode.toLowerCase().includes(query)) ||
+        (product.description && product.description.toLowerCase().includes(query))
+      );
+    }
+    
+    // Apply category filter
+    if (categoryFilter) {
+      results = results.filter(product => 
+        product.category_id === parseInt(categoryFilter, 10)
+      );
+    }
+    
+    // Apply stock level filter
+    if (stockFilter) {
+      switch (stockFilter) {
+        case 'out-of-stock':
+          results = results.filter(product => product.stock_quantity <= 0);
+          break;
+        case 'low-stock':
+          results = results.filter(product => 
+            product.stock_quantity > 0 && 
+            product.stock_quantity <= product.min_stock_threshold
+          );
+          break;
+        case 'in-stock':
+          results = results.filter(product => 
+            product.stock_quantity > product.min_stock_threshold
+          );
+          break;
+        default:
+          break;
+      }
+    }
+    
+    setFilteredProducts(results);
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [productList, searchQuery, categoryFilter, stockFilter]);
+
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   // Handle form input changes
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value
     }));
   };
 
-  // Handle form submission
+  // Reset form to initial state
+  const resetForm = useCallback(() => {
+    setFormData({
+      id: null,
+      name: '',
+      barcode: '',
+      category_id: '',
+      unit: 'pcs',
+      selling_price: '',
+      cost_price: '',
+      stock_quantity: 0,
+      min_stock_threshold: 5,
+      supplier_id: '',
+      description: ''
+    });
+  }, []);
+
+  // Handle form submission for new product
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -84,22 +168,18 @@ const ProductManagement = () => {
         supplier_id: formData.supplier_id ? parseInt(formData.supplier_id, 10) : null
       };
       
-      // Create the product
-      await products.createProduct(productData);
+      if (formData.id) {
+        // Update existing product
+        await products.updateProduct(formData.id, productData);
+        toast.success(t('products:notifications.updateSuccess'));
+      } else {
+        // Create new product
+        await products.createProduct(productData);
+        toast.success(t('products:notifications.createSuccess'));
+      }
       
       // Reset form and refresh product list
-      setFormData({
-        name: '',
-        barcode: '',
-        category_id: '',
-        unit: 'pcs',
-        selling_price: '',
-        cost_price: '',
-        stock_quantity: 0,
-        min_stock_threshold: 5,
-        supplier_id: '',
-        description: ''
-      });
+      resetForm();
       
       // Reload products
       const updatedProducts = await products.getAllProducts();
@@ -108,8 +188,9 @@ const ProductManagement = () => {
       // Switch to list view
       setActiveTab('list');
     } catch (err) {
-      console.error('Failed to create product:', err);
-      setError('Failed to create product. Please try again.');
+      console.error('Failed to save product:', err);
+      setError('Failed to save product. Please try again.');
+      toast.error(formData.id ? t('products:errors.updateFailed') : t('products:errors.createFailed'));
     } finally {
       setLoading(false);
     }
@@ -126,13 +207,52 @@ const ProductManagement = () => {
         const updatedProducts = await products.getAllProducts();
         setProductList(updatedProducts || []);
         setError(null);
+        toast.success(t('products:notifications.deleteSuccess'));
       } catch (err) {
         console.error(`Failed to delete product ${id}:`, err);
         setError('Failed to delete product. Please try again.');
+        toast.error(t('products:errors.deleteFailed'));
       } finally {
         setLoading(false);
       }
     }
+  };
+
+  // Handle product edit
+  const handleEditProduct = async (id) => {
+    try {
+      setLoading(true);
+      const product = await products.getProductById(id);
+      
+      if (product) {
+        setFormData({
+          id: product.id,
+          name: product.name,
+          barcode: product.barcode || '',
+          category_id: product.category_id ? product.category_id.toString() : '',
+          unit: product.unit,
+          selling_price: product.selling_price,
+          cost_price: product.cost_price,
+          stock_quantity: product.stock_quantity,
+          min_stock_threshold: product.min_stock_threshold,
+          supplier_id: product.supplier_id ? product.supplier_id.toString() : '',
+          description: product.description || ''
+        });
+        
+        setActiveTab('edit');
+      }
+    } catch (err) {
+      console.error(`Failed to load product ${id} for editing:`, err);
+      setError('Failed to load product for editing. Please try again.');
+      toast.error(t('products:errors.loadEditFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle pagination
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
   if (isLoading || loading) {
@@ -168,10 +288,20 @@ const ProductManagement = () => {
           </button>
           <button 
             className={`tab-button ${activeTab === 'add' ? 'active' : ''}`}
-            onClick={() => setActiveTab('add')}
+            onClick={() => {
+              resetForm();
+              setActiveTab('add');
+            }}
           >
             {t('products:tabs.add')}
           </button>
+          {activeTab === 'edit' && (
+            <button 
+              className={`tab-button active`}
+            >
+              {t('products:tabs.edit')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -182,8 +312,14 @@ const ProductManagement = () => {
               type="text" 
               placeholder={t('products:search.placeholder')} 
               className="search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <select className="filter-select">
+            <select 
+              className="filter-select"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
               <option value="">{t('products:filters.allCategories')}</option>
               {categoryList.map(category => (
                 <option key={category.id} value={category.id}>
@@ -191,7 +327,11 @@ const ProductManagement = () => {
                 </option>
               ))}
             </select>
-            <select className="filter-select">
+            <select 
+              className="filter-select"
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value)}
+            >
               <option value="">{t('products:filters.allStockLevels')}</option>
               <option value="in-stock">{t('products:filters.inStock')}</option>
               <option value="low-stock">{t('products:filters.lowStock')}</option>
@@ -212,19 +352,19 @@ const ProductManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {productList.length === 0 ? (
+                {currentItems.length === 0 ? (
                   <tr className="empty-state">
                     <td colSpan="6">
-                      <p>{t('products:emptyState')}</p>
+                      <p>{filteredProducts.length === 0 ? t('products:emptyState') : t('products:noSearchResults')}</p>
                     </td>
                   </tr>
                 ) : (
-                  productList.map(product => (
+                  currentItems.map(product => (
                     <tr key={product.id}>
                       <td>{product.name}</td>
                       <td>{product.barcode || '-'}</td>
                       <td>{product.category_name || '-'}</td>
-                      <td>{product.selling_price}</td>
+                      <td>{product.selling_price.toFixed(2)}</td>
                       <td>
                         <span className={
                           product.stock_quantity <= 0 
@@ -236,8 +376,11 @@ const ProductManagement = () => {
                           {product.stock_quantity}
                         </span>
                       </td>
-                      <td>
-                        <button className="action-button edit">
+                      <td className="action-buttons">
+                        <button 
+                          className="action-button edit"
+                          onClick={() => handleEditProduct(product.id)}
+                        >
                           {t('common:edit')}
                         </button>
                         <button 
@@ -253,6 +396,45 @@ const ProductManagement = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {filteredProducts.length > itemsPerPage && (
+            <div className="pagination">
+              <button 
+                onClick={() => handlePageChange(1)} 
+                disabled={currentPage === 1}
+                className="pagination-button"
+              >
+                &laquo;
+              </button>
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)} 
+                disabled={currentPage === 1}
+                className="pagination-button"
+              >
+                &lt;
+              </button>
+              
+              <span className="pagination-info">
+                {t('common:pagination', { current: currentPage, total: totalPages })}
+              </span>
+              
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)} 
+                disabled={currentPage === totalPages}
+                className="pagination-button"
+              >
+                &gt;
+              </button>
+              <button 
+                onClick={() => handlePageChange(totalPages)} 
+                disabled={currentPage === totalPages}
+                className="pagination-button"
+              >
+                &raquo;
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="product-form-container">
@@ -314,6 +496,8 @@ const ProductManagement = () => {
                   <option value="pcs">{t('products:units.pieces')}</option>
                   <option value="kg">{t('products:units.kilograms')}</option>
                   <option value="l">{t('products:units.liters')}</option>
+                  <option value="m">{t('products:units.meters')}</option>
+                  <option value="box">{t('products:units.boxes')}</option>
                 </select>
               </div>
             </div>
@@ -410,11 +594,14 @@ const ProductManagement = () => {
             </div>
 
             <div className="form-actions">
-              <button type="button" className="button secondary" onClick={() => setActiveTab('list')}>
+              <button type="button" className="button secondary" onClick={() => {
+                resetForm();
+                setActiveTab('list');
+              }}>
                 {t('common:cancel')}
               </button>
               <button type="submit" className="button primary" disabled={loading}>
-                {loading ? t('common:saving') : t('products:form.saveProduct')}
+                {loading ? t('common:saving') : formData.id ? t('products:form.updateProduct') : t('products:form.saveProduct')}
               </button>
             </div>
           </form>

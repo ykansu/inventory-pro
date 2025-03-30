@@ -146,6 +146,7 @@
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  overflow-x: auto;
 }
 
 .product-table {
@@ -160,6 +161,8 @@
   border-bottom: 1px solid #e5e7eb;
   font-weight: 500;
   color: #4b5563;
+  position: sticky;
+  top: 0;
 }
 
 .product-table td {
@@ -171,10 +174,118 @@
   border-bottom: none;
 }
 
+.product-table tr:hover {
+  background-color: #f9fafb;
+}
+
 .empty-state {
   text-align: center;
   color: #9ca3af;
   font-style: italic;
+}
+
+.stock-level {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.stock-level.in-stock {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.stock-level.low-stock {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.stock-level.out-of-stock {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+}
+
+.action-button.edit {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.action-button.delete {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.stock-adjustment {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.action-button.stock-plus {
+  background-color: #d1fae5;
+  color: #065f46;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.action-button.stock-minus {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+.pagination-button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  padding: 0 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 
 .product-form-container {
@@ -199,7 +310,6 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
 .form-group label {

@@ -2,7 +2,8 @@
   "title": "Product Management",
   "tabs": {
     "list": "Product List",
-    "add": "Add Product"
+    "add": "Add Product",
+    "edit": "Edit Product"
   },
   "search": {
     "placeholder": "Search products..."
@@ -30,6 +31,7 @@
     }
   },
   "emptyState": "No products found. Add your first product to get started.",
+  "noSearchResults": "No products match your search criteria. Try different filters.",
   "form": {
     "name": "Product Name",
     "namePlaceholder": "Enter product name",
@@ -43,13 +45,41 @@
     "costPrice": "Cost Price",
     "stockQuantity": "Current Stock Quantity",
     "minStockThreshold": "Minimum Stock Threshold",
+    "supplier": "Supplier",
+    "selectSupplier": "Select a supplier",
     "description": "Description",
     "descriptionPlaceholder": "Enter product description",
-    "saveProduct": "Save Product"
+    "saveProduct": "Save Product",
+    "updateProduct": "Update Product"
   },
   "units": {
     "pieces": "Pieces (pcs)",
     "kilograms": "Kilograms (kg)",
-    "liters": "Liters (l)"
-  }
+    "liters": "Liters (l)",
+    "meters": "Meters (m)",
+    "boxes": "Boxes (box)"
+  },
+  "stockAdjustment": {
+    "add": "Add Stock",
+    "remove": "Remove Stock",
+    "addPrompt": "Enter quantity to add:",
+    "removePrompt": "Enter quantity to remove:",
+    "reasonPrompt": "Enter reason for stock adjustment:"
+  },
+  "notifications": {
+    "createSuccess": "Product created successfully",
+    "updateSuccess": "Product updated successfully",
+    "deleteSuccess": "Product deleted successfully",
+    "stockUpdateSuccess": "Stock updated successfully"
+  },
+  "errors": {
+    "loadFailed": "Failed to load product data",
+    "createFailed": "Failed to create product",
+    "updateFailed": "Failed to update product",
+    "deleteFailed": "Failed to delete product",
+    "loadEditFailed": "Failed to load product for editing",
+    "stockUpdateFailed": "Failed to update stock",
+    "invalidQuantity": "Please enter a valid positive number"
+  },
+  "deleteConfirmation": "Are you sure you want to delete this product? This action cannot be undone."
 }

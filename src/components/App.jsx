@@ -2,6 +2,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
 import { DatabaseProvider } from '../context/DatabaseContext';
+import { Toaster } from 'react-hot-toast';
 
 // Import page components (we'll create these next)
 import Dashboard from '../pages/Dashboard';
@@ -18,6 +19,31 @@ const App = () => {
     <DatabaseProvider>
       <Router>
         <div className="app-container">
+          {/* Toast notifications */}
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#4CAF50',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 4000,
+                iconTheme: {
+                  primary: '#E57373',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
           <aside className="sidebar">
             <div className="sidebar-header">
               <h1>Inventory Pro</h1>

@@ -2,7 +2,8 @@
   "title": "Ürün Yönetimi",
   "tabs": {
     "list": "Ürün Listesi",
-    "add": "Ürün Ekle"
+    "add": "Ürün Ekle",
+    "edit": "Ürün Düzenle"
   },
   "search": {
     "placeholder": "Ürünleri ara..."
@@ -30,6 +31,7 @@
     }
   },
   "emptyState": "Ürün bulunamadı. Başlamak için ilk ürününüzü ekleyin.",
+  "noSearchResults": "Arama kriterlerinize uygun ürün bulunamadı. Farklı filtreler deneyin.",
   "form": {
     "name": "Ürün Adı",
     "namePlaceholder": "Ürün adını girin",
@@ -43,13 +45,41 @@
     "costPrice": "Maliyet Fiyatı",
     "stockQuantity": "Mevcut Stok Miktarı",
     "minStockThreshold": "Minimum Stok Eşiği",
+    "supplier": "Tedarikçi",
+    "selectSupplier": "Bir tedarikçi seçin",
     "description": "Açıklama",
     "descriptionPlaceholder": "Ürün açıklamasını girin",
-    "saveProduct": "Ürünü Kaydet"
+    "saveProduct": "Ürünü Kaydet",
+    "updateProduct": "Ürünü Güncelle"
   },
   "units": {
     "pieces": "Adet (ad)",
     "kilograms": "Kilogram (kg)",
-    "liters": "Litre (l)"
-  }
+    "liters": "Litre (l)",
+    "meters": "Metre (m)",
+    "boxes": "Kutu (kt)"
+  },
+  "stockAdjustment": {
+    "add": "Stok Ekle",
+    "remove": "Stok Çıkar",
+    "addPrompt": "Eklenecek miktarı girin:",
+    "removePrompt": "Çıkarılacak miktarı girin:",
+    "reasonPrompt": "Stok ayarlama nedeni girin:"
+  },
+  "notifications": {
+    "createSuccess": "Ürün başarıyla oluşturuldu",
+    "updateSuccess": "Ürün başarıyla güncellendi",
+    "deleteSuccess": "Ürün başarıyla silindi",
+    "stockUpdateSuccess": "Stok başarıyla güncellendi"
+  },
+  "errors": {
+    "loadFailed": "Ürün verilerini yüklerken hata oluştu",
+    "createFailed": "Ürün oluşturulurken hata oluştu",
+    "updateFailed": "Ürün güncellenirken hata oluştu",
+    "deleteFailed": "Ürün silinirken hata oluştu",
+    "loadEditFailed": "Düzenleme için ürün yüklenirken hata oluştu",
+    "stockUpdateFailed": "Stok güncellenirken hata oluştu",
+    "invalidQuantity": "Lütfen geçerli bir pozitif sayı girin"
+  },
+  "deleteConfirmation": "Bu ürünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
 }

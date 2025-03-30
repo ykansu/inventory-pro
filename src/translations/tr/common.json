@@ -17,5 +17,7 @@
   "confirm": "Onayla",
   "actions": "İşlemler",
   "loading": "Yükleniyor...",
-  "noData": "Veri bulunamadı"
+  "noData": "Veri bulunamadı",
+  "pagination": "Sayfa {{current}} / {{total}}",
+  "saving": "Kaydediliyor..."
 }
