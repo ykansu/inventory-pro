@@ -17,8 +17,15 @@ const POS = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [settings, setSettings] = useState({
     businessName: 'Inventory Pro',
+    businessAddress: '',
+    businessPhone: '',
+    businessEmail: '',
     taxRate: 18,
-    currency: 'TRY'
+    enableTax: true,
+    currency: 'usd',
+    dateFormat: 'mm/dd/yyyy',
+    receiptHeader: '',
+    receiptFooter: 'Thank you for your purchase!'
   });
   
   // State for totals calculation
@@ -58,8 +65,15 @@ const POS = () => {
         if (allSettings) {
           setSettings({
             businessName: allSettings.business_name || 'Inventory Pro',
+            businessAddress: allSettings.business_address || '',
+            businessPhone: allSettings.business_phone || '',
+            businessEmail: allSettings.business_email || '',
             taxRate: parseFloat(allSettings.tax_rate) || 18,
-            currency: allSettings.currency || 'TRY'
+            enableTax: allSettings.enable_tax !== undefined ? allSettings.enable_tax : true,
+            currency: allSettings.currency?.toLowerCase() || 'usd',
+            dateFormat: allSettings.date_format || 'mm/dd/yyyy',
+            receiptHeader: allSettings.receipt_header || '',
+            receiptFooter: allSettings.receipt_footer || 'Thank you for your purchase!'
           });
         }
       } catch (error) {
@@ -73,13 +87,15 @@ const POS = () => {
   // Calculate totals whenever cart items change
   useEffect(() => {
     const newSubtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
-    const newTax = newSubtotal * (settings.taxRate / 100);
+    
+    // Only calculate tax if tax calculation is enabled
+    const newTax = settings.enableTax ? newSubtotal * (settings.taxRate / 100) : 0;
     const newTotal = newSubtotal + newTax;
     
     setSubtotal(newSubtotal);
     setTax(newTax);
     setTotal(newTotal);
-  }, [cartItems, settings.taxRate]);
+  }, [cartItems, settings.taxRate, settings.enableTax]);
   
   // Filter products based on search query and selected category
   useEffect(() => {
@@ -258,7 +274,7 @@ const POS = () => {
       
       // Show success toast notification
       toast.success(
-        t('pos:notifications.saleCompleted', { amount: formatCurrency(total) }), 
+        t('pos:notifications.saleCompleted', { amount: formatCurrency(total, settings.currency) }), 
         { 
           duration: 3000,
           icon: '💰'
@@ -270,8 +286,13 @@ const POS = () => {
         ...saleResult,
         items: saleItems,
         businessName: settings.businessName,
+        businessAddress: settings.businessAddress,
+        businessPhone: settings.businessPhone,
+        businessEmail: settings.businessEmail,
+        receiptHeader: settings.receiptHeader,
+        receiptFooter: settings.receiptFooter,
         receiptNumber: receiptNumber,
-        date: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+        date: formatDate(new Date()),
         subtotal: subtotal,
         tax: tax,
         total: total,
@@ -325,6 +346,7 @@ const POS = () => {
               body { font-family: monospace; width: 300px; margin: 0 auto; }
               .receipt { padding: 10px; }
               .receipt-header { text-align: center; margin-bottom: 10px; }
+              .receipt-custom-header { font-style: italic; margin: 8px 0; }
               .receipt-items { width: 100%; border-collapse: collapse; margin: 10px 0; }
               .receipt-items th, .receipt-items td { text-align: left; padding: 3px; }
               .summary-row { display: flex; justify-content: space-between; margin: 5px 0; }
@@ -342,6 +364,29 @@ const POS = () => {
       printWindow.focus();
       printWindow.print();
       printWindow.close();
+    }
+  };
+  
+  // Helper function to format currency with current settings
+  const formatPriceWithCurrency = (amount) => {
+    return formatCurrency(amount, settings.currency);
+  };
+  
+  // Format date according to user's settings
+  const formatDate = (date) => {
+    if (!date) return '';
+    
+    const d = new Date(date);
+    
+    // Format based on user preference
+    switch (settings.dateFormat) {
+      case 'dd/mm/yyyy':
+        return format(d, 'dd/MM/yyyy HH:mm:ss');
+      case 'yyyy-mm-dd':
+        return format(d, 'yyyy-MM-dd HH:mm:ss');
+      case 'mm/dd/yyyy':
+      default:
+        return format(d, 'MM/dd/yyyy HH:mm:ss');
     }
   };
   
@@ -395,7 +440,7 @@ const POS = () => {
                   onClick={() => product.stock_quantity > 0 && addToCart(product)}
                 >
                   <div className="product-name">{product.name}</div>
-                  <div className="product-price">{formatCurrency(product.selling_price)}</div>
+                  <div className="product-price">{formatPriceWithCurrency(product.selling_price)}</div>
                   <div className="product-stock">
                     {product.stock_quantity <= 0 
                       ? t('pos:productGrid.outOfStock') 
@@ -425,7 +470,7 @@ const POS = () => {
                   <div key={item.id} className="cart-item">
                     <div className="item-details">
                       <div className="item-name">{item.name}</div>
-                      <div className="item-price">{formatCurrency(item.price)} × 
+                      <div className="item-price">{formatPriceWithCurrency(item.price)} × 
                         <input
                           type="number"
                           min="1"
@@ -437,7 +482,7 @@ const POS = () => {
                       </div>
                     </div>
                     <div className="item-actions">
-                      <span className="item-total">{formatCurrency(item.totalPrice)}</span>
+                      <span className="item-total">{formatPriceWithCurrency(item.totalPrice)}</span>
                       <button 
                         className="remove-item-button"
                         onClick={() => removeCartItem(item.id)}
@@ -454,15 +499,17 @@ const POS = () => {
           <div className="cart-summary">
             <div className="summary-row">
               <span>{t('pos:summary.subtotal')}:</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatPriceWithCurrency(subtotal)}</span>
             </div>
-            <div className="summary-row">
-              <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
-              <span>{formatCurrency(tax)}</span>
-            </div>
+            {settings.enableTax && (
+              <div className="summary-row">
+                <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
+                <span>{formatPriceWithCurrency(tax)}</span>
+              </div>
+            )}
             <div className="summary-row total">
               <span>{t('pos:summary.total')}:</span>
-              <span>{formatCurrency(total)}</span>
+              <span>{formatPriceWithCurrency(total)}</span>
             </div>
           </div>
 
@@ -504,7 +551,7 @@ const POS = () => {
                 <div className="payment-summary">
                   <div className="summary-row">
                     <span>{t('pos:summary.total')}:</span>
-                    <span>{formatCurrency(total)}</span>
+                    <span>{formatPriceWithCurrency(total)}</span>
                   </div>
                 </div>
                 
@@ -524,7 +571,7 @@ const POS = () => {
                     </div>
                     <div className="change-amount">
                       <span>{t('pos:payment.change')}:</span>
-                      <span>{formatCurrency(change)}</span>
+                      <span>{formatPriceWithCurrency(change)}</span>
                     </div>
                   </div>
                 )}
@@ -561,6 +608,10 @@ const POS = () => {
               <div className="receipt" ref={receiptRef}>
                 <div className="receipt-header">
                   <h4>{currentReceipt.businessName}</h4>
+                  {currentReceipt.businessAddress && <p>{currentReceipt.businessAddress}</p>}
+                  {currentReceipt.businessPhone && <p>{t('pos:receipt.phone')}: {currentReceipt.businessPhone}</p>}
+                  {currentReceipt.businessEmail && <p>{t('pos:receipt.email')}: {currentReceipt.businessEmail}</p>}
+                  {currentReceipt.receiptHeader && <p className="receipt-custom-header">{currentReceipt.receiptHeader}</p>}
                   <p>{t('pos:receipt.number', { number: currentReceipt.receiptNumber })}</p>
                   <p>{currentReceipt.date}</p>
                 </div>
@@ -579,8 +630,8 @@ const POS = () => {
                         <tr key={index}>
                           <td>{item.product_name}</td>
                           <td>{item.quantity}</td>
-                          <td>{formatCurrency(item.unit_price)}</td>
-                          <td>{formatCurrency(item.total_price)}</td>
+                          <td>{formatPriceWithCurrency(item.unit_price)}</td>
+                          <td>{formatPriceWithCurrency(item.total_price)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -589,15 +640,17 @@ const POS = () => {
                 <div className="receipt-summary">
                   <div className="summary-row">
                     <span>{t('pos:summary.subtotal')}:</span>
-                    <span>{formatCurrency(currentReceipt.subtotal)}</span>
+                    <span>{formatPriceWithCurrency(currentReceipt.subtotal)}</span>
                   </div>
-                  <div className="summary-row">
-                    <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
-                    <span>{formatCurrency(currentReceipt.tax)}</span>
-                  </div>
+                  {currentReceipt.tax > 0 && (
+                    <div className="summary-row">
+                      <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
+                      <span>{formatPriceWithCurrency(currentReceipt.tax)}</span>
+                    </div>
+                  )}
                   <div className="summary-row total">
                     <span>{t('pos:summary.total')}:</span>
-                    <span>{formatCurrency(currentReceipt.total)}</span>
+                    <span>{formatPriceWithCurrency(currentReceipt.total)}</span>
                   </div>
                   <div className="summary-row">
                     <span>{t('pos:receipt.paymentMethod')}:</span>
@@ -607,17 +660,17 @@ const POS = () => {
                     <>
                       <div className="summary-row">
                         <span>{t('pos:receipt.amountReceived')}:</span>
-                        <span>{formatCurrency(currentReceipt.amountPaid)}</span>
+                        <span>{formatPriceWithCurrency(currentReceipt.amountPaid)}</span>
                       </div>
                       <div className="summary-row">
                         <span>{t('pos:receipt.change')}:</span>
-                        <span>{formatCurrency(currentReceipt.changeAmount)}</span>
+                        <span>{formatPriceWithCurrency(currentReceipt.changeAmount)}</span>
                       </div>
                     </>
                   )}
                 </div>
                 <div className="thank-you">
-                  <p>{t('pos:receipt.thankYou')}</p>
+                  <p>{currentReceipt.receiptFooter || t('pos:receipt.thankYou')}</p>
                 </div>
               </div>
             </div>

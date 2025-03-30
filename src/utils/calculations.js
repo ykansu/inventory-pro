@@ -1,12 +1,22 @@
 /**
- * Format currency amount to TRY
+ * Format currency amount based on provided currency
  * @param {number} amount - Amount to format
+ * @param {string} currency - Currency code (e.g. 'usd', 'eur', 'gbp', 'try')
  * @returns {string} - Formatted amount with currency symbol
  */
-export const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('tr-TR', { 
+export const formatCurrency = (amount, currency = 'usd') => {
+  const currencyMap = {
+    'usd': { locale: 'en-US', currency: 'USD' },
+    'eur': { locale: 'de-DE', currency: 'EUR' },
+    'gbp': { locale: 'en-GB', currency: 'GBP' },
+    'try': { locale: 'tr-TR', currency: 'TRY' }
+  };
+
+  const { locale, currency: currencyCode } = currencyMap[currency.toLowerCase()] || currencyMap.usd;
+  
+  return new Intl.NumberFormat(locale, { 
     style: 'currency', 
-    currency: 'TRY'
+    currency: currencyCode
   }).format(amount);
 };
 

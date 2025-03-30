@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import useSalesHistory from '../hooks/useSalesHistory';
-import { SaleService } from '../services/DatabaseService';
+import { SaleService, SettingService } from '../services/DatabaseService';
 import { calculateReturnTotal, formatCurrency } from '../utils/calculations';
 import { toast } from 'react-hot-toast';
 import '../styles/pages/sales-history.css';
 import '../styles/components/modal.css';
+import { format } from 'date-fns';
 
 const SalesHistory = () => {
-  const { t } = useTranslation(['sales', 'common']);
+  const { t } = useTranslation(['sales', 'common', 'pos']);
   const {
     sales,
     loading,
@@ -26,12 +27,73 @@ const SalesHistory = () => {
   const [selectedSale, setSelectedSale] = useState(null);
   const [selectedSaleDetails, setSelectedSaleDetails] = useState(null);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  // Settings state for currency
+  const [currency, setCurrency] = useState('usd');
+  // Add more settings
+  const [settings, setSettings] = useState({
+    businessName: 'Inventory Pro',
+    businessAddress: '',
+    businessPhone: '',
+    businessEmail: '',
+    dateFormat: 'mm/dd/yyyy',
+    enableTax: true,
+    taxRate: 18
+  });
   
   // Return modal states
   const [returnItems, setReturnItems] = useState([]);
   const [returnNote, setReturnNote] = useState('');
   const [returnError, setReturnError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Load settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const allSettings = await SettingService.getAllSettings();
+        if (allSettings) {
+          setCurrency(allSettings.currency?.toLowerCase() || 'usd');
+          
+          setSettings({
+            businessName: allSettings.business_name || 'Inventory Pro',
+            businessAddress: allSettings.business_address || '',
+            businessPhone: allSettings.business_phone || '',
+            businessEmail: allSettings.business_email || '',
+            dateFormat: allSettings.date_format || 'mm/dd/yyyy',
+            enableTax: allSettings.enable_tax !== undefined ? allSettings.enable_tax : true,
+            taxRate: parseFloat(allSettings.tax_rate) || 18
+          });
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+    
+    loadSettings();
+  }, []);
+
+  // Helper function to format currency consistently
+  const formatWithCurrency = (amount) => {
+    return formatCurrency(amount, currency);
+  };
+
+  // Format dates according to user settings
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    
+    switch (settings.dateFormat) {
+      case 'dd/mm/yyyy':
+        return format(date, 'dd/MM/yyyy HH:mm');
+      case 'yyyy-mm-dd':
+        return format(date, 'yyyy-MM-dd HH:mm');
+      case 'mm/dd/yyyy':
+      default:
+        return format(date, 'MM/dd/yyyy HH:mm');
+    }
+  };
 
   // Sync filters when they change in the hook
   useEffect(() => {
@@ -121,9 +183,10 @@ const SalesHistory = () => {
   };
 
   // Handle return submission
-  const handleReturnSubmit = (e) => {
+  const handleReturnSubmit = async (e) => {
     e.preventDefault();
     
+    // Filter out items with return quantity > 0
     const itemsToReturn = returnItems.filter(item => item.returnQuantity > 0);
     
     if (itemsToReturn.length === 0) {
@@ -134,46 +197,38 @@ const SalesHistory = () => {
     setReturnError('');
     setIsProcessing(true);
     
-    // Process return logic
-    const returnData = {
-      saleId: selectedSale.id,
-      items: itemsToReturn,
-      note: returnNote,
-      returnTotal: calculateReturnTotal(itemsToReturn),
-      returnDate: new Date().toISOString()
-    };
-    
-    // Simulate API call with a timeout
-    setTimeout(() => {
-      // Show notification that this is not implemented yet
-      toast.success(t('sales:return.success'), { 
-        duration: 2000,
-        icon: '✅'
-      });
+    try {
+      // Calculate the amounts for reference
+      const amounts = calculateReturnAmount(returnItems);
       
-      setTimeout(() => {
-        toast(t('sales:return.notImplemented'), {
-          duration: 4000,
-          icon: 'ℹ️',
-          style: {
-            background: '#3498db',
-            color: '#fff'
-          }
-        });
-      }, 500);
+      // Format return data according to the model expectations
+      const returnData = {
+        notes: returnNote,
+        reason: returnNote,
+        subtotal: amounts.subtotal,
+        tax_amount: amounts.tax,
+        total_amount: amounts.total,
+        return_date: new Date().toISOString()
+      };
       
-      // Call the callback for processing the return
-      handleReturnProcessed(returnData);
+      // Format items for the return API
+      const formattedItems = itemsToReturn.map(item => ({
+        product_id: item.product_id,
+        quantity: item.returnQuantity
+      }));
+      
+      // Call the API with the expected parameters
+      await SaleService.processSaleReturn(selectedSale.id, returnData, formattedItems);
+      
+      closeReturnModal();
+      refresh();
+      toast.success(t('sales:return.success'));
+    } catch (error) {
+      console.error('Return processing error:', error);
+      toast.error(t('sales:return.error'));
+    } finally {
       setIsProcessing(false);
-    }, 1000);
-  };
-
-  // Handle a processed return
-  const handleReturnProcessed = (returnData) => {
-    closeReturnModal();
-    refresh(); // Refresh the sales list
-    handleCloseDetails(); // Close the details panel
-    // You could also show a success message here
+    }
   };
 
   // Render the sale item list
@@ -186,27 +241,30 @@ const SalesHistory = () => {
       <tr key={item.id}>
         <td>{item.product_name}</td>
         <td>{item.quantity}</td>
-        <td>{formatCurrency(item.unit_price)}</td>
-        <td>{formatCurrency(item.total_price)}</td>
+        <td>{formatWithCurrency(item.unit_price)}</td>
+        <td>{formatWithCurrency(item.total_price)}</td>
       </tr>
     ));
   };
 
-  // Format date for display
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
+  // Calculate return total with tax settings applied
+  const calculateReturnAmount = (items) => {
+    // Calculate subtotal
+    const subtotal = calculateReturnTotal(items);
     
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleString();
-    } catch (e) {
-      console.error("Error formatting date:", e);
-      return dateString;
-    }
+    // Calculate tax if enabled
+    const tax = settings.enableTax ? subtotal * (settings.taxRate / 100) : 0;
+    
+    // Return total amount
+    return {
+      subtotal,
+      tax,
+      total: subtotal + tax
+    };
   };
 
-  // Calculate return total
-  const returnTotal = calculateReturnTotal(returnItems);
+  // For display in the UI
+  const returnAmounts = calculateReturnAmount(returnItems);
 
   return (
     <div className="sales-history-page">
@@ -299,16 +357,19 @@ const SalesHistory = () => {
                   </tr>
                 ) : (
                   sales.map(sale => (
-                    <tr key={sale.id} className={selectedSale && selectedSale.id === sale.id ? 'selected' : ''}>
-                      <td>{sale.receipt_number}</td>
+                    <tr key={sale.id} onClick={() => handleSelectSale(sale)}>
+                      <td>{sale.receipt_number || '-'}</td>
                       <td>{formatDate(sale.created_at)}</td>
-                      <td>{sale.item_count || '—'}</td>
-                      <td>{formatCurrency(sale.total_amount)}</td>
+                      <td>{sale.total_items || 0}</td>
+                      <td>{formatWithCurrency(sale.total_amount || 0)}</td>
                       <td>{t(`sales:paymentMethods.${sale.payment_method}`)}</td>
                       <td>
                         <button 
                           className="action-button view"
-                          onClick={() => handleSelectSale(sale)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectSale(sale);
+                          }}
                         >
                           {t('sales:actions.viewDetails')}
                         </button>
@@ -329,7 +390,10 @@ const SalesHistory = () => {
             </div>
             <div className="receipt">
               <div className="receipt-header">
-                <h4>Inventory Pro</h4>
+                <h3>{settings.businessName}</h3>
+                {settings.businessAddress && <p>{settings.businessAddress}</p>}
+                {settings.businessPhone && <p>{t('pos:receipt.phone')}: {settings.businessPhone}</p>}
+                {settings.businessEmail && <p>{t('pos:receipt.email')}: {settings.businessEmail}</p>}
                 <p>{t('sales:receipt.number', { number: selectedSale.receipt_number })}</p>
                 <p>{formatDate(selectedSale.created_at)}</p>
               </div>
@@ -351,15 +415,17 @@ const SalesHistory = () => {
               <div className="receipt-summary">
                 <div className="summary-row">
                   <span>{t('sales:receipt.subtotal')}:</span>
-                  <span>{formatCurrency(selectedSale.subtotal)}</span>
+                  <span>{formatWithCurrency(selectedSale.subtotal)}</span>
                 </div>
-                <div className="summary-row">
-                  <span>{t('sales:receipt.tax')}:</span>
-                  <span>{formatCurrency(selectedSale.tax_amount)}</span>
-                </div>
+                {settings.enableTax && selectedSale.tax_amount > 0 && (
+                  <div className="summary-row">
+                    <span>{t('sales:receipt.tax')}:</span>
+                    <span>{formatWithCurrency(selectedSale.tax_amount)}</span>
+                  </div>
+                )}
                 <div className="summary-row total">
                   <span>{t('sales:receipt.total')}:</span>
-                  <span>{formatCurrency(selectedSale.total_amount)}</span>
+                  <span>{formatWithCurrency(selectedSale.total_amount)}</span>
                 </div>
                 <div className="summary-row">
                   <span>{t('sales:receipt.paymentMethod')}:</span>
@@ -408,29 +474,29 @@ const SalesHistory = () => {
                 </div>
                 
                 <div className="return-items">
-                  <table>
+                  <table className="return-items-table">
                     <thead>
                       <tr>
-                        <th>{t('sales:receipt.item')}</th>
-                        <th>{t('sales:receipt.price')}</th>
+                        <th>{t('sales:return.product')}</th>
                         <th>{t('sales:return.originalQuantity')}</th>
+                        <th>{t('sales:return.price')}</th>
                         <th>{t('sales:return.returnQuantity')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {returnItems.map(item => (
                         <tr key={item.id}>
-                          <td>{item.product_name || item.name}</td>
-                          <td>{formatCurrency(item.unit_price || item.price || 0)}</td>
+                          <td>{item.product_name}</td>
                           <td>{item.quantity}</td>
+                          <td>{formatWithCurrency(item.unit_price || item.price || 0)}</td>
                           <td>
                             <input
                               type="number"
                               min="0"
                               max={item.quantity}
-                              value={item.returnQuantity || 0}
+                              value={item.returnQuantity}
                               onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
-                              disabled={isProcessing}
+                              className="return-quantity-input"
                             />
                           </td>
                         </tr>
@@ -453,8 +519,18 @@ const SalesHistory = () => {
                 
                 <div className="return-summary">
                   <div className="return-total">
+                    <span>{t('sales:return.subtotal')}:</span>
+                    <span>{formatWithCurrency(returnAmounts.subtotal)}</span>
+                  </div>
+                  {settings.enableTax && returnAmounts.tax > 0 && (
+                    <div className="return-total">
+                      <span>{t('sales:return.tax', { rate: settings.taxRate })}:</span>
+                      <span>{formatWithCurrency(returnAmounts.tax)}</span>
+                    </div>
+                  )}
+                  <div className="return-total">
                     <span>{t('sales:return.totalRefund')}:</span>
-                    <span>{formatCurrency(returnTotal)}</span>
+                    <span>{formatWithCurrency(returnAmounts.total)}</span>
                   </div>
                 </div>
               </div>
@@ -471,7 +547,7 @@ const SalesHistory = () => {
                 <button 
                   type="submit" 
                   className="button primary" 
-                  disabled={isProcessing || returnTotal <= 0}
+                  disabled={isProcessing || returnAmounts.total <= 0}
                 >
                   {isProcessing ? t('common:processing') : t('sales:return.confirm')}
                 </button>

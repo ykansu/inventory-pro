@@ -57,7 +57,9 @@
     "change": "Para Üstü",
     "print": "Fişi Yazdır",
     "close": "Kapat",
-    "thankYou": "Alışverişiniz için teşekkürler!"
+    "thankYou": "Alışverişiniz için teşekkürler!",
+    "phone": "Telefon",
+    "email": "E-posta"
   },
   "notifications": {
     "saleCompleted": "Satış tamamlandı: {{amount}}"

@@ -56,7 +56,9 @@
     "change": "Change",
     "print": "Print Receipt",
     "close": "Close",
-    "thankYou": "Thank you for your purchase!"
+    "thankYou": "Thank you for your purchase!",
+    "phone": "Phone",
+    "email": "Email"
   },
   "notifications": {
     "saleCompleted": "Sale completed: {{amount}}"

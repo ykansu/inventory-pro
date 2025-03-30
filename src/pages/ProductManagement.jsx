@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', 'edit', 'categories', or 'suppliers'
   const { t } = useTranslation(['products', 'common']);
-  const { products, categories, suppliers, isLoading } = useDatabase();
+  const { products, categories, suppliers, settings, isLoading } = useDatabase();
   
   // State for product data
   const [productList, setProductList] = useState([]);
@@ -15,6 +15,9 @@ const ProductManagement = () => {
   const [supplierList, setSupplierList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // State for currency formatting
+  const [currencySymbol, setCurrencySymbol] = useState('$');
   
   // State for search and filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,6 +93,37 @@ const ProductManagement = () => {
 
     loadData();
   }, [products, categories, suppliers, t]);
+
+  // Load currency settings
+  useEffect(() => {
+    const loadCurrencySettings = async () => {
+      try {
+        if (settings) {
+          const settingsObj = await settings.getAllSettings();
+          const currency = settingsObj.currency ? settingsObj.currency.toLowerCase() : 'usd';
+          
+          // Map currency to symbol
+          const currencyMap = {
+            'usd': '$',
+            'eur': '€',
+            'gbp': '£',
+            'try': '₺'
+          };
+          
+          setCurrencySymbol(currencyMap[currency] || '$');
+        }
+      } catch (error) {
+        console.error('Error loading currency settings:', error);
+      }
+    };
+    
+    loadCurrencySettings();
+  }, [settings]);
+
+  // Format price with currency symbol
+  const formatPrice = (price) => {
+    return `${currencySymbol}${price.toFixed(2)}`;
+  };
 
   // Apply filters and search
   useEffect(() => {
@@ -580,7 +614,7 @@ const ProductManagement = () => {
                       <td>{product.name}</td>
                       <td>{product.barcode || '-'}</td>
                       <td>{product.category_name || '-'}</td>
-                      <td>{product.selling_price.toFixed(2)}</td>
+                      <td>{formatPrice(product.selling_price)}</td>
                       <td>
                         <span className={
                           product.stock_quantity <= 0 
@@ -975,7 +1009,7 @@ const ProductManagement = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="selling_price">{t('products:form.sellingPrice')} *</label>
+                <label htmlFor="selling_price">{t('products:form.sellingPrice')} ({currencySymbol}) *</label>
                 <input 
                   type="number" 
                   id="selling_price" 
@@ -989,7 +1023,7 @@ const ProductManagement = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="cost_price">{t('products:form.costPrice')} *</label>
+                <label htmlFor="cost_price">{t('products:form.costPrice')} ({currencySymbol}) *</label>
                 <input 
                   type="number" 
                   id="cost_price" 
