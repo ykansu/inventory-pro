@@ -327,6 +327,219 @@ class Sale extends BaseModel {
     }
   }
   
+  // Get monthly profit metrics
+  async getMonthlyProfitMetrics() {
+    try {
+      // Get the current date
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+      
+      // Format start and end dates for the current month
+      const startDate = new Date(currentYear, now.getMonth(), 1);
+      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      // Format dates for SQLite query
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+      
+      // Get all sales for current month
+      const sales = await this.db(this.tableName)
+        .where('created_at', '>=', formattedStartDate)
+        .where('created_at', '<=', formattedEndDate)
+        .where('is_returned', false)
+        .select('id', 'total_amount');
+      
+      if (sales.length === 0) {
+        return {
+          monthlyRevenue: 0,
+          monthlyProfit: 0,
+          profitMargin: 0
+        };
+      }
+      
+      // Get sale IDs
+      const saleIds = sales.map(sale => sale.id);
+      
+      // Calculate monthly revenue
+      const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
+      
+      // Get all sale items with product details to calculate cost
+      const saleItemsWithCost = await this.db('sale_items')
+        .join('products', 'sale_items.product_id', 'products.id')
+        .whereIn('sale_items.sale_id', saleIds)
+        .select(
+          'sale_items.quantity',
+          'sale_items.unit_price',
+          'sale_items.total_price',
+          'products.cost_price'
+        );
+      
+      // Calculate total cost and profit
+      let totalCost = 0;
+      
+      saleItemsWithCost.forEach(item => {
+        totalCost += parseFloat(item.cost_price) * parseInt(item.quantity);
+      });
+      
+      const monthlyProfit = monthlyRevenue - totalCost;
+      const profitMargin = monthlyRevenue > 0 ? (monthlyProfit / monthlyRevenue) * 100 : 0;
+      
+      return {
+        monthlyRevenue,
+        monthlyProfit,
+        profitMargin: Math.round(profitMargin * 10) / 10 // Round to 1 decimal place
+      };
+    } catch (error) {
+      console.error('Error in getMonthlyProfitMetrics:', error);
+      throw error;
+    }
+  }
+  
+  // Get profit by category for the current month
+  async getCategoryProfits() {
+    try {
+      // Get the current date
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+      
+      // Format start and end dates for the current month
+      const startDate = new Date(currentYear, now.getMonth(), 1);
+      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      // Format dates for SQLite query
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+      
+      // Get all sales for current month
+      const salesIds = await this.db(this.tableName)
+        .where('created_at', '>=', formattedStartDate)
+        .where('created_at', '<=', formattedEndDate)
+        .where('is_returned', false)
+        .pluck('id');
+      
+      if (salesIds.length === 0) {
+        return [];
+      }
+      
+      // Get all sale items with category and cost information
+      const categoryProfits = await this.db('sale_items')
+        .join('products', 'sale_items.product_id', 'products.id')
+        .leftJoin('categories', 'products.category_id', 'categories.id')
+        .whereIn('sale_items.sale_id', salesIds)
+        .select(
+          'categories.id as category_id',
+          'categories.name as name',
+          this.db.raw('SUM(sale_items.total_price) as revenue'),
+          this.db.raw('SUM(products.cost_price * sale_items.quantity) as cost')
+        )
+        .groupBy('categories.id', 'categories.name');
+      
+      // Calculate profit and margin for each category
+      const categoriesWithProfit = categoryProfits.map(category => {
+        const revenue = parseFloat(category.revenue) || 0;
+        const cost = parseFloat(category.cost) || 0;
+        const profit = revenue - cost;
+        const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+        
+        return {
+          name: category.name || 'Uncategorized',
+          revenue,
+          cost,
+          profit,
+          margin: Math.round(margin * 10) / 10 // Round to 1 decimal place
+        };
+      });
+      
+      // Sort by profit (highest first)
+      return categoriesWithProfit.sort((a, b) => b.profit - a.profit);
+    } catch (error) {
+      console.error('Error in getCategoryProfits:', error);
+      throw error;
+    }
+  }
+  
+  // Get profit value trend for the last 6 months
+  async getProfitValueTrend() {
+    try {
+      // Get current date
+      const now = new Date();
+      
+      // Generate the last 6 months
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push({
+          month: month.toLocaleString('default', { month: 'short' }),
+          year: month.getFullYear(),
+          monthNum: month.getMonth(), // 0-indexed
+          startDate: new Date(month.getFullYear(), month.getMonth(), 1),
+          endDate: new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59, 999)
+        });
+      }
+      
+      // Initialize result array
+      const trendData = [];
+      
+      // Process each month
+      for (const monthData of months) {
+        // Format dates for SQLite
+        const formattedStartDate = monthData.startDate.toISOString();
+        const formattedEndDate = monthData.endDate.toISOString();
+        
+        // Get all sales for this month
+        const sales = await this.db(this.tableName)
+          .where('created_at', '>=', formattedStartDate)
+          .where('created_at', '<=', formattedEndDate)
+          .where('is_returned', false)
+          .select('id', 'total_amount');
+        
+        if (sales.length === 0) {
+          trendData.push({
+            month: monthData.month,
+            value: 0
+          });
+          continue;
+        }
+        
+        // Get sale IDs
+        const saleIds = sales.map(sale => sale.id);
+        
+        // Calculate monthly revenue
+        const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
+        
+        // Get all sale items with product details to calculate cost
+        const saleItemsWithCost = await this.db('sale_items')
+          .join('products', 'sale_items.product_id', 'products.id')
+          .whereIn('sale_items.sale_id', saleIds)
+          .select(
+            'sale_items.quantity',
+            'products.cost_price'
+          );
+        
+        // Calculate total cost and profit
+        let totalCost = 0;
+        
+        saleItemsWithCost.forEach(item => {
+          totalCost += parseFloat(item.cost_price) * parseInt(item.quantity);
+        });
+        
+        const monthlyProfit = monthlyRevenue - totalCost;
+        
+        trendData.push({
+          month: monthData.month,
+          value: Math.round(monthlyProfit)
+        });
+      }
+      
+      return trendData;
+    } catch (error) {
+      console.error('Error in getProfitValueTrend:', error);
+      throw error;
+    }
+  }
+  
   // Process a return/refund
   async processReturn(id, returnData, itemsToReturn) {
     return this.db.transaction(async trx => {

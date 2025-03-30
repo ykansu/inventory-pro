@@ -288,6 +288,34 @@ ipcMain.handle('sales:processReturn', async (_, id, returnData, items) => {
   }
 });
 
+// Profit metrics handlers
+ipcMain.handle('profits:getMonthlyMetrics', async () => {
+  try {
+    return await Sale.getMonthlyProfitMetrics();
+  } catch (error) {
+    console.error('Error getting monthly profit metrics:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('profits:getCategoryProfits', async () => {
+  try {
+    return await Sale.getCategoryProfits();
+  } catch (error) {
+    console.error('Error getting category profits:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('profits:getProfitValueTrend', async () => {
+  try {
+    return await Sale.getProfitValueTrend();
+  } catch (error) {
+    console.error('Error getting profit trend data:', error);
+    throw error;
+  }
+});
+
 // Settings handlers
 ipcMain.handle('settings:getAll', async () => {
   try {

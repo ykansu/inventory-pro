@@ -5,14 +5,63 @@
     "totalProducts": "Toplam Ürünler",
     "lowStockItems": "Düşük Stok Ürünleri",
     "todaySales": "Bugünkü Satışlar",
-    "monthlyRevenue": "Aylık Gelir"
+    "monthlyRevenue": "Aylık Gelir",
+    "monthlyProfit": "Aylık Kar",
+    "profitMargin": "Kar Marjı",
+    "inventoryTurnover": "Stok Devir Hızı",
+    "inventoryValue": "Stok Değeri",
+    "stockVariance": "Stok Farkı",
+    "supplierPerformance": "Tedarikçi Performansı"
   },
   "sections": {
     "recentSales": "Son Satışlar",
-    "popularProducts": "Popüler Ürünler"
+    "popularProducts": "Popüler Ürünler",
+    "topProducts": "En Çok Satan Ürünler",
+    "revenueByPayment": "Ödeme Yöntemine Göre Gelir",
+    "categoryBreakdown": "Kategori Dağılımı",
+    "categoryProfits": "Kategori Kar Analizi",
+    "inventoryTrend": "Stok Değeri Trendi",
+    "supplierPerformance": "Tedarikçi Performansı",
+    "revenueTrend": "Aylık Gelir Trendi",
+    "revenueBySupplier": "Tedarikçiye Göre Gelir",
+    "profitTrend": "Gelir ve Kar Trendi"
   },
   "placeholders": {
-    "noSalesData": "Yakın zamanda satış verisi bulunmamaktadır",
-    "noProductData": "Ürün verisi bulunmamaktadır"
+    "noSalesData": "Mevcut satış verisi yok",
+    "noProductData": "Ürün verisi yok",
+    "noRevenueData": "Gelir verisi yok",
+    "noCategoryData": "Kategori verisi yok",
+    "noTrendData": "Trend verisi yok",
+    "noSupplierData": "Tedarikçi verisi yok"
+  },
+  "labels": {
+    "items": "Ürünler",
+    "value": "Değer",
+    "onTimeDelivery": "Zamanında Teslimat",
+    "qualityScore": "Kalite Puanı",
+    "topSuppliers": "En İyi Tedarikçiler",
+    "revenue": "Gelir",
+    "profit": "Kar",
+    "cost": "Maliyet"
+  },
+  "tooltips": {
+    "totalProducts": "Envanter sisteminde bulunan tüm kategorilerdeki aktif ürünlerin toplam sayısı. Bu, stokta olan ve olmayan ancak hala katalogda listelenen ürünleri içerir.",
+    "lowStockItems": "Mevcut stok miktarı, yapılandırılmış minimum stok eşik değerinin altına düşen ürünlerin sayısı. Stok tükenmesini önlemek için bu ürünlerin yakında yeniden sipariş edilmesi düşünülmelidir.",
+    "todaySales": "Bugün (00:00'dan itibaren) işleme alınan tüm tamamlanmış satış işlemlerinden elde edilen toplam gelir. Bu, tüm ödeme yöntemlerini içerir ve iadeler veya indirimler hesaba katılmaz.",
+    "monthlyRevenue": "İçinde bulunulan takvim ayında tüm satışlardan elde edilen toplam gelir. Bu rakam, ödeme durumu veya yönteminden bağımsız olarak tüm tamamlanmış işlemleri içerir ve indirimleri hesaba katar ancak iade veya geri ödemeleri içermez.",
+    "monthlyProfit": "İçinde bulunulan takvim ayında tüm satışlardan elde edilen net kar. Toplam gelirden satılan malların maliyeti (SMM) çıkarılarak hesaplanır. Bu, satılan ürünlerin maliyeti düşüldükten sonra gerçek kazancı temsil eder.",
+    "profitMargin": "Satılan malların maliyeti düşüldükten sonra karı temsil eden gelir yüzdesi. Hesaplama: (Aylık Kar ÷ Aylık Gelir) × 100. Daha yüksek marj, daha karlı satışları gösterir.",
+    "inventoryTurnover": "Tipik olarak bir yıl içinde tüm envanterinizin kaç kez satılıp yenilendiğini ölçen oran. Hesaplama: Satılan Malların Maliyeti (SMM) ÷ Ortalama Envanter Değeri. Daha yüksek bir devir hızı, verimli envanter yönetimini gösterir.",
+    "inventoryValue": "Tüm fiziksel envanter kalemlerinin maliyet fiyatından mevcut toplam parasal değeri. Her ürünün mevcut stok miktarının satın alma maliyet fiyatıyla çarpımının toplamı olarak hesaplanır. Bu, envanterinize yapılan sermaye yatırımını temsil eder.",
+    "stockVariance": "Sistem kayıtlarınızın stokta olması gerektiğini gösterdiği ile fiziksel envanter sayımlarının gerçekte sahip olduğunuzu ortaya çıkardığı değer arasındaki yüzde farkı. Hesaplama: ((Fiziksel Sayım - Sistem Sayımı) ÷ Sistem Sayımı) × 100. Pozitif bir değer, kaydedilenden daha fazla fiziksel stok olduğunu gösterir.",
+    "supplierPerformance": "Son 30 gün içinde tüm aktif tedarikçilerin ortalama zamanında teslimat oranı. Hesaplama: (Zamanında teslimat sayısı ÷ Toplam teslimat sayısı) × 100. Bu metrik, güvenilir tedarikçileri belirlemeye yardımcı olur.",
+    "topProducts": "İçinde bulunulan ayda satılan birim sayısına göre sıralanan ürünler. Bu sıralama, elde edilen geliri değil, yalnızca satılan ürün miktarını dikkate alır ve hangi ürünlerin hacim olarak en popüler olduğu konusunda fikir verir.",
+    "revenueBySupplier": "İçinde bulunulan takvim yılında her bir tedarikçiden temin edilen ürünlerden elde edilen toplam gelir. Hangi tedarikçi ilişkilerinin işletme gelirinize en çok katkıda bulunduğunu belirlemeye yardımcı olur.",
+    "revenueByPayment": "İçinde bulunulan ayın gelirinin müşteriler tarafından kullanılan farklı ödeme yöntemlerine (nakit, kredi kartı, çevrimiçi ödemeler vb.) göre dağılımı. Tercih edilen ödeme yöntemlerini takip etmeye ve ödeme işleme maliyetlerini planlamaya yardımcı olur.",
+    "categoryBreakdown": "Ürünlerin ve toplam envanter değerlerinin ürün kategorilerine göre dağılımı. Benzersiz ürünlerin sayısını ve kategori başına toplam envanter değerini gösterir ve hangi kategorilerin envanter yatırımınızda baskın olduğunu belirlemeye yardımcı olur.",
+    "categoryProfits": "Her ürün kategorisi için toplam gelir, maliyet, kar miktarı ve kar marjı yüzdesini gösteren detaylı kar analizi. En karlı ürün kategorilerinizi ve fiyatlandırma veya maliyet ayarlamaları gerektirebilecek kategorileri belirlemenize yardımcı olur.",
+    "inventoryTrend": "Her ayın sonunda toplam envanter değerini gösteren 6 aylık geçmiş trend. Envanter seviyelerindeki mevsimsel kalıpları ve zaman içinde stoka yatırılan sermayeyi görselleştirmeye yardımcı olur.",
+    "revenueTrend": "Her ay için toplam satış gelirini gösteren 6 aylık geçmiş trend. Satış kalıplarını, mevsimsel dalgalanmaları ve genel işletme büyüme yörüngesini belirlemeye yardımcı olur.",
+    "profitTrend": "Her ay için toplam geliri (üst çubuklar) net karla (alt çubuklar) karşılaştıran 6 aylık geçmiş trend. Bu görselleştirme, hem üst düzey büyümeyi hem de alt düzey karlılığı takip etmeye yardımcı olur ve zaman içinde kar marjındaki eğilimleri ortaya çıkarır."
   }
 }

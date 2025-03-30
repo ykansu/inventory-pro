@@ -19,6 +19,13 @@
   color: #6b7280;
 }
 
+.business-name {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -39,12 +46,81 @@
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .stat-value {
   font-size: 1.5rem;
   font-weight: 600;
   color: #1e40af;
+}
+
+/* Tooltip styles */
+.info-tooltip {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  color: #6b7280;
+  font-size: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  margin-left: 5px;
+  cursor: help;
+  position: relative;
+}
+
+.info-tooltip:hover {
+  background-color: #d1d5db;
+  color: #374151;
+}
+
+.info-tooltip:hover::before {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 250px;
+  max-width: 300px;
+  padding: 0.75rem;
+  background-color: #1e293b;
+  color: white;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  border-radius: 4px;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  white-space: normal;
+  font-weight: normal;
+}
+
+.info-tooltip:hover::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1e293b transparent transparent transparent;
+  z-index: 10;
+}
+
+.dashboard-section h3 .info-tooltip:hover::before {
+  left: auto;
+  right: 0;
+  transform: translateX(0);
+}
+
+.dashboard-section h3 .info-tooltip:hover::after {
+  left: auto;
+  right: 5px;
+  transform: translateX(0);
 }
 
 .dashboard-sections {
@@ -67,6 +143,9 @@
   font-weight: 500;
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .placeholder-content {
@@ -77,4 +156,414 @@
   color: #9ca3af;
   text-align: center;
   font-style: italic;
+}
+
+/* Content Table Styles */
+.content-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.content-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.content-table th {
+  text-align: left;
+  padding: 0.75rem;
+  font-weight: 500;
+  color: #4b5563;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.content-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Profit & Revenue Chart */
+.profit-trend-chart {
+  height: 220px;
+}
+
+.trend-bar-stacked {
+  position: relative;
+  width: 70%;
+  height: 100%;
+}
+
+.trend-bar-stacked .trend-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+}
+
+.profit-bar {
+  background-color: #8b5cf6;
+  z-index: 2;
+}
+
+.revenue-bar {
+  background-color: rgba(96, 165, 250, 0.3);
+  z-index: 1;
+}
+
+.trend-values {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 0.25rem;
+  gap: 0.25rem;
+}
+
+.revenue-value {
+  color: #60a5fa;
+}
+
+.profit-value {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.trend-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.legend-color {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.revenue-color {
+  background-color: #60a5fa;
+}
+
+.profit-color {
+  background-color: #8b5cf6;
+}
+
+/* Category Profit Styles */
+.category-profit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.category-profit-item {
+  border-radius: 6px;
+  background-color: #f9fafb;
+  padding: 0.75rem;
+}
+
+.category-profit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+.category-margin {
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.profit-bars-container {
+  margin-bottom: 0.75rem;
+}
+
+.stacked-bar-container {
+  position: relative;
+  height: 10px;
+  background-color: #e5e7eb;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.profit-cost-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: #f59e0b;
+}
+
+.profit-margin-bar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background-color: #8b5cf6;
+}
+
+.category-profit-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+}
+
+.detail-label {
+  color: #6b7280;
+  margin-right: 0.5rem;
+}
+
+.detail-value {
+  font-weight: 500;
+}
+
+/* Supplier Revenue */
+.supplier-revenue-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.supplier-revenue-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.supplier-revenue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.supplier-revenue {
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.supplier-revenue-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.supplier-revenue-bar {
+  height: 100%;
+  background-color: #8b5cf6;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Payment Method Breakdown */
+.payment-method-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payment-method-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.payment-method-name {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.payment-method-amount {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.payment-method-bar {
+  height: 8px;
+  background-color: #4CAF50;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+  transition: width 0.3s ease;
+}
+
+/* Category Breakdown */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.category-card {
+  background-color: #f9fafb;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.category-card h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  color: #1e40af;
+}
+
+.category-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-stats > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.category-stats .label {
+  color: #6b7280;
+}
+
+.category-stats .value {
+  font-weight: 500;
+}
+
+/* Trend Chart */
+.trend-chart {
+  height: 200px;
+  padding: 1rem 0;
+}
+
+.trend-bars {
+  display: flex;
+  height: 100%;
+  align-items: flex-end;
+  justify-content: space-around;
+}
+
+.trend-bar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.trend-bar {
+  width: 70%;
+  background-color: #60a5fa;
+  transition: height 0.5s ease;
+  border-radius: 4px 4px 0 0;
+}
+
+.trend-label {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.trend-value {
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+/* Supplier Performance */
+.supplier-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.supplier-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.top-suppliers h4 {
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem 0;
+  color: #4b5563;
+}
+
+.suppliers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.supplier-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.supplier-name {
+  flex: 0 0 30%;
+  font-size: 0.875rem;
+}
+
+.supplier-performance-bar {
+  flex: 1;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.performance-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  border-radius: 4px;
+}
+
+.supplier-score {
+  flex: 0 0 15%;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  
+  .dashboard-sections {
+    grid-template-columns: 1fr;
+  }
+  
+  .supplier-overview {
+    grid-template-columns: 1fr;
+  }
 } 

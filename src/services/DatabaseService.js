@@ -235,6 +235,36 @@ export const SaleService = {
       console.error(`Error processing return for sale ${id}:`, error);
       throw error;
     }
+  },
+  
+  // Get monthly profit metrics
+  getMonthlyProfitMetrics: async () => {
+    try {
+      return await window.database.getMonthlyProfitMetrics();
+    } catch (error) {
+      console.error('Error fetching monthly profit metrics:', error);
+      throw error;
+    }
+  },
+  
+  // Get profit metrics by category
+  getCategoryProfits: async () => {
+    try {
+      return await window.database.getCategoryProfits();
+    } catch (error) {
+      console.error('Error fetching category profits:', error);
+      throw error;
+    }
+  },
+  
+  // Get profit trend data for last 6 months
+  getProfitValueTrend: async () => {
+    try {
+      return await window.database.getProfitValueTrend();
+    } catch (error) {
+      console.error('Error fetching profit value trend:', error);
+      throw error;
+    }
   }
 };
 

@@ -35,6 +35,11 @@ contextBridge.exposeInMainWorld('database', {
   getSalesByDateRange: (startDate, endDate) => ipcRenderer.invoke('sales:getByDateRange', startDate, endDate),
   processSaleReturn: (id, returnData, items) => ipcRenderer.invoke('sales:processReturn', id, returnData, items),
   
+  // Profit metrics
+  getMonthlyProfitMetrics: () => ipcRenderer.invoke('profits:getMonthlyMetrics'),
+  getCategoryProfits: () => ipcRenderer.invoke('profits:getCategoryProfits'),
+  getProfitValueTrend: () => ipcRenderer.invoke('profits:getProfitValueTrend'),
+  
   // Settings
   getAllSettings: () => ipcRenderer.invoke('settings:getAll'),
   getSettingByKey: (key) => ipcRenderer.invoke('settings:getByKey', key),

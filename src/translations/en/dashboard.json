@@ -5,14 +5,63 @@
     "totalProducts": "Total Products",
     "lowStockItems": "Low Stock Items",
     "todaySales": "Today's Sales",
-    "monthlyRevenue": "Monthly Revenue"
+    "monthlyRevenue": "Monthly Revenue",
+    "monthlyProfit": "Monthly Profit",
+    "profitMargin": "Profit Margin",
+    "inventoryTurnover": "Inventory Turnover",
+    "inventoryValue": "Inventory Value",
+    "stockVariance": "Stock Variance",
+    "supplierPerformance": "Supplier Performance"
   },
   "sections": {
     "recentSales": "Recent Sales",
-    "popularProducts": "Popular Products"
+    "popularProducts": "Popular Products",
+    "topProducts": "Top Selling Products",
+    "revenueByPayment": "Revenue by Payment Method",
+    "categoryBreakdown": "Category Breakdown",
+    "categoryProfits": "Category Profit Analysis",
+    "inventoryTrend": "Inventory Value Trend",
+    "supplierPerformance": "Supplier Performance",
+    "revenueTrend": "Monthly Revenue Trend",
+    "revenueBySupplier": "Revenue by Supplier",
+    "profitTrend": "Revenue & Profit Trend"
   },
   "placeholders": {
     "noSalesData": "No recent sales data available",
-    "noProductData": "No product data available"
+    "noProductData": "No product data available",
+    "noRevenueData": "No revenue data available",
+    "noCategoryData": "No category data available",
+    "noTrendData": "No trend data available",
+    "noSupplierData": "No supplier data available"
+  },
+  "labels": {
+    "items": "Items",
+    "value": "Value",
+    "onTimeDelivery": "On-time Delivery",
+    "qualityScore": "Quality Score",
+    "topSuppliers": "Top Suppliers",
+    "revenue": "Revenue",
+    "profit": "Profit",
+    "cost": "Cost"
+  },
+  "tooltips": {
+    "totalProducts": "Total count of all active products across all categories currently in the inventory system. This includes both in-stock and out-of-stock items that are still listed in the catalog.",
+    "lowStockItems": "Number of products where the current stock quantity has fallen below their configured minimum stock threshold value. These items should be considered for reordering soon to prevent stockouts.",
+    "todaySales": "Total revenue from all completed sales transactions processed today (since 12:00 AM). This includes all payment methods and does not account for returns or discounts.",
+    "monthlyRevenue": "Total revenue from all sales in the current calendar month. This figure includes all completed transactions regardless of payment status or method, and accounts for discounts but not returns or refunds.",
+    "monthlyProfit": "The net profit generated from all sales in the current calendar month. Calculated as total revenue minus the cost of goods sold (COGS). This represents the actual earnings after accounting for the cost of the products sold.",
+    "profitMargin": "The percentage of revenue that represents profit after accounting for the cost of goods sold. Calculated as: (Monthly Profit ÷ Monthly Revenue) × 100. Higher margin indicates more profitable sales.",
+    "inventoryTurnover": "Ratio that measures how many times your entire inventory is sold and replaced over a specific time period, typically one year. Calculated as: Cost of Goods Sold (COGS) ÷ Average Inventory Value. Higher turnover indicates efficient inventory management.",
+    "inventoryValue": "Current total monetary value of all physical inventory items at cost price. Calculated by summing the product of each item's current quantity in stock multiplied by its purchase cost price. This represents your capital investment in inventory.",
+    "stockVariance": "Percentage difference between what your system records show you should have in stock versus what physical inventory counts reveal you actually have. Calculated as: ((Physical Count - System Count) ÷ System Count) × 100. A positive value indicates more physical stock than recorded.",
+    "supplierPerformance": "Average on-time delivery rate of all active suppliers over the past 30 days. Calculated as: (Number of on-time deliveries ÷ Total number of deliveries) × 100. This metric helps identify reliable suppliers.",
+    "topProducts": "Products ranked by the number of units sold in the current month. This ranking does not account for revenue generated, only the quantity of items sold, providing insight into which products are most popular by volume.",
+    "revenueBySupplier": "Total revenue generated from products sourced from each supplier in the current calendar year. This helps identify which supplier relationships contribute most to your business revenue.",
+    "revenueByPayment": "Breakdown of the current month's revenue distributed across different payment methods used by customers (cash, credit card, online payments, etc.). Helps track preferred payment methods and plan for payment processing costs.",
+    "categoryBreakdown": "Distribution of products and their total inventory value across product categories. Shows both the count of unique products and total inventory value per category, helping identify which categories dominate your inventory investment.",
+    "categoryProfits": "Detailed profit analysis for each product category, showing total revenue, cost, profit amount, and profit margin percentage. Helps identify your most profitable product categories and those that might need pricing or cost adjustments.",
+    "inventoryTrend": "6-month historical trend showing the total value of inventory holdings at the end of each month. Helps visualize seasonal patterns in inventory levels and capital investment in stock over time.",
+    "revenueTrend": "6-month historical trend showing total sales revenue for each month. Helps identify sales patterns, seasonal fluctuations, and overall business growth trajectory.",
+    "profitTrend": "6-month historical trend comparing total revenue (top bars) to net profit (bottom bars) for each month. This visualization helps track both top-line growth and bottom-line profitability, revealing trends in profit margin over time."
   }
 }
