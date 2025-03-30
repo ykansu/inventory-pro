@@ -268,6 +268,45 @@ export const SettingService = {
       console.error(`Error updating setting ${key}:`, error);
       throw error;
     }
+  },
+  
+  // Create setting
+  createSetting: async (key, value, type = 'string', description = '') => {
+    try {
+      return await window.database.createSetting(key, value, type, description);
+    } catch (error) {
+      console.error(`Error creating setting ${key}:`, error);
+      throw error;
+    }
+  },
+  
+  // Create or update setting
+  saveSettingSafely: async (key, value, type = 'string', description = '') => {
+    try {
+      // Try to get the setting first
+      const setting = await window.database.getSettingByKey(key);
+      
+      if (setting) {
+        // Setting exists, update it
+        return await window.database.updateSetting(key, value);
+      } else {
+        // Setting doesn't exist, create it
+        return await window.database.createSetting(key, value, type, description);
+      }
+    } catch (error) {
+      console.error(`Error saving setting ${key}:`, error);
+      throw error;
+    }
+  },
+  
+  // Dump settings for debugging
+  dumpSettings: async () => {
+    try {
+      return await window.database.dumpSettings();
+    } catch (error) {
+      console.error(`Error dumping settings:`, error);
+      throw error;
+    }
   }
 };
 

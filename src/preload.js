@@ -39,6 +39,8 @@ contextBridge.exposeInMainWorld('database', {
   getAllSettings: () => ipcRenderer.invoke('settings:getAll'),
   getSettingByKey: (key) => ipcRenderer.invoke('settings:getByKey', key),
   updateSetting: (key, value) => ipcRenderer.invoke('settings:update', key, value),
+  createSetting: (key, value, type, description) => ipcRenderer.invoke('settings:create', key, value, type, description),
+  saveSettingSafely: (key, value, type, description) => ipcRenderer.invoke('settings:saveSafely', key, value, type, description),
   
   // Database management
   createBackup: () => ipcRenderer.invoke('database:createBackup'),

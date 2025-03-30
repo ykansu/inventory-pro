@@ -62,7 +62,21 @@
     "reset": {
       "title": "Reset Database",
       "description": "Warning: This will delete all your data and cannot be undone.",
-      "action": "Reset Database"
+      "action": "Reset Database",
+      "confirmMessage": "Are you sure you want to reset the database? All data will be lost!",
+      "success": "Database reset successfully",
+      "error": "Failed to reset database"
+    },
+    "resetSettings": {
+      "title": "Reset Settings",
+      "description": "Reset all settings to their default values. This will not affect your data.",
+      "action": "Reset Settings",
+      "success": "Settings reset successfully",
+      "error": "Failed to reset settings"
     }
-  }
+  },
+  "saveSuccess": "Settings saved successfully",
+  "saveError": "Failed to save settings",
+  "languageChangeSuccess": "Language changed successfully",
+  "languageChangeError": "Failed to change language"
 }

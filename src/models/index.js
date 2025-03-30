@@ -397,7 +397,15 @@ class Setting extends BaseModel {
   
   // Get setting by key
   async getByKey(key) {
-    const setting = await this.db(this.tableName).where({ key }).first();
+    // Try case-sensitive lookup first
+    let setting = await this.db(this.tableName).where({ key }).first();
+    
+    // If not found, try case-insensitive lookup
+    if (!setting && typeof key === 'string') {
+      setting = await this.db(this.tableName)
+        .whereRaw('LOWER(key) = LOWER(?)', [key])
+        .first();
+    }
     
     if (!setting) {
       return null;
@@ -421,6 +429,29 @@ class Setting extends BaseModel {
     }
     
     return setting;
+  }
+  
+  // Create a new setting
+  async createSetting(key, value, type = 'string', description = '') {
+    // Convert value based on type
+    let storedValue = value;
+    
+    if (type === 'json' && typeof value !== 'string') {
+      storedValue = JSON.stringify(value);
+    } else if (type === 'boolean') {
+      storedValue = value.toString();
+    }
+    
+    await this.db(this.tableName).insert({
+      key,
+      value: storedValue,
+      type,
+      description,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+    
+    return this.getByKey(key);
   }
   
   // Update setting by key
@@ -448,6 +479,81 @@ class Setting extends BaseModel {
       });
       
     return this.getByKey(key);
+  }
+  
+  // Save setting safely (create if not exists, update if exists)
+  async saveSettingSafely(key, value, type = 'string', description = '') {
+    try {
+      // Try looking up by the key first
+      const setting = await this.getByKey(key);
+      
+      if (setting) {
+        // Setting exists, update it - use the existing key to maintain case
+        return await this.updateByKey(setting.key, value);
+      } else {
+        // Handle known key name normalization
+        let normalizedKey = key;
+        
+        // Map common field names to their normalized form
+        const keyMap = {
+          'businessname': 'business_name',
+          'businessName': 'business_name',
+          'business_name': 'business_name',
+          'address': 'business_address',
+          'businessaddress': 'business_address',
+          'businessAddress': 'business_address',
+          'business_address': 'business_address',
+          'phone': 'business_phone',
+          'businessphone': 'business_phone',
+          'businessPhone': 'business_phone',
+          'business_phone': 'business_phone',
+          'email': 'business_email',
+          'businessemail': 'business_email',
+          'businessEmail': 'business_email',
+          'business_email': 'business_email',
+          'taxid': 'tax_id',
+          'taxId': 'tax_id',
+          'tax_id': 'tax_id',
+          'enabletax': 'enable_tax',
+          'enableTax': 'enable_tax',
+          'enable_tax': 'enable_tax',
+          'taxrate': 'tax_rate',
+          'taxRate': 'tax_rate',
+          'tax_rate': 'tax_rate',
+          'taxname': 'tax_name',
+          'taxName': 'tax_name',
+          'tax_name': 'tax_name',
+          'receiptheader': 'receipt_header',
+          'receiptHeader': 'receipt_header',
+          'receipt_header': 'receipt_header',
+          'receiptfooter': 'receipt_footer',
+          'receiptFooter': 'receipt_footer',
+          'receipt_footer': 'receipt_footer',
+          'showlogo': 'show_logo',
+          'showLogo': 'show_logo',
+          'show_logo': 'show_logo',
+          'showtaxdetails': 'show_tax_details',
+          'showTaxDetails': 'show_tax_details',
+          'show_tax_details': 'show_tax_details',
+          'dateformat': 'date_format',
+          'dateFormat': 'date_format',
+          'date_format': 'date_format',
+          'enablenotifications': 'enable_notifications',
+          'enableNotifications': 'enable_notifications',
+          'enable_notifications': 'enable_notifications'
+        };
+        
+        if (keyMap[key.toLowerCase()]) {
+          normalizedKey = keyMap[key.toLowerCase()];
+        }
+        
+        // Setting doesn't exist, create it with normalized key
+        return await this.createSetting(normalizedKey, value, type, description);
+      }
+    } catch (error) {
+      console.error(`Error in saveSettingSafely for key ${key}:`, error);
+      throw error;
+    }
   }
   
   // Get all settings as an object

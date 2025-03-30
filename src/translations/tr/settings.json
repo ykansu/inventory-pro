@@ -62,7 +62,21 @@
     "reset": {
       "title": "Veritabanını Sıfırla",
       "description": "Uyarı: Bu işlem tüm verilerinizi silecek ve geri alınamayacaktır.",
-      "action": "Veritabanını Sıfırla"
+      "action": "Veritabanını Sıfırla",
+      "confirmMessage": "Veritabanını sıfırlamak istediğinizden emin misiniz? Tüm veriler kaybolacak!",
+      "success": "Veritabanı başarıyla sıfırlandı",
+      "error": "Veritabanı sıfırlanamadı"
+    },
+    "resetSettings": {
+      "title": "Ayarları Sıfırla",
+      "description": "Tüm ayarları varsayılan değerlerine sıfırlayın. Bu, verilerinizi etkilemeyecektir.",
+      "action": "Ayarları Sıfırla",
+      "success": "Ayarlar başarıyla sıfırlandı",
+      "error": "Ayarlar sıfırlanamadı"
     }
-  }
+  },
+  "saveSuccess": "Ayarlar başarıyla kaydedildi",
+  "saveError": "Ayarlar kaydedilemedi",
+  "languageChangeSuccess": "Dil değişikliği başarılı",
+  "languageChangeError": "Dil değiştirilemedi"
 }

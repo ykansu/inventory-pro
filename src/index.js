@@ -316,6 +316,24 @@ ipcMain.handle('settings:update', async (_, key, value) => {
   }
 });
 
+ipcMain.handle('settings:create', async (_, key, value, type, description) => {
+  try {
+    return await Setting.createSetting(key, value, type, description);
+  } catch (error) {
+    console.error(`Error creating setting ${key}:`, error);
+    throw error;
+  }
+});
+
+ipcMain.handle('settings:saveSafely', async (_, key, value, type, description) => {
+  try {
+    return await Setting.saveSettingSafely(key, value, type, description);
+  } catch (error) {
+    console.error(`Error saving setting ${key}:`, error);
+    throw error;
+  }
+});
+
 // Database management handlers
 ipcMain.handle('database:createBackup', async () => {
   try {
