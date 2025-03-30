@@ -1,0 +1,134 @@
+/* Sales History Page Styles */
+.sales-history-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sales-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: space-between;
+}
+
+.date-filters {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.filter-button {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.additional-filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sales-container {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.sales-list {
+  flex: 1;
+}
+
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sale-details {
+  width: 350px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sale-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sale-details-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1e40af;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.receipt {
+  padding: 1rem;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.receipt-header h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+}
+
+.receipt-header p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.receipt-items {
+  margin-bottom: 1rem;
+}
+
+.receipt-items table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.receipt-items th {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 500;
+}
+
+.receipt-items td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.receipt-summary {
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.receipt-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+} 

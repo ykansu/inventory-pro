@@ -1,0 +1,15 @@
+/* Main CSS file - imports all component and page styles */
+
+/* Components */
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/modal.css';
+@import './components/table.css';
+
+/* Pages */
+@import './pages/dashboard.css';
+@import './pages/product-management.css';
+@import './pages/pos.css';
+@import './pages/sales-history.css';
+@import './pages/reports.css';
+@import './pages/settings.css'; 

@@ -1,0 +1,123 @@
+/* Settings Page Styles */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.settings-container {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.settings-sidebar {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.settings-tabs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-tabs li {
+  margin-bottom: 0.5rem;
+}
+
+.settings-tab-button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-tab-button:hover {
+  background-color: #f3f4f6;
+}
+
+.settings-tab-button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.settings-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+.settings-content h3 {
+  margin: 0 0 1.5rem 0;
+  color: #1e40af;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 600px;
+}
+
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-group input {
+  margin: 0;
+}
+
+.database-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.action-card {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.action-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: #1e40af;
+}
+
+.action-card p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.action-card.danger {
+  background-color: #fee2e2;
+  border-color: #fecaca;
+}
+
+.action-card.danger h4 {
+  color: #b91c1c;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+} 
