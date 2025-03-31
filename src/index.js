@@ -2,20 +2,117 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
-const config = require('./database/config');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
-  app.quit();
+// Use try-catch to handle module not found errors gracefully
+try {
+  if (require('electron-squirrel-startup')) {
+    app.quit();
+  }
+} catch (err) {
+  console.error('Failed to load electron-squirrel-startup:', err);
 }
 
 // In development mode, use electron-reload to watch for changes
 if (process.env.NODE_ENV === 'development') {
-  require('electron-reload')(__dirname, {
-    electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron'),
-    hardResetMethod: 'exit'
-  });
+  try {
+    require('electron-reload')(__dirname, {
+      electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron'),
+      hardResetMethod: 'exit'
+    });
+  } catch (err) {
+    console.warn('Failed to load electron-reload, continuing without it:', err);
+  }
 }
+
+// Initialize global config variable
+let config = null;
+// Initialize other database modules
+let dbConnection = null;
+let createBackup = null;
+let restoreFromBackup = null;
+let scheduleBackups = null;
+let exportToJson = null;
+let importFromJson = null;
+let scheduleJsonBackups = null;
+let Product = null;
+let Category = null;
+let Supplier = null;
+let Sale = null;
+let Setting = null;
+
+// Load database modules safely
+function loadDatabaseModules() {
+  try {
+    console.log('Loading database modules...');
+    
+    // Load database modules
+    dbConnection = require('./database/connection');
+    
+    // Load backup modules
+    const backupModule = require('./database/backup');
+    createBackup = backupModule.createBackup;
+    restoreFromBackup = backupModule.restoreFromBackup;
+    scheduleBackups = backupModule.scheduleBackups;
+    
+    // Load JSON backup modules
+    const jsonBackupModule = require('./database/json-backup');
+    exportToJson = jsonBackupModule.exportToJson;
+    importFromJson = jsonBackupModule.importFromJson;
+    scheduleJsonBackups = jsonBackupModule.scheduleJsonBackups;
+    
+    // Load model modules
+    const models = require('./models');
+    Product = models.Product;
+    Category = models.Category;
+    Supplier = models.Supplier;
+    Sale = models.Sale;
+    Setting = models.Setting;
+    
+    console.log('Database modules loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to load database modules:', error);
+    return false;
+  }
+}
+
+// This will be called when Electron has finished initialization
+app.whenReady().then(async () => {
+  try {
+    // Initialize config first
+    config = require('./database/config');
+    
+    // Load all database modules
+    const modulesLoaded = loadDatabaseModules();
+    if (!modulesLoaded) {
+      throw new Error('Failed to load required database modules');
+    }
+    
+    // Initialize database
+    console.log('Initializing database...');
+    const result = await dbConnection.initDatabase({ seedIfNew: true });
+    
+    if (result.success) {
+      console.log('Database initialized successfully');
+      
+      // Schedule automatic JSON backups if enabled
+      scheduleJsonBackups();
+    } else {
+      console.error('Database initialization failed:', result.error);
+      dialog.showErrorBox(
+        'Database Error',
+        'Failed to initialize the database. The application may not function correctly.'
+      );
+    }
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    dialog.showErrorBox(
+      'Database Error',
+      'Failed to initialize the database. The application may not function correctly.'
+    );
+  }
+});
 
 const createWindow = () => {
   // Create the browser window.
@@ -65,38 +162,7 @@ app.on('activate', () => {
 });
 
 // Database functionality
-const dbConnection = require('./database/connection');
-const { createBackup, restoreFromBackup, scheduleBackups } = require('./database/backup');
-const { exportToJson, importFromJson, scheduleJsonBackups } = require('./database/json-backup');
-const { Product, Category, Supplier, Sale, Setting } = require('./models');
-
-// Initialize database when app is ready
-app.whenReady().then(async () => {
-  try {
-    // Initialize database using the new consistent approach
-    console.log('Initializing database...');
-    const result = await dbConnection.initDatabase({ seedIfNew: true });
-    
-    if (result.success) {
-      console.log('Database initialized successfully');
-      
-      // Schedule automatic JSON backups if enabled
-      scheduleJsonBackups();
-    } else {
-      console.error('Database initialization failed:', result.error);
-      dialog.showErrorBox(
-        'Database Error',
-        'Failed to initialize the database. The application may not function correctly.'
-      );
-    }
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    dialog.showErrorBox(
-      'Database Error',
-      'Failed to initialize the database. The application may not function correctly.'
-    );
-  }
-});
+// Removed redundant imports as they are now loaded in loadDatabaseModules()
 
 // IPC handlers for database operations
 
@@ -492,7 +558,7 @@ ipcMain.handle('database:selectJsonExportDir', async () => {
 // Update JSON export directory
 ipcMain.handle('database:updateJsonExportDir', async (_, dirPath) => {
   try {
-    const config = require('./database/config');
+    if (!config) config = require('./database/config');
     config.setBackupSettings({ jsonPath: dirPath });
     return dirPath;
   } catch (error) {
@@ -504,7 +570,7 @@ ipcMain.handle('database:updateJsonExportDir', async (_, dirPath) => {
 // Get JSON export directory
 ipcMain.handle('database:getJsonExportDir', async () => {
   try {
-    const config = require('./database/config');
+    if (!config) config = require('./database/config');
     return config.backup.jsonPath;
   } catch (error) {
     console.error('Error getting JSON export directory:', error);
@@ -515,7 +581,7 @@ ipcMain.handle('database:getJsonExportDir', async () => {
 // Get JSON backup scheduler settings
 ipcMain.handle('database:getJsonBackupSettings', async () => {
   try {
-    const config = require('./database/config');
+    if (!config) config = require('./database/config');
     return {
       enabled: config.backup.jsonBackupEnabled,
       frequency: config.backup.jsonBackupFrequency,
@@ -531,7 +597,7 @@ ipcMain.handle('database:getJsonBackupSettings', async () => {
 // Update JSON backup scheduler settings
 ipcMain.handle('database:updateJsonBackupSettings', async (_, settings) => {
   try {
-    const config = require('./database/config');
+    if (!config) config = require('./database/config');
     
     // Update settings
     config.setBackupSettings({
@@ -554,7 +620,7 @@ ipcMain.handle('database:updateJsonBackupSettings', async (_, settings) => {
 
 ipcMain.handle('database:getBackupList', async () => {
   try {
-    const config = require('./database/config');
+    if (!config) config = require('./database/config');
     const backupDir = config.backup.path;
     
     if (!fs.existsSync(backupDir)) {
@@ -634,7 +700,7 @@ app.on('before-quit', async (event) => {
 ipcMain.handle('dashboard:getStats', async () => {
   try {
     // Get all key dashboard metrics in one query for efficiency
-    const { Product, Sale } = require('./models');
+    // Using global variables instead of requiring modules again
     
     const [
       totalProducts,
@@ -669,7 +735,7 @@ ipcMain.handle('dashboard:getStats', async () => {
 
 ipcMain.handle('dashboard:getTotalProductCount', async () => {
   try {
-    const { Product } = require('./models');
+    // Using global Product variable
     return await Product.getTotalCount();
   } catch (error) {
     console.error('Error getting total product count:', error);
@@ -679,7 +745,7 @@ ipcMain.handle('dashboard:getTotalProductCount', async () => {
 
 ipcMain.handle('dashboard:getLowStockItemCount', async () => {
   try {
-    const { Product } = require('./models');
+    // Using global Product variable
     return await Product.getLowStockCount();
   } catch (error) {
     console.error('Error getting low stock item count:', error);
@@ -689,7 +755,7 @@ ipcMain.handle('dashboard:getLowStockItemCount', async () => {
 
 ipcMain.handle('dashboard:getTodaySalesTotal', async () => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     return await Sale.getTodaySalesTotal();
   } catch (error) {
     console.error('Error getting today\'s sales total:', error);
@@ -699,7 +765,7 @@ ipcMain.handle('dashboard:getTodaySalesTotal', async () => {
 
 ipcMain.handle('dashboard:getMonthlyRevenueAndProfit', async () => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     return await Sale.getMonthlyRevenueAndProfit();
   } catch (error) {
     console.error('Error getting monthly revenue and profit:', error);
@@ -709,7 +775,7 @@ ipcMain.handle('dashboard:getMonthlyRevenueAndProfit', async () => {
 
 ipcMain.handle('dashboard:getInventoryValue', async () => {
   try {
-    const { Product } = require('./models');
+    // Using global Product variable
     return await Product.getTotalInventoryValue();
   } catch (error) {
     console.error('Error getting inventory value:', error);
@@ -719,7 +785,7 @@ ipcMain.handle('dashboard:getInventoryValue', async () => {
 
 ipcMain.handle('dashboard:getTopSellingProducts', async (_, limit = 5) => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     return await Sale.getTopSellingProducts(limit);
   } catch (error) {
     console.error('Error getting top selling products:', error);
@@ -729,7 +795,7 @@ ipcMain.handle('dashboard:getTopSellingProducts', async (_, limit = 5) => {
 
 ipcMain.handle('dashboard:getRevenueAndProfitBySupplier', async () => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     return await Sale.getRevenueAndProfitBySupplier();
   } catch (error) {
     console.error('Error getting revenue and profit by supplier:', error);
@@ -739,7 +805,7 @@ ipcMain.handle('dashboard:getRevenueAndProfitBySupplier', async () => {
 
 ipcMain.handle('dashboard:getRevenueByPaymentMethod', async () => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     return await Sale.getRevenueByPaymentMethod();
   } catch (error) {
     console.error('Error getting revenue by payment method:', error);
@@ -749,7 +815,7 @@ ipcMain.handle('dashboard:getRevenueByPaymentMethod', async () => {
 
 ipcMain.handle('dashboard:getProfitByCategory', async () => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     return await Sale.getProfitByCategory();
   } catch (error) {
     console.error('Error getting profit by category:', error);
@@ -759,7 +825,7 @@ ipcMain.handle('dashboard:getProfitByCategory', async () => {
 
 ipcMain.handle('dashboard:getInventoryTrend', async (_, months = 6) => {
   try {
-    const { Product } = require('./models');
+    // Using global Product variable
     return await Product.getInventoryTrend(months);
   } catch (error) {
     console.error('Error getting inventory trend:', error);
@@ -769,7 +835,7 @@ ipcMain.handle('dashboard:getInventoryTrend', async (_, months = 6) => {
 
 ipcMain.handle('dashboard:getProfitAndRevenueTrend', async (_, months = 6) => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     return await Sale.getProfitAndRevenueTrend(months);
   } catch (error) {
     console.error('Error getting profit and revenue trend:', error);
@@ -779,7 +845,7 @@ ipcMain.handle('dashboard:getProfitAndRevenueTrend', async (_, months = 6) => {
 
 ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
   try {
-    const { Sale } = require('./models');
+    // Using global Sale variable
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
@@ -861,7 +927,7 @@ ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
 // Handler for inventory turnover rate
 ipcMain.handle('dashboard:getInventoryTurnoverRate', async () => {
   try {
-    const { Product } = require('./models');
+    // Using global Product variable
     return await Product.getInventoryTurnoverRate();
   } catch (error) {
     console.error('Error getting inventory turnover rate:', error);
@@ -872,7 +938,7 @@ ipcMain.handle('dashboard:getInventoryTurnoverRate', async () => {
 // Handler for stock variance
 ipcMain.handle('dashboard:getStockVariance', async () => {
   try {
-    const { Product } = require('./models');
+    // Using global Product variable
     return await Product.getStockVariance();
   } catch (error) {
     console.error('Error getting stock variance:', error);
@@ -883,7 +949,7 @@ ipcMain.handle('dashboard:getStockVariance', async () => {
 // Handler for supplier performance
 ipcMain.handle('dashboard:getSupplierPerformance', async () => {
   try {
-    const { Supplier } = require('./models');
+    // Using global Supplier variable
     return await Supplier.getSupplierPerformance();
   } catch (error) {
     console.error('Error getting supplier performance:', error);

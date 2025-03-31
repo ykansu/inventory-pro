@@ -1,23 +1,48 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 const path = require('path');
+const fs = require('fs');
 
 module.exports = {
   packagerConfig: {
     asar: true,
     extraResource: ['./dist'],
-    icon: path.resolve(__dirname, 'src/assets/icon'),
     executableName: 'Inventory Pro',
     appCopyright: `Copyright ${new Date().getFullYear()}`,
     // Ensure all the necessary files are included
     ignore: [
-      /^\/node_modules$/,
-      /^\/src\/(?!index\.js|preload\.js)/,
-      /^\/\.git/,
-      /^\/\.vscode/,
-      /^\/\.webpack/,
-      /^\/out/,
-    ],
+      // Don't ignore database directory and keep specific module files
+      (file) => {
+        // Always include these specific modules/paths
+        if (
+          file.includes('src/database') ||
+          file.includes('src/models') ||
+          file === 'src/index.js' ||
+          file === 'src/preload.js'
+        ) {
+          return false; // Don't ignore these files
+        }
+        
+        // Standard ignore patterns
+        if (/^\/node_modules/.test(file) && !file.includes('electron-squirrel-startup')) {
+          return true; // Ignore node_modules except electron-squirrel-startup
+        }
+        
+        if (/^\/\.git/.test(file) || 
+            /^\/\.vscode/.test(file) || 
+            /^\/\.webpack/.test(file) || 
+            /^\/out/.test(file)) {
+          return true; // Ignore these directories
+        }
+        
+        // Don't ignore anything else in src
+        if (file.startsWith('/src/')) {
+          return false;
+        }
+        
+        return false; // When in doubt, include the file
+      }
+    ]
   },
   rebuildConfig: {},
   makers: [
@@ -27,8 +52,6 @@ module.exports = {
         name: 'InventoryPro',
         authors: 'Yasin KANSU',
         description: 'A comprehensive stock management application',
-        iconUrl: path.resolve(__dirname, 'src/assets/icon.ico'),
-        setupIcon: path.resolve(__dirname, 'src/assets/icon.ico'),
       },
     },
     {
@@ -41,7 +64,6 @@ module.exports = {
         options: {
           maintainer: 'Yasin KANSU',
           homepage: 'https://github.com/yasinkansu/inventory-pro',
-          icon: path.resolve(__dirname, 'src/assets/icon.png'),
         },
       },
     },
@@ -51,7 +73,6 @@ module.exports = {
         options: {
           maintainer: 'Yasin KANSU',
           homepage: 'https://github.com/yasinkansu/inventory-pro',
-          icon: path.resolve(__dirname, 'src/assets/icon.png'),
         },
       },
     },

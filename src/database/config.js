@@ -3,14 +3,58 @@ const fs = require('fs');
 const os = require('os');
 const Store = require('electron-store');
 
+// Make sure we can get the app whether we're in the main process or renderer
+let app;
+try {
+  // Try to import from electron directly - this works in the main process
+  const electron = require('electron');
+  app = electron.app;
+} catch (error) {
+  // If that fails, either we're in a renderer process or electron isn't available
+  try {
+    const remote = require('@electron/remote');
+    app = remote.app;
+  } catch (remoteError) {
+    // Neither method worked, we'll use fallbacks
+    app = null;
+    console.warn('Unable to get electron app instance, using fallback paths');
+  }
+}
+
 // Store configuration settings
 const store = new Store({
   name: 'database-config',
 });
 
-// Fixed database path as requested
-const DB_PATH = path.join('D:', 'repos', 'inventory-pro', 'src', 'database', 'inventory-pro.db');
-const BACKUP_PATH = path.join('D:', 'repos', 'inventory-pro', 'src', 'database', 'backups');
+// Define data paths that work in both dev and production
+const getAppDataPath = () => {
+  // In development, use the local database
+  if (process.env.NODE_ENV === 'development') {
+    return path.join(__dirname);
+  }
+  
+  // In production, use user data folder
+  if (app) {
+    try {
+      return app.getPath('userData');
+    } catch (e) {
+      console.warn('Failed to get userData path:', e);
+    }
+  }
+  
+  // Fallback to home directory
+  return path.join(os.homedir(), '.inventory-pro');
+};
+
+// Ensure app data directory exists
+const APP_DATA_PATH = getAppDataPath();
+if (!fs.existsSync(APP_DATA_PATH)) {
+  fs.mkdirSync(APP_DATA_PATH, { recursive: true });
+}
+
+// Set up database and backup paths
+const DB_PATH = path.join(APP_DATA_PATH, 'inventory-pro.db');
+const BACKUP_PATH = path.join(APP_DATA_PATH, 'backups');
 
 // Ensure backup directory exists
 if (!fs.existsSync(BACKUP_PATH)) {
@@ -22,7 +66,7 @@ const desktopPath = path.join(os.homedir(), 'Desktop');
 
 // Database configuration
 const config = {
-  // Database file path (fixed)
+  // Database file path
   dbPath: DB_PATH,
   
   // Get current database path
