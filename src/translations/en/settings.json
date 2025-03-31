@@ -12,7 +12,8 @@
     "language": "Language",
     "currency": "Currency",
     "dateFormat": "Date Format",
-    "enableLowStockNotifications": "Enable Low Stock Notifications"
+    "enableLowStockNotifications": "Enable Low Stock Notifications",
+    "maxBackups": "Max Backups to Keep"
   },
   "languages": {
     "en": "English",
@@ -100,10 +101,35 @@
       "changePathButton": "Change Directory",
       "currentPath": "Current Path",
       "defaultPath": "Default is Desktop"
+    },
+    "backupScheduler": {
+      "title": "Automatic JSON Backup",
+      "description": "Set up automatic JSON backups of your database.",
+      "enabled": "Enable Automatic JSON Backups",
+      "frequency": "Backup Frequency",
+      "frequencies": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "time": "Backup Time (24-hour)",
+      "timePlaceholder": "e.g. 23:00",
+      "success": "Backup schedule updated successfully",
+      "error": "Failed to update backup schedule",
+      "invalidTimeFormat": "Invalid time format. Please use 24-hour format (HH:MM)"
+    },
+    "seedData": {
+      "title": "Load Sample Data",
+      "description": "Load sample inventory data for testing. This will add products, categories, and suppliers.",
+      "action": "Load Sample Data",
+      "confirmMessage": "Are you sure you want to load sample data? This will not remove your existing data.",
+      "success": "Sample data loaded successfully",
+      "error": "Failed to load sample data"
     }
   },
   "saveSuccess": "Settings saved successfully",
   "saveError": "Failed to save settings",
   "languageChangeSuccess": "Language changed successfully",
-  "languageChangeError": "Failed to change language"
+  "languageChangeError": "Failed to change language",
+  "saveButton": "Save Settings"
 }

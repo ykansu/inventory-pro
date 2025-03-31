@@ -67,7 +67,7 @@ app.on('activate', () => {
 // Database functionality
 const { initDatabase } = require('./database/init');
 const { createBackup, restoreFromBackup, scheduleBackups } = require('./database/backup');
-const { exportToJson, importFromJson } = require('./database/json-backup');
+const { exportToJson, importFromJson, scheduleJsonBackups } = require('./database/json-backup');
 const { fixMigrations } = require('./database/fix-migration');
 const { Product, Category, Supplier, Sale, Setting } = require('./models');
 const db = require('./database/connection');
@@ -89,6 +89,9 @@ app.whenReady().then(async () => {
     
     // Schedule automatic backups
     scheduleBackups();
+    
+    // Schedule automatic JSON backups if enabled
+    scheduleJsonBackups();
     
     console.log('Database initialized successfully');
   } catch (error) {
@@ -508,6 +511,46 @@ ipcMain.handle('database:getJsonExportDir', async () => {
     return config.backup.jsonPath;
   } catch (error) {
     console.error('Error getting JSON export directory:', error);
+    throw error;
+  }
+});
+
+// Get JSON backup scheduler settings
+ipcMain.handle('database:getJsonBackupSettings', async () => {
+  try {
+    const config = require('./database/config');
+    return {
+      enabled: config.backup.jsonBackupEnabled,
+      frequency: config.backup.jsonBackupFrequency,
+      time: config.backup.jsonBackupTime,
+      maxBackups: config.backup.maxJsonBackups
+    };
+  } catch (error) {
+    console.error('Error getting JSON backup settings:', error);
+    throw error;
+  }
+});
+
+// Update JSON backup scheduler settings
+ipcMain.handle('database:updateJsonBackupSettings', async (_, settings) => {
+  try {
+    const config = require('./database/config');
+    
+    // Update settings
+    config.setBackupSettings({
+      jsonBackupEnabled: settings.enabled,
+      jsonBackupFrequency: settings.frequency,
+      jsonBackupTime: settings.time,
+      maxJsonBackups: settings.maxBackups
+    });
+    
+    // Restart scheduler
+    const { scheduleJsonBackups } = require('./database/json-backup');
+    scheduleJsonBackups();
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating JSON backup settings:', error);
     throw error;
   }
 });

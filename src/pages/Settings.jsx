@@ -48,6 +48,14 @@ const Settings = () => {
   // Add new state and handlers for JSON export path
   const [jsonExportDir, setJsonExportDir] = useState('');
 
+  // Add state for JSON backup scheduler settings
+  const [jsonBackupSettings, setJsonBackupSettings] = useState({
+    enabled: false,
+    frequency: 'daily',
+    time: '23:00',
+    maxBackups: 5
+  });
+
   // Load settings on mount
   useEffect(() => {
     if (!isLoading && settings) {
@@ -55,19 +63,22 @@ const Settings = () => {
     }
   }, [isLoading, settings, language]);
 
-  // Load JSON export directory on mount
+  // Load JSON export directory and backup scheduler settings on mount
   useEffect(() => {
-    const loadJsonExportDir = async () => {
+    const loadJsonSettings = async () => {
       try {
         const path = await database.getJsonExportDir();
         setJsonExportDir(path || '');
+        
+        const backupSettings = await database.getJsonBackupSettings();
+        setJsonBackupSettings(backupSettings);
       } catch (error) {
-        console.error('Failed to load JSON export directory', error);
+        console.error('Failed to load JSON settings', error);
       }
     };
     
     if (!isLoading) {
-      loadJsonExportDir();
+      loadJsonSettings();
     }
   }, [isLoading]);
   
@@ -431,16 +442,53 @@ const Settings = () => {
 
   const handleChangeJsonExportDir = async () => {
     try {
-      const newDir = await database.selectJsonExportDir();
-      
-      if (newDir) {
-        await database.updateJsonExportDir(newDir);
-        setJsonExportDir(newDir);
-        toast.success(t('settings:saveSuccess'));
+      const dirPath = await database.selectJsonExportDir();
+      if (dirPath) {
+        const result = await database.updateJsonExportDir(dirPath);
+        setJsonExportDir(result || dirPath);
+        toast.success(t('settings:database.jsonExportSettings.success'));
       }
     } catch (error) {
-      toast.error(t('settings:saveError'));
-      console.error('Failed to update JSON export directory', error);
+      console.error('Error changing JSON export directory:', error);
+      toast.error(t('settings:database.jsonExportSettings.error'));
+    }
+  };
+
+  const handleJsonBackupSettingChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    
+    setJsonBackupSettings(prev => ({
+      ...prev,
+      [name]: newValue
+    }));
+  };
+  
+  const handleSaveJsonBackupSettings = async () => {
+    try {
+      toast.loading(t('common:processing'), { id: 'jsonBackupSettings' });
+      
+      // Validate time format (HH:MM)
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(jsonBackupSettings.time)) {
+        toast.dismiss('jsonBackupSettings');
+        toast.error(t('settings:database.backupScheduler.invalidTimeFormat'));
+        return;
+      }
+      
+      // Save settings
+      const result = await database.updateJsonBackupSettings(jsonBackupSettings);
+      
+      toast.dismiss('jsonBackupSettings');
+      if (result && result.success) {
+        toast.success(t('settings:database.backupScheduler.success'));
+      } else {
+        toast.error(t('settings:database.backupScheduler.error'));
+      }
+    } catch (error) {
+      toast.dismiss('jsonBackupSettings');
+      toast.error(t('settings:database.backupScheduler.error'));
+      console.error('Error saving JSON backup settings:', error);
     }
   };
 
@@ -804,16 +852,85 @@ const Settings = () => {
                 <div className="action-card">
                   <h4>{t('settings:database.jsonExportSettings.title')}</h4>
                   <p>{t('settings:database.jsonExportSettings.description')}</p>
-                  <div className="json-export-path">
-                    <label>{t('settings:database.jsonExportSettings.currentPath')}:</label>
-                    <span className="path-display">{jsonExportDir || t('settings:database.jsonExportSettings.defaultPath')}</span>
+                  <div className="form-group">
+                    <label>{t('settings:database.jsonExportSettings.path')}</label>
+                    <div className="path-display">
+                      <span>{jsonExportDir || t('settings:database.jsonExportSettings.defaultPath')}</span>
+                    </div>
                     <button 
-                      className="button small secondary"
+                      className="button secondary"
                       onClick={handleChangeJsonExportDir}
                     >
                       {t('settings:database.jsonExportSettings.changePathButton')}
                     </button>
                   </div>
+                </div>
+                
+                <div className="action-card">
+                  <h4>{t('settings:database.backupScheduler.title')}</h4>
+                  <p>{t('settings:database.backupScheduler.description')}</p>
+                  
+                  <div className="form-group">
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox"
+                        id="jsonBackupEnabled"
+                        name="enabled"
+                        checked={jsonBackupSettings.enabled}
+                        onChange={handleJsonBackupSettingChange}
+                      />
+                      <label htmlFor="jsonBackupEnabled">
+                        {t('settings:database.backupScheduler.enabled')}
+                      </label>
+                    </div>
+                  </div>
+                  
+                  {jsonBackupSettings.enabled && (
+                    <>
+                      <div className="form-group">
+                        <label>{t('settings:database.backupScheduler.frequency')}</label>
+                        <select 
+                          name="frequency" 
+                          value={jsonBackupSettings.frequency}
+                          onChange={handleJsonBackupSettingChange}
+                        >
+                          <option value="daily">{t('settings:database.backupScheduler.frequencies.daily')}</option>
+                          <option value="weekly">{t('settings:database.backupScheduler.frequencies.weekly')}</option>
+                          <option value="monthly">{t('settings:database.backupScheduler.frequencies.monthly')}</option>
+                        </select>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>{t('settings:database.backupScheduler.time')}</label>
+                        <input 
+                          type="text" 
+                          name="time"
+                          placeholder={t('settings:database.backupScheduler.timePlaceholder')}
+                          value={jsonBackupSettings.time}
+                          onChange={handleJsonBackupSettingChange}
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>{t('settings:general.maxBackups')}</label>
+                        <input 
+                          type="number" 
+                          name="maxBackups"
+                          min="1"
+                          max="50"
+                          value={jsonBackupSettings.maxBackups}
+                          onChange={handleJsonBackupSettingChange}
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  <button 
+                    className="button primary"
+                    onClick={handleSaveJsonBackupSettings}
+                  >
+                    {t('settings:saveButton')}
+                  </button>
                 </div>
                 
                 <div className="action-card warning">

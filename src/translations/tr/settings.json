@@ -12,7 +12,8 @@
     "language": "Dil",
     "currency": "Para Birimi",
     "dateFormat": "Tarih Formatı",
-    "enableLowStockNotifications": "Düşük Stok Bildirimlerini Etkinleştir"
+    "enableLowStockNotifications": "Düşük Stok Bildirimlerini Etkinleştir",
+    "maxBackups": "Saklanacak Maksimum Yedek Sayısı"
   },
   "languages": {
     "en": "İngilizce",
@@ -52,12 +53,16 @@
     "backup": {
       "title": "Veritabanı Yedekleme",
       "description": "Mevcut veritabanınızın bir yedeğini oluşturun.",
-      "action": "Yedek Oluştur"
+      "action": "Yedek Oluştur",
+      "success": "Yedekleme başarıyla oluşturuldu",
+      "error": "Yedekleme oluşturulamadı"
     },
     "restore": {
       "title": "Veritabanı Geri Yükleme",
       "description": "Daha önce oluşturulmuş bir yedekten geri yükleyin.",
-      "action": "Yedekten Geri Yükle"
+      "action": "Yedekten Geri Yükle",
+      "success": "Veritabanı başarıyla geri yüklendi",
+      "error": "Veritabanı geri yüklenemedi"
     },
     "reset": {
       "title": "Veritabanını Sıfırla",
@@ -73,10 +78,60 @@
       "action": "Ayarları Sıfırla",
       "success": "Ayarlar başarıyla sıfırlandı",
       "error": "Ayarlar sıfırlanamadı"
+    },
+    "exportToJson": {
+      "title": "Verileri JSON Olarak Dışa Aktar",
+      "description": "Tüm verilerinizin bir JSON yedekleme dosyasını oluşturun. Başka bir cihaza aktarmak için kullanışlıdır.",
+      "action": "JSON Olarak Dışa Aktar",
+      "success": "Veriler başarıyla dışa aktarıldı",
+      "error": "Veriler dışa aktarılamadı"
+    },
+    "importFromJson": {
+      "title": "JSON'dan Veri İçe Aktar",
+      "description": "Daha önce dışa aktarılan bir JSON dosyasından veri içe aktarın. Uyarı: Bu, mevcut verilerinizin yerini alacaktır.",
+      "action": "JSON'dan İçe Aktar",
+      "confirmMessage": "Veri içe aktarmak istediğinizden emin misiniz? Mevcut verilerinizin yerini alacaktır!",
+      "success": "Veriler başarıyla içe aktarıldı",
+      "error": "Veriler içe aktarılamadı"
+    },
+    "jsonExportSettings": {
+      "title": "JSON Dışa Aktarma Ayarları",
+      "description": "JSON yedeklemelerin varsayılan olarak nereye kaydedileceğini yapılandırın.",
+      "path": "Dışa Aktarma Dizini",
+      "changePathButton": "Dizini Değiştir",
+      "currentPath": "Mevcut Dizin",
+      "defaultPath": "Varsayılan Masaüstüdür",
+      "success": "Dışa aktarma dizini başarıyla güncellendi",
+      "error": "Dışa aktarma dizini güncellenemedi"
+    },
+    "backupScheduler": {
+      "title": "Otomatik JSON Yedekleme",
+      "description": "Veritabanınızın otomatik JSON yedeklemelerini ayarlayın.",
+      "enabled": "Otomatik JSON Yedeklemeleri Etkinleştir",
+      "frequency": "Yedekleme Sıklığı",
+      "frequencies": {
+        "daily": "Günlük",
+        "weekly": "Haftalık",
+        "monthly": "Aylık"
+      },
+      "time": "Yedekleme Saati (24 saat)",
+      "timePlaceholder": "örn. 23:00",
+      "success": "Yedekleme programı başarıyla güncellendi",
+      "error": "Yedekleme programı güncellenemedi",
+      "invalidTimeFormat": "Geçersiz zaman formatı. Lütfen 24 saat formatını kullanın (SS:DD)"
+    },
+    "seedData": {
+      "title": "Örnek Veri Yükle",
+      "description": "Test için örnek envanter verisi yükleyin. Bu, ürünler, kategoriler ve tedarikçiler ekleyecektir.",
+      "action": "Örnek Veri Yükle",
+      "confirmMessage": "Örnek veri yüklemek istediğinizden emin misiniz? Bu, mevcut verilerinizi kaldırmayacaktır.",
+      "success": "Örnek veri başarıyla yüklendi",
+      "error": "Örnek veri yüklenemedi"
     }
   },
   "saveSuccess": "Ayarlar başarıyla kaydedildi",
   "saveError": "Ayarlar kaydedilemedi",
   "languageChangeSuccess": "Dil değişikliği başarılı",
-  "languageChangeError": "Dil değiştirilemedi"
+  "languageChangeError": "Dil değiştirilemedi",
+  "saveButton": "Ayarları Kaydet"
 }

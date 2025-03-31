@@ -75,4 +75,8 @@ contextBridge.exposeInMainWorld('database', {
   selectJsonExportDir: () => ipcRenderer.invoke('database:selectJsonExportDir'),
   updateJsonExportDir: (dirPath) => ipcRenderer.invoke('database:updateJsonExportDir', dirPath),
   getJsonExportDir: () => ipcRenderer.invoke('database:getJsonExportDir'),
+  
+  // JSON backup scheduler
+  getJsonBackupSettings: () => ipcRenderer.invoke('database:getJsonBackupSettings'),
+  updateJsonBackupSettings: (settings) => ipcRenderer.invoke('database:updateJsonBackupSettings', settings),
 });

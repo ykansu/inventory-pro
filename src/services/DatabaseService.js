@@ -576,5 +576,25 @@ export const DatabaseManagementService = {
       console.error('Error getting JSON export directory:', error);
       throw error;
     }
-  }
+  },
+  
+  // Get JSON backup scheduler settings
+  getJsonBackupSettings: async () => {
+    try {
+      return await window.database.getJsonBackupSettings();
+    } catch (error) {
+      console.error('Error getting JSON backup settings:', error);
+      throw error;
+    }
+  },
+  
+  // Update JSON backup scheduler settings
+  updateJsonBackupSettings: async (settings) => {
+    try {
+      return await window.database.updateJsonBackupSettings(settings);
+    } catch (error) {
+      console.error('Error updating JSON backup settings:', error);
+      throw error;
+    }
+  },
 };

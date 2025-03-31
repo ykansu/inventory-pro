@@ -64,6 +64,12 @@ const config = {
     maxBackups: store.get('backup.maxBackups', 7), // Number of backups to keep
     path: store.get('backup.path', path.join(userDataPath, 'backups')),
     jsonPath: store.get('backup.jsonPath', desktopPath), // Default to desktop for JSON exports
+    
+    // JSON backup schedule settings
+    jsonBackupEnabled: store.get('backup.jsonBackupEnabled', false),
+    jsonBackupFrequency: store.get('backup.jsonBackupFrequency', 'daily'), // daily, weekly, monthly
+    jsonBackupTime: store.get('backup.jsonBackupTime', '23:00'), // Time for scheduled JSON backups
+    maxJsonBackups: store.get('backup.maxJsonBackups', 5), // Number of JSON backups to keep
   },
   
   // Update backup settings

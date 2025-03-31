@@ -271,7 +271,130 @@ async function importFromJson(jsonFile) {
   }
 }
 
+// Schedule automatic JSON backups
+async function scheduleJsonBackups() {
+  try {
+    // Check if automatic JSON backups are enabled
+    if (!config.backup.jsonBackupEnabled) {
+      console.log('Automatic JSON backups are disabled');
+      return;
+    }
+    
+    // Validate backup time format
+    if (!config.backup.jsonBackupTime || !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(config.backup.jsonBackupTime)) {
+      console.log('Invalid backup time format. Using default 23:00');
+      config.setBackupSettings({ jsonBackupTime: '23:00' });
+    }
+    
+    console.log('Setting up scheduled JSON backups');
+    
+    // Parse backup time
+    const [hours, minutes] = config.backup.jsonBackupTime.split(':').map(Number);
+    
+    // Calculate when to run the next backup
+    const now = new Date();
+    const backupTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hours,
+      minutes,
+      0
+    );
+    
+    // Adjust date based on frequency
+    let nextBackupDate = new Date(backupTime);
+    
+    // If the backup time has already passed today
+    if (now > backupTime) {
+      switch (config.backup.jsonBackupFrequency) {
+        case 'daily':
+          nextBackupDate.setDate(nextBackupDate.getDate() + 1);
+          break;
+        case 'weekly':
+          nextBackupDate.setDate(nextBackupDate.getDate() + (7 - now.getDay() + backupTime.getDay()) % 7 || 7);
+          break;
+        case 'monthly':
+          nextBackupDate.setMonth(nextBackupDate.getMonth() + 1);
+          nextBackupDate.setDate(1); // First day of next month
+          break;
+        default:
+          nextBackupDate.setDate(nextBackupDate.getDate() + 1); // Default to daily
+      }
+    }
+    
+    // Calculate delay until next backup
+    const delay = nextBackupDate.getTime() - now.getTime();
+    
+    console.log(`Next JSON backup scheduled for: ${nextBackupDate.toLocaleString()}`);
+    
+    // Schedule the backup
+    setTimeout(async () => {
+      console.log('Running scheduled JSON backup...');
+      try {
+        // Only run if still enabled (setting might have changed)
+        if (config.backup.jsonBackupEnabled) {
+          const backupFile = await exportToJson();
+          console.log(`Scheduled JSON backup created successfully: ${backupFile}`);
+          
+          // Clean up old JSON backups if we exceed the maximum
+          cleanupOldJsonBackups();
+        } else {
+          console.log('Scheduled JSON backup skipped - feature disabled');
+        }
+        
+        // Schedule the next backup based on frequency
+        setTimeout(() => {
+          scheduleJsonBackups();
+        }, 1000); // Small delay before rescheduling
+      } catch (error) {
+        console.error('Scheduled JSON backup failed:', error);
+        // Try again in an hour
+        setTimeout(() => {
+          scheduleJsonBackups();
+        }, 60 * 60 * 1000);
+      }
+    }, delay);
+  } catch (error) {
+    console.error('Error setting up JSON backup schedule:', error);
+    // Try again in an hour
+    setTimeout(() => {
+      scheduleJsonBackups();
+    }, 60 * 60 * 1000);
+  }
+}
+
+// Clean up old JSON backups
+function cleanupOldJsonBackups() {
+  try {
+    const exportDir = config.backup.jsonPath;
+    const maxBackups = config.backup.maxJsonBackups || 5;
+    
+    // Get all JSON backup files
+    const files = fs.readdirSync(exportDir)
+      .filter(file => file.startsWith('inventory_export_') && file.endsWith('.json'))
+      .map(file => ({
+        name: file,
+        path: path.join(exportDir, file),
+        time: fs.statSync(path.join(exportDir, file)).mtime.getTime()
+      }))
+      .sort((a, b) => b.time - a.time); // Sort by time, newest first
+    
+    // Remove excess backups
+    if (files.length > maxBackups) {
+      const filesToRemove = files.slice(maxBackups);
+      filesToRemove.forEach(file => {
+        fs.unlinkSync(file.path);
+        console.log(`Removed old JSON backup: ${file.name}`);
+      });
+    }
+  } catch (error) {
+    console.error('Error cleaning up old JSON backups:', error);
+  }
+}
+
 module.exports = {
   exportToJson,
-  importFromJson
+  importFromJson,
+  scheduleJsonBackups
 }; 
