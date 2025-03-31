@@ -11,6 +11,7 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
+// Production DB config
 module.exports = {
   client: 'sqlite3',
   connection: {
@@ -28,12 +29,15 @@ module.exports = {
   pool: {
     min: 2,
     max: 10,
-    acquireTimeoutMillis: 30000, // 30 seconds
-    createTimeoutMillis: 30000,  // 30 seconds
-    idleTimeoutMillis: 30000,    // 30 seconds
-    afterCreate: (conn, cb) => {
-      // Enable foreign keys support
-      conn.run('PRAGMA foreign_keys = ON', cb);
+    // Handle SQLite SQLITE_BUSY errors by waiting and retrying
+    acquireTimeoutMillis: 10000,
+    createTimeoutMillis: 10000,
+    idleTimeoutMillis: 30000,
+    reapIntervalMillis: 1000,
+    createRetryIntervalMillis: 100,
+    afterCreate: (conn, done) => {
+      // Enable foreign keys
+      conn.run('PRAGMA foreign_keys = ON', done);
     },
   },
   // Adjust logging based on environment

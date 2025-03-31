@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
+const config = require('./database/config');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -66,14 +67,25 @@ app.on('activate', () => {
 // Database functionality
 const { initDatabase } = require('./database/init');
 const { createBackup, restoreFromBackup, scheduleBackups } = require('./database/backup');
+const { exportToJson, importFromJson } = require('./database/json-backup');
+const { fixMigrations } = require('./database/fix-migration');
 const { Product, Category, Supplier, Sale, Setting } = require('./models');
 const db = require('./database/connection');
 
 // Initialize database when app is ready
 app.whenReady().then(async () => {
   try {
+    // Fix any migration issues first
+    console.log('Running migration fix utility...');
+    try {
+      await fixMigrations();
+    } catch (fixError) {
+      console.error('Error running migration fix:', fixError);
+      // Continue even if fix fails
+    }
+    
     // Initialize database
-    await initDatabase();
+    await initDatabase({ skipSeeding: true });
     
     // Schedule automatic backups
     scheduleBackups();
@@ -381,6 +393,125 @@ ipcMain.handle('database:restoreFromBackup', async (_, backupPath) => {
   }
 });
 
+// JSON export handler
+ipcMain.handle('database:exportToJson', async (_, customPath = null) => {
+  try {
+    return await exportToJson(customPath);
+  } catch (error) {
+    console.error('Error exporting data to JSON:', error);
+    throw error;
+  }
+});
+
+// Database reset handler
+ipcMain.handle('database:resetDatabase', async () => {
+  try {
+    console.log('Starting database reset process...');
+    // Create a backup before resetting
+    await createBackup(path.join(config.backup.path, 'pre_reset'));
+    
+    // Import the force seed utility
+    const { forceSeedDatabase } = require('./database/force-seed');
+    
+    // Reset the database
+    console.log('Initiating database reset...');
+    const result = await forceSeedDatabase({ skipSeeding: true });
+    console.log('Database reset completed with result:', result);
+    
+    // Close and reestablish the database connection to ensure clean state
+    try {
+      console.log('Reinitializing database connection after reset...');
+      await db.closeConnection();
+      
+      // Wait briefly to ensure connection is fully closed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Recreate the connection
+      await db.reinitializeConnection();
+      
+      // Verify connection is working
+      await db.raw('SELECT 1');
+      console.log('Database connection successfully reinitialized and verified');
+    } catch (connectionError) {
+      console.error('Error reinitializing database connection:', connectionError);
+      // If connection reinitialization fails, try to reload the module
+      try {
+        console.log('Attempting to reload database module...');
+        delete require.cache[require.resolve('./database/connection')];
+        const freshDb = require('./database/connection');
+        await freshDb.raw('SELECT 1');
+        console.log('Database module reloaded successfully');
+      } catch (reloadError) {
+        console.error('Failed to reload database module:', reloadError);
+      }
+    }
+    
+    return { 
+      success: result, 
+      message: result ? 'Database reset successfully' : 'Failed to reset database' 
+    };
+  } catch (error) {
+    console.error('Error resetting database:', error);
+    throw error;
+  }
+});
+
+// Select JSON file for import
+ipcMain.handle('database:selectJsonFile', async () => {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [
+        { name: 'JSON Files', extensions: ['json'] }
+      ]
+    });
+
+    if (result.canceled) return null;
+    return result.filePaths[0];
+  } catch (error) {
+    console.error('Error selecting JSON file:', error);
+    throw error;
+  }
+});
+
+// Select directory for JSON export
+ipcMain.handle('database:selectJsonExportDir', async () => {
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory']
+    });
+
+    if (result.canceled) return null;
+    return result.filePaths[0];
+  } catch (error) {
+    console.error('Error selecting JSON export directory:', error);
+    throw error;
+  }
+});
+
+// Update JSON export directory
+ipcMain.handle('database:updateJsonExportDir', async (_, dirPath) => {
+  try {
+    const config = require('./database/config');
+    config.setBackupSettings({ jsonPath: dirPath });
+    return dirPath;
+  } catch (error) {
+    console.error('Error updating JSON export directory:', error);
+    throw error;
+  }
+});
+
+// Get JSON export directory
+ipcMain.handle('database:getJsonExportDir', async () => {
+  try {
+    const config = require('./database/config');
+    return config.backup.jsonPath;
+  } catch (error) {
+    console.error('Error getting JSON export directory:', error);
+    throw error;
+  }
+});
+
 ipcMain.handle('database:getBackupList', async () => {
   try {
     const config = require('./database/config');
@@ -407,24 +538,48 @@ ipcMain.handle('database:getBackupList', async () => {
   }
 });
 
-// Database reset handler
-ipcMain.handle('database:resetDatabase', async () => {
+// JSON import handler
+ipcMain.handle('database:importFromJson', async (_, jsonFilePath) => {
   try {
-    // Create a backup before resetting
-    await createBackup();
+    console.log('Starting JSON import from:', jsonFilePath);
+    // Create a backup before importing
+    await createBackup(path.join(config.backup.path, 'pre_import'));
     
-    // Import the force seed utility
-    const { forceSeedDatabase } = require('./database/force-seed');
+    // Import the data
+    const result = await importFromJson(jsonFilePath);
+    console.log('JSON import completed with result:', result);
     
-    // Reset the database
-    const result = await forceSeedDatabase();
+    // Close and reestablish the database connection to ensure clean state
+    try {
+      console.log('Reinitializing database connection after import...');
+      await db.closeConnection();
+      
+      // Wait briefly to ensure connection is fully closed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Recreate the connection
+      await db.reinitializeConnection();
+      
+      // Verify connection is working
+      await db.raw('SELECT 1');
+      console.log('Database connection successfully reinitialized and verified after import');
+    } catch (connectionError) {
+      console.error('Error reinitializing database connection after import:', connectionError);
+      // If connection reinitialization fails, try to reload the module
+      try {
+        console.log('Attempting to reload database module after import...');
+        delete require.cache[require.resolve('./database/connection')];
+        const freshDb = require('./database/connection');
+        await freshDb.raw('SELECT 1');
+        console.log('Database module reloaded successfully after import');
+      } catch (reloadError) {
+        console.error('Failed to reload database module after import:', reloadError);
+      }
+    }
     
-    return { 
-      success: result, 
-      message: result ? 'Database reset successfully' : 'Failed to reset database' 
-    };
+    return result;
   } catch (error) {
-    console.error('Error resetting database:', error);
+    console.error('Error importing data from JSON:', error);
     throw error;
   }
 });

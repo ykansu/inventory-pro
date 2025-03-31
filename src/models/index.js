@@ -410,8 +410,6 @@ class Sale extends BaseModel {
       formattedStartDate = new Date(formattedStartDate).toISOString();
       formattedEndDate = new Date(formattedEndDate).toISOString();
 
-      console.log('Formatted start date:', formattedStartDate);
-      console.log('Formatted end date:', formattedEndDate);
       
       // Query sales directly with date filtering in SQLite
       const query = this.db(this.tableName)

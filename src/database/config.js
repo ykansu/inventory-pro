@@ -32,6 +32,14 @@ if (app && app.getPath) {
   }
 }
 
+// Get desktop path for default JSON exports
+let desktopPath;
+if (app && app.getPath) {
+  desktopPath = app.getPath('desktop');
+} else {
+  desktopPath = path.join(require('os').homedir(), 'Desktop');
+}
+
 // Database configuration
 const config = {
   // Database file path
@@ -55,6 +63,7 @@ const config = {
     time: store.get('backup.time', '23:00'), // Time for scheduled backups
     maxBackups: store.get('backup.maxBackups', 7), // Number of backups to keep
     path: store.get('backup.path', path.join(userDataPath, 'backups')),
+    jsonPath: store.get('backup.jsonPath', desktopPath), // Default to desktop for JSON exports
   },
   
   // Update backup settings

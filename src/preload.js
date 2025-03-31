@@ -67,4 +67,12 @@ contextBridge.exposeInMainWorld('database', {
   restoreFromBackup: (backupPath) => ipcRenderer.invoke('database:restoreFromBackup', backupPath),
   getBackupList: () => ipcRenderer.invoke('database:getBackupList'),
   resetDatabase: () => ipcRenderer.invoke('database:resetDatabase'),
+  
+  // JSON import/export
+  exportToJson: (customPath) => ipcRenderer.invoke('database:exportToJson', customPath),
+  importFromJson: (jsonFilePath) => ipcRenderer.invoke('database:importFromJson', jsonFilePath),
+  selectJsonFile: () => ipcRenderer.invoke('database:selectJsonFile'),
+  selectJsonExportDir: () => ipcRenderer.invoke('database:selectJsonExportDir'),
+  updateJsonExportDir: (dirPath) => ipcRenderer.invoke('database:updateJsonExportDir', dirPath),
+  getJsonExportDir: () => ipcRenderer.invoke('database:getJsonExportDir'),
 });

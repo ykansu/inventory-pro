@@ -52,12 +52,16 @@
     "backup": {
       "title": "Backup Database",
       "description": "Create a backup of your current database.",
-      "action": "Create Backup"
+      "action": "Create Backup",
+      "success": "Backup created successfully",
+      "error": "Failed to create backup"
     },
     "restore": {
       "title": "Restore Database",
       "description": "Restore from a previously created backup.",
-      "action": "Restore from Backup"
+      "action": "Restore from Backup",
+      "success": "Database restored successfully",
+      "error": "Failed to restore database"
     },
     "reset": {
       "title": "Reset Database",
@@ -73,6 +77,29 @@
       "action": "Reset Settings",
       "success": "Settings reset successfully",
       "error": "Failed to reset settings"
+    },
+    "exportToJson": {
+      "title": "Export Data to JSON",
+      "description": "Create a JSON backup file of all your data. Useful for transferring to another device.",
+      "action": "Export to JSON",
+      "success": "Data exported successfully",
+      "error": "Failed to export data"
+    },
+    "importFromJson": {
+      "title": "Import Data from JSON",
+      "description": "Import data from a previously exported JSON file. Warning: This will replace your current data.",
+      "action": "Import from JSON",
+      "confirmMessage": "Are you sure you want to import data? Your existing data will be replaced!",
+      "success": "Data imported successfully",
+      "error": "Failed to import data"
+    },
+    "jsonExportSettings": {
+      "title": "JSON Export Settings",
+      "description": "Configure where JSON backups are saved by default.",
+      "path": "Export Directory",
+      "changePathButton": "Change Directory",
+      "currentPath": "Current Path",
+      "defaultPath": "Default is Desktop"
     }
   },
   "saveSuccess": "Settings saved successfully",

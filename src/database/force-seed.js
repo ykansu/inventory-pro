@@ -8,47 +8,142 @@
  * CAUTION: This will delete all existing data in the database!
  */
 
-const db = require('./connection');
+const knex = require('knex');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config');
+const db = require('./connection');
 
 /**
- * Force re-seed the database by clearing all data and running seeds
- * @returns {Promise<boolean>} True if successful, false otherwise
+ * Remove any problematic migration records
  */
-async function forceSeedDatabase() {
+const cleanMigrationRecords = async (database) => {
   try {
-    console.log('Starting force seed of database...');
-    console.log('Database path:', config.dbPath);
+    // Check if knex_migrations table exists
+    const hasMigrationsTable = await database.schema.hasTable('knex_migrations');
+    if (!hasMigrationsTable) {
+      console.log('No migrations table found, skipping migration cleanup');
+      return;
+    }
     
-    // Verify database connection
-    await db.raw('SELECT 1');
-    console.log('Database connection verified');
+    // Find and remove any problematic migration records
+    const problematicMigration = await database('knex_migrations')
+      .where('name', 'like', '%20231225_add_split_payment.js%')
+      .first();
     
-    // Start transaction
-    await db.transaction(async trx => {
-      // Clear existing data
-      console.log('Clearing existing data...');
-      await trx('sale_items').del();
-      await trx('sales').del();
-      await trx('stock_adjustments').del();
-      await trx('products').del();
-      await trx('suppliers').del();
-      await trx('categories').del();
-      await trx('settings').del();
+    if (problematicMigration) {
+      console.log('Found problematic migration record:', problematicMigration.name);
+      await database('knex_migrations')
+        .where('id', problematicMigration.id)
+        .del();
+      console.log('Removed problematic migration record');
+    }
+  } catch (error) {
+    console.error('Error cleaning migration records:', error);
+    // Continue even if this fails
+  }
+};
+
+/**
+ * Force seed the database with initial data.
+ * This will delete all existing data and repopulate with seed data.
+ */
+async function forceSeedDatabase(options = { skipSeeding: false }) {
+  try {
+    console.log('Starting force seed operation...');
+    
+    // First check if we can connect to the database
+    try {
+      await db.raw('SELECT 1');
+      console.log('Database connection verified');
+    } catch (connError) {
+      console.error('Database connection failed:', connError);
+      return false;
+    }
+    
+    // First, try to clean up any problematic migration records
+    await cleanMigrationRecords(db);
+    
+    // Delete all existing data in the correct order (respecting foreign key constraints)
+    try {
+      console.log('Deleting existing data...');
       
-      // Run seeds
-      console.log('Running seeds...');
-      await require('./seeds/initial_data').seed(trx);
+      // Disable foreign key checks (for SQLite)
+      await db.raw('PRAGMA foreign_keys = OFF;');
       
-      console.log('Database re-seeded successfully');
-    });
+      // Clear tables in reverse dependency order to avoid constraint issues
+      await db('sale_items').truncate();
+      console.log('  - Truncated sale_items table');
+      
+      await db('sales').truncate();
+      console.log('  - Truncated sales table');
+      
+      await db('stock_adjustments').truncate();
+      console.log('  - Truncated stock_adjustments table');
+      
+      await db('products').truncate();
+      console.log('  - Truncated products table');
+      
+      await db('suppliers').truncate();
+      console.log('  - Truncated suppliers table');
+      
+      await db('categories').truncate();
+      console.log('  - Truncated categories table');
+      
+      // Only keep essential settings
+      const settingsToKeep = [
+        'language',
+        'currency',
+        'date_format',
+        'business_name',
+        'business_address',
+        'business_phone',
+        'business_email'
+      ];
+      
+      // Delete settings that we don't want to keep
+      await db('settings')
+        .whereNotIn('key', settingsToKeep)
+        .del();
+      console.log('  - Cleaned settings table (keeping essential settings)');
+      
+      // Re-enable foreign key checks
+      await db.raw('PRAGMA foreign_keys = ON;');
+      
+      console.log('All existing data cleared successfully.');
+    } catch (deleteError) {
+      console.error('Error deleting existing data:', deleteError);
+      // Try to re-enable foreign keys even if delete failed
+      try {
+        await db.raw('PRAGMA foreign_keys = ON;');
+      } catch (e) {
+        // Ignore error when trying to re-enable foreign keys
+      }
+      throw deleteError;
+    }
     
-    // Verify seeding
-    const productCount = await db('products').count('* as count').first();
-    console.log(`Verified ${productCount.count} products in database after seeding`);
+    // Run seed data (import from seed file) only if skipSeeding is false
+    if (!options.skipSeeding) {
+      try {
+        const seedPath = path.join(__dirname, 'seeds', 'initial_data.js');
+        
+        if (fs.existsSync(seedPath)) {
+          console.log('Running seed file...');
+          const { seed } = require('./seeds/initial_data.js');
+          await seed(db);
+          console.log('Seed data imported successfully.');
+        } else {
+          console.warn('No seed file found at:', seedPath);
+        }
+      } catch (seedError) {
+        console.error('Error during seeding:', seedError);
+        throw seedError;
+      }
+    } else {
+      console.log('Seeding is disabled. Skipping seed script.');
+    }
     
+    console.log('Force seed operation completed successfully.');
     return true;
   } catch (error) {
     console.error('Force seed failed:', error);
@@ -77,4 +172,6 @@ if (require.main === module) {
     });
 }
 
-module.exports = { forceSeedDatabase };
+module.exports = {
+  forceSeedDatabase
+};

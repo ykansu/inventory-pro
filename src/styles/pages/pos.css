@@ -271,10 +271,114 @@
   background-color: #f9fafb;
 }
 
+/* Discount section styles */
+.discount-section {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background-color: #f0f9ff;
+  border: 1px dashed #93c5fd;
+  border-radius: 4px;
+}
+
+.discount-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.discount-type-select {
+  flex: 1;
+  padding: 0.375rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.discount-input {
+  flex: 1;
+  padding: 0.375rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  text-align: right;
+}
+
+.clear-discount {
+  background-color: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  width: 2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clear-discount:hover {
+  background-color: #ef4444;
+  color: white;
+}
+
+.clear-discount:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.discount-row {
+  color: #059669;
+  font-weight: 500;
+}
+
+/* Split payment button style */
+.payment-button.split {
+  background-color: #7c3aed;
+  color: white;
+}
+
+.payment-button.split:hover:not(:disabled) {
+  background-color: #6d28d9;
+}
+
+/* Split payment form styles */
+.split-payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.split-payment-form .form-group {
+  margin-bottom: 0.5rem;
+}
+
+.split-payment-form .form-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.split-payment-form .payment-summary {
+  background-color: #f3f4f6;
+  margin-top: 0.5rem;
+}
+
+.split-total {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
 .summary-row {
   display: flex;
   justify-content: space-between;
   padding: 0.375rem 0;
+}
+
+.summary-row.discount {
+  color: #059669;
+  font-weight: 500;
 }
 
 .summary-row.total {

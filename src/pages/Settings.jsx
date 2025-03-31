@@ -44,13 +44,32 @@ const Settings = () => {
     showLogo: false,
     showTaxDetails: true
   });
-  
+
+  // Add new state and handlers for JSON export path
+  const [jsonExportDir, setJsonExportDir] = useState('');
+
   // Load settings on mount
   useEffect(() => {
     if (!isLoading && settings) {
       updateLocalStatesFromSettings(settings);
     }
   }, [isLoading, settings, language]);
+
+  // Load JSON export directory on mount
+  useEffect(() => {
+    const loadJsonExportDir = async () => {
+      try {
+        const path = await database.getJsonExportDir();
+        setJsonExportDir(path || '');
+      } catch (error) {
+        console.error('Failed to load JSON export directory', error);
+      }
+    };
+    
+    if (!isLoading) {
+      loadJsonExportDir();
+    }
+  }, [isLoading]);
   
   // Function to update all local state from settings object
   const updateLocalStatesFromSettings = async (settingsObject) => {
@@ -320,13 +339,108 @@ const Settings = () => {
   const handleResetDatabase = async () => {
     if (window.confirm(t('settings:database.reset.confirmMessage'))) {
       try {
-        await database.resetDatabase();
-        toast.success(t('settings:database.reset.success'));
-        window.location.reload();
+        // Show loading state
+        toast.loading(t('common:processing'), { id: 'resetDb' });
+        
+        // Try resetting the database
+        const result = await database.resetDatabase();
+        
+        // Clear loading toast
+        toast.dismiss('resetDb');
+        
+        // Show success/error based on result
+        if (result && result.success) {
+          toast.success(t('settings:database.reset.success'));
+          
+          // Wait a moment to ensure database connection is fully reestablished
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          window.location.reload();
+        } else {
+          toast.error(t('settings:database.reset.error'));
+          console.error('Database reset failed with result:', result);
+        }
       } catch (error) {
+        toast.dismiss('resetDb');
         toast.error(t('settings:database.reset.error'));
         console.error('Database reset failed:', error);
+        
+        // If reset fails, suggest the user reload the application
+        setTimeout(() => {
+          if (window.confirm('There was an error resetting the database. Would you like to reload the application?')) {
+            window.location.reload();
+          }
+        }, 1000);
       }
+    }
+  };
+
+  // Add handlers for JSON import/export
+  const handleExportToJson = async () => {
+    try {
+      const exportPath = await database.exportToJson();
+      toast.success(t('settings:database.exportToJson.success'));
+    } catch (error) {
+      toast.error(t('settings:database.exportToJson.error'));
+      console.error('JSON export failed:', error);
+    }
+  };
+
+  const handleImportFromJson = async () => {
+    if (window.confirm(t('settings:database.importFromJson.confirmMessage'))) {
+      try {
+        // First, select the JSON file
+        const jsonFilePath = await database.selectJsonFile();
+        
+        if (!jsonFilePath) {
+          return; // User canceled the file selection
+        }
+        
+        // Show loading state
+        toast.loading(t('common:processing'), { id: 'importJson' });
+        
+        // Import data
+        const result = await database.importFromJson(jsonFilePath);
+        
+        // Clear loading toast
+        toast.dismiss('importJson');
+        
+        // Show success message
+        toast.success(t('settings:database.importFromJson.success'));
+        
+        // Wait a moment to ensure database connection is fully reestablished
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        window.location.reload();
+      } catch (error) {
+        // Clear loading toast
+        toast.dismiss('importJson');
+        
+        toast.error(t('settings:database.importFromJson.error'));
+        console.error('JSON import failed:', error);
+        
+        // If import fails, suggest the user reload the application
+        setTimeout(() => {
+          if (window.confirm('There was an error importing the JSON data. Would you like to reload the application?')) {
+            window.location.reload();
+          }
+        }, 1000);
+      }
+    }
+  };
+
+  const handleChangeJsonExportDir = async () => {
+    try {
+      const newDir = await database.selectJsonExportDir();
+      
+      if (newDir) {
+        await database.updateJsonExportDir(newDir);
+        setJsonExportDir(newDir);
+        toast.success(t('settings:saveSuccess'));
+      }
+    } catch (error) {
+      toast.error(t('settings:saveError'));
+      console.error('Failed to update JSON export directory', error);
     }
   };
 
@@ -663,6 +777,43 @@ const Settings = () => {
                   >
                     {t('settings:database.restore.action')}
                   </button>
+                </div>
+                
+                <div className="action-card">
+                  <h4>{t('settings:database.exportToJson.title')}</h4>
+                  <p>{t('settings:database.exportToJson.description')}</p>
+                  <button 
+                    className="button secondary"
+                    onClick={handleExportToJson}
+                  >
+                    {t('settings:database.exportToJson.action')}
+                  </button>
+                </div>
+                
+                <div className="action-card">
+                  <h4>{t('settings:database.importFromJson.title')}</h4>
+                  <p>{t('settings:database.importFromJson.description')}</p>
+                  <button 
+                    className="button secondary"
+                    onClick={handleImportFromJson}
+                  >
+                    {t('settings:database.importFromJson.action')}
+                  </button>
+                </div>
+                
+                <div className="action-card">
+                  <h4>{t('settings:database.jsonExportSettings.title')}</h4>
+                  <p>{t('settings:database.jsonExportSettings.description')}</p>
+                  <div className="json-export-path">
+                    <label>{t('settings:database.jsonExportSettings.currentPath')}:</label>
+                    <span className="path-display">{jsonExportDir || t('settings:database.jsonExportSettings.defaultPath')}</span>
+                    <button 
+                      className="button small secondary"
+                      onClick={handleChangeJsonExportDir}
+                    >
+                      {t('settings:database.jsonExportSettings.changePathButton')}
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="action-card warning">

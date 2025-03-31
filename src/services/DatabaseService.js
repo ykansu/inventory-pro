@@ -516,5 +516,65 @@ export const DatabaseManagementService = {
       console.error('Error resetting database:', error);
       throw error;
     }
+  },
+  
+  // Export data to JSON file
+  exportToJson: async (customPath = null) => {
+    try {
+      return await window.database.exportToJson(customPath);
+    } catch (error) {
+      console.error('Error exporting data to JSON:', error);
+      throw error;
+    }
+  },
+  
+  // Import data from JSON file
+  importFromJson: async (jsonFilePath) => {
+    try {
+      return await window.database.importFromJson(jsonFilePath);
+    } catch (error) {
+      console.error('Error importing data from JSON:', error);
+      throw error;
+    }
+  },
+  
+  // Select JSON file for import
+  selectJsonFile: async () => {
+    try {
+      return await window.database.selectJsonFile();
+    } catch (error) {
+      console.error('Error selecting JSON file:', error);
+      throw error;
+    }
+  },
+  
+  // Select directory for JSON export
+  selectJsonExportDir: async () => {
+    try {
+      return await window.database.selectJsonExportDir();
+    } catch (error) {
+      console.error('Error selecting JSON export directory:', error);
+      throw error;
+    }
+  },
+  
+  // Update JSON export directory
+  updateJsonExportDir: async (dirPath) => {
+    try {
+      return await window.database.updateJsonExportDir(dirPath);
+    } catch (error) {
+      console.error('Error updating JSON export directory:', error);
+      throw error;
+    }
+  },
+  
+  // Get JSON export directory
+  getJsonExportDir: async () => {
+    try {
+      return await window.database.getJsonExportDir();
+    } catch (error) {
+      console.error('Error getting JSON export directory:', error);
+      throw error;
+    }
   }
 };
