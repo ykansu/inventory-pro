@@ -441,3 +441,208 @@ app.on('before-quit', async (event) => {
   // Now actually quit
   app.exit(0);
 });
+
+// Dashboard metrics handlers
+ipcMain.handle('dashboard:getStats', async () => {
+  try {
+    // Get all key dashboard metrics in one query for efficiency
+    const { Product, Sale } = require('./models');
+    
+    const [
+      totalProducts,
+      lowStockItems,
+      todaySales,
+      monthlyMetrics,
+      inventoryValue
+    ] = await Promise.all([
+      Product.getTotalCount(),
+      Product.getLowStockCount(),
+      Sale.getTodaySalesTotal(),
+      Sale.getMonthlyRevenueAndProfit(),
+      Product.getTotalInventoryValue()
+    ]);
+    
+    return {
+      totalProducts,
+      lowStockItems,
+      todaySales,
+      monthlyRevenue: monthlyMetrics?.revenue || 0,
+      monthlyProfit: monthlyMetrics?.profit || 0,
+      profitMargin: monthlyMetrics?.revenue > 0 
+        ? ((monthlyMetrics.profit / monthlyMetrics.revenue) * 100).toFixed(2) 
+        : 0,
+      inventoryValue
+    };
+  } catch (error) {
+    console.error('Error getting dashboard stats:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getTotalProductCount', async () => {
+  try {
+    const { Product } = require('./models');
+    return await Product.getTotalCount();
+  } catch (error) {
+    console.error('Error getting total product count:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getLowStockItemCount', async () => {
+  try {
+    const { Product } = require('./models');
+    return await Product.getLowStockCount();
+  } catch (error) {
+    console.error('Error getting low stock item count:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getTodaySalesTotal', async () => {
+  try {
+    const { Sale } = require('./models');
+    return await Sale.getTodaySalesTotal();
+  } catch (error) {
+    console.error('Error getting today\'s sales total:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getMonthlyRevenueAndProfit', async () => {
+  try {
+    const { Sale } = require('./models');
+    return await Sale.getMonthlyRevenueAndProfit();
+  } catch (error) {
+    console.error('Error getting monthly revenue and profit:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getInventoryValue', async () => {
+  try {
+    const { Product } = require('./models');
+    return await Product.getTotalInventoryValue();
+  } catch (error) {
+    console.error('Error getting inventory value:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getTopSellingProducts', async (_, limit = 5) => {
+  try {
+    const { Sale } = require('./models');
+    return await Sale.getTopSellingProducts(limit);
+  } catch (error) {
+    console.error('Error getting top selling products:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getRevenueAndProfitBySupplier', async () => {
+  try {
+    const { Sale } = require('./models');
+    return await Sale.getRevenueAndProfitBySupplier();
+  } catch (error) {
+    console.error('Error getting revenue and profit by supplier:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getRevenueByPaymentMethod', async () => {
+  try {
+    const { Sale } = require('./models');
+    return await Sale.getRevenueByPaymentMethod();
+  } catch (error) {
+    console.error('Error getting revenue by payment method:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getProfitByCategory', async () => {
+  try {
+    const { Sale } = require('./models');
+    return await Sale.getProfitByCategory();
+  } catch (error) {
+    console.error('Error getting profit by category:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getInventoryTrend', async (_, months = 6) => {
+  try {
+    const { Product } = require('./models');
+    return await Product.getInventoryTrend(months);
+  } catch (error) {
+    console.error('Error getting inventory trend:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getProfitAndRevenueTrend', async (_, months = 6) => {
+  try {
+    const { Sale } = require('./models');
+    return await Sale.getProfitAndRevenueTrend(months);
+  } catch (error) {
+    console.error('Error getting profit and revenue trend:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
+  try {
+    const { Sale } = require('./models');
+    const currentMonth = new Date();
+    const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+    
+    // Get all sales for the current month
+    const sales = await Sale.db('sales')
+      .where('created_at', '>=', startDate.toISOString())
+      .where('created_at', '<=', endDate.toISOString())
+      .where('is_returned', false)
+      .select('id', 'total_amount');
+    
+    if (sales.length === 0) {
+      return {
+        monthlyRevenue: 0,
+        monthlyProfit: 0,
+        profitMargin: 0
+      };
+    }
+    
+    // Calculate revenue
+    const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
+    
+    // Get sale IDs
+    const saleIds = sales.map(sale => sale.id);
+    
+    // Get all sale items with product details to calculate cost
+    const saleItemsWithCost = await Sale.db('sale_items')
+      .join('products', 'sale_items.product_id', 'products.id')
+      .whereIn('sale_items.sale_id', saleIds)
+      .select(
+        'sale_items.quantity',
+        'products.cost_price'
+      );
+    
+    // Calculate total cost
+    let totalCost = 0;
+    saleItemsWithCost.forEach(item => {
+      totalCost += parseFloat(item.cost_price) * parseInt(item.quantity);
+    });
+    
+    // Calculate profit and margin
+    const monthlyProfit = monthlyRevenue - totalCost;
+    const profitMargin = monthlyRevenue > 0 ? Math.round((monthlyProfit / monthlyRevenue) * 100) : 0;
+    
+    return {
+      monthlyRevenue: Math.round(monthlyRevenue),
+      monthlyProfit: Math.round(monthlyProfit),
+      profitMargin
+    };
+  } catch (error) {
+    console.error('Error getting monthly profit metrics:', error);
+    throw error;
+  }
+});

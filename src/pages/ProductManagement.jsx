@@ -759,10 +759,10 @@ const ProductManagement = () => {
                           {t('common:edit')}
                         </button>
                         <button 
-                          className="action-button delete"
-                          onClick={() => handleDeleteCategory(category.id)}
+                          className="action-button delete" 
+                          onClick={() => handleDeleteCategory(category.id)} 
                           disabled={category.product_count > 0}
-                          title={category.product_count > 0 ? t('products:categories.cannotDelete', { fallback: 'Cannot delete category with products' }) : ''}
+                          data-tooltip={category.product_count > 0 ? t('products:categories.cannotDelete', { fallback: 'Cannot delete category with products' }) : ''}
                         >
                           {t('common:delete')}
                         </button>
@@ -926,10 +926,10 @@ const ProductManagement = () => {
                           {t('common:edit')}
                         </button>
                         <button 
-                          className="action-button delete"
-                          onClick={() => handleDeleteSupplier(supplier.id)}
+                          className="action-button delete" 
+                          onClick={() => handleDeleteSupplier(supplier.id)} 
                           disabled={supplier.product_count > 0}
-                          title={supplier.product_count > 0 ? t('products:suppliers.cannotDelete', { fallback: 'Cannot delete supplier with products' }) : ''}
+                          data-tooltip={supplier.product_count > 0 ? t('products:suppliers.cannotDelete', { fallback: 'Cannot delete supplier with products' }) : ''}
                         >
                           {t('common:delete')}
                         </button>

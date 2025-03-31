@@ -23,7 +23,7 @@
     "inventoryTrend": "Inventory Value Trend",
     "supplierPerformance": "Supplier Performance",
     "revenueTrend": "Monthly Revenue Trend",
-    "revenueBySupplier": "Revenue by Supplier",
+    "revenueBySupplier": "Revenue & Profit by Supplier",
     "profitTrend": "Revenue & Profit Trend"
   },
   "placeholders": {
@@ -32,7 +32,8 @@
     "noRevenueData": "No revenue data available",
     "noCategoryData": "No category data available",
     "noTrendData": "No trend data available",
-    "noSupplierData": "No supplier data available"
+    "noSupplierData": "No supplier data available",
+    "noPaymentData": "No payment method data available"
   },
   "labels": {
     "items": "Items",
@@ -42,7 +43,22 @@
     "topSuppliers": "Top Suppliers",
     "revenue": "Revenue",
     "profit": "Profit",
-    "cost": "Cost"
+    "cost": "Cost",
+    "margin": "Margin",
+    "quantity": "Quantity",
+    "method": "Method",
+    "sortBy": "Sort By",
+    "show": "Show",
+    "category": "Category",
+    "product": "Product",
+    "supplier": "Supplier",
+    "marginPct": "Margin %",
+    "total": "Total",
+    "pieChart": "Pie Chart",
+    "barChart": "Bar Chart",
+    "inventoryValue": "Inventory Value",
+    "paymentSummary": "Payment Summary",
+    "percentage": "Percentage"
   },
   "tooltips": {
     "totalProducts": "Total count of all active products across all categories currently in the inventory system. This includes both in-stock and out-of-stock items that are still listed in the catalog.",
@@ -56,12 +72,34 @@
     "stockVariance": "Percentage difference between what your system records show you should have in stock versus what physical inventory counts reveal you actually have. Calculated as: ((Physical Count - System Count) ÷ System Count) × 100. A positive value indicates more physical stock than recorded.",
     "supplierPerformance": "Average on-time delivery rate of all active suppliers over the past 30 days. Calculated as: (Number of on-time deliveries ÷ Total number of deliveries) × 100. This metric helps identify reliable suppliers.",
     "topProducts": "Products ranked by the number of units sold in the current month. This ranking does not account for revenue generated, only the quantity of items sold, providing insight into which products are most popular by volume.",
-    "revenueBySupplier": "Total revenue generated from products sourced from each supplier in the current calendar year. This helps identify which supplier relationships contribute most to your business revenue.",
+    "revenueBySupplier": "Total revenue and profit generated from products sourced from each supplier in the current calendar year. This helps identify which supplier relationships contribute most to your business revenue and profitability. The chart shows both revenue (blue) and profit (green) bars for easy comparison.",
     "revenueByPayment": "Breakdown of the current month's revenue distributed across different payment methods used by customers (cash, credit card, online payments, etc.). Helps track preferred payment methods and plan for payment processing costs.",
     "categoryBreakdown": "Distribution of products and their total inventory value across product categories. Shows both the count of unique products and total inventory value per category, helping identify which categories dominate your inventory investment.",
     "categoryProfits": "Detailed profit analysis for each product category, showing total revenue, cost, profit amount, and profit margin percentage. Helps identify your most profitable product categories and those that might need pricing or cost adjustments.",
     "inventoryTrend": "6-month historical trend showing the total value of inventory holdings at the end of each month. Helps visualize seasonal patterns in inventory levels and capital investment in stock over time.",
     "revenueTrend": "6-month historical trend showing total sales revenue for each month. Helps identify sales patterns, seasonal fluctuations, and overall business growth trajectory.",
     "profitTrend": "6-month historical trend comparing total revenue (top bars) to net profit (bottom bars) for each month. This visualization helps track both top-line growth and bottom-line profitability, revealing trends in profit margin over time."
+  },
+  "loading": "Loading data...",
+  "error": "Error loading data",
+  "retry": "Retry",
+  "today": "Today",
+  "thisMonth": "This Month",
+  "lastMonth": "Last Month",
+  "thisYear": "This Year",
+  "filter": "Filter",
+  "refresh": "Refresh",
+  "noData": "No data available for the selected period",
+  "card": {
+    "loading": "Loading...",
+    "error": "Failed to load"
+  },
+  "paymentMethods": {
+    "cash": "Cash",
+    "card": "Credit/Debit Card",
+    "bank_transfer": "Bank Transfer",
+    "check": "Check",
+    "mobile_payment": "Mobile Payment",
+    "other": "Other"
   }
 }

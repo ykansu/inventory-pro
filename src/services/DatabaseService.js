@@ -268,6 +268,142 @@ export const SaleService = {
   }
 };
 
+// Dashboard-related operations
+export const DashboardService = {
+  // Get key dashboard metrics in a single call
+  getDashboardStats: async () => {
+    try {
+      return await window.database.getDashboardStats();
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      throw error;
+    }
+  },
+  
+  // Get total product count
+  getTotalProductCount: async () => {
+    try {
+      return await window.database.getTotalProductCount();
+    } catch (error) {
+      console.error('Error fetching total product count:', error);
+      throw error;
+    }
+  },
+  
+  // Get low stock item count
+  getLowStockItemCount: async () => {
+    try {
+      return await window.database.getLowStockItemCount();
+    } catch (error) {
+      console.error('Error fetching low stock item count:', error);
+      throw error;
+    }
+  },
+  
+  // Get today's sales total
+  getTodaySalesTotal: async () => {
+    try {
+      return await window.database.getTodaySalesTotal();
+    } catch (error) {
+      console.error('Error fetching today\'s sales total:', error);
+      throw error;
+    }
+  },
+  
+  // Get monthly revenue and profit data
+  getMonthlyRevenueAndProfit: async () => {
+    try {
+      return await window.database.getMonthlyRevenueAndProfit();
+    } catch (error) {
+      console.error('Error fetching monthly revenue and profit:', error);
+      throw error;
+    }
+  },
+  
+  // Get inventory value
+  getInventoryValue: async () => {
+    try {
+      return await window.database.getInventoryValue();
+    } catch (error) {
+      console.error('Error fetching inventory value:', error);
+      throw error;
+    }
+  },
+  
+  // Get top selling products
+  getTopSellingProducts: async (limit = 5) => {
+    try {
+      return await window.database.getTopSellingProducts(limit);
+    } catch (error) {
+      console.error('Error fetching top selling products:', error);
+      throw error;
+    }
+  },
+  
+  // Get revenue and profit by supplier
+  getRevenueAndProfitBySupplier: async () => {
+    try {
+      return await window.database.getRevenueAndProfitBySupplier();
+    } catch (error) {
+      console.error('Error fetching revenue and profit by supplier:', error);
+      throw error;
+    }
+  },
+  
+  // Get revenue by payment method
+  getRevenueByPaymentMethod: async () => {
+    try {
+      return await window.database.getRevenueByPaymentMethod();
+    } catch (error) {
+      console.error('Error fetching revenue by payment method:', error);
+      throw error;
+    }
+  },
+  
+  // Get profit and revenue by category
+  getProfitByCategory: async () => {
+    try {
+      return await window.database.getProfitByCategory();
+    } catch (error) {
+      console.error('Error fetching profit by category:', error);
+      throw error;
+    }
+  },
+  
+  // Get inventory trend data for the past months
+  getInventoryTrend: async (months = 6) => {
+    try {
+      console.log("DashboardService.getInventoryTrend called with months:", months);
+      const result = await window.database.getInventoryTrend(months);
+      console.log("DashboardService.getInventoryTrend result:", result);
+      return result;
+    } catch (error) {
+      console.error('Error fetching inventory trend:', error);
+      throw error;
+    }
+  },
+  
+  // Get profit trend data for the past months
+  getProfitAndRevenueTrend: async (months = 6) => {
+    try {
+      return await window.database.getProfitAndRevenueTrend(months);
+    } catch (error) {
+      console.error('Error fetching profit and revenue trend:', error);
+      throw error;
+    }
+  },
+  
+  // Get monthly profit metrics
+  getMonthlyProfitMetrics: async () => {
+    try {
+      return await window.database.getMonthlyProfitMetrics();
+    } catch (error) {
+      console.error('Error fetching monthly profit metrics:', error);
+      throw error;
+    }
+  }
+};
+
 // Settings-related operations
 export const SettingService = {
   // Get all settings

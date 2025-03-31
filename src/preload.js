@@ -40,6 +40,21 @@ contextBridge.exposeInMainWorld('database', {
   getCategoryProfits: () => ipcRenderer.invoke('profits:getCategoryProfits'),
   getProfitValueTrend: () => ipcRenderer.invoke('profits:getProfitValueTrend'),
   
+  // Dashboard metrics
+  getDashboardStats: () => ipcRenderer.invoke('dashboard:getStats'),
+  getTotalProductCount: () => ipcRenderer.invoke('dashboard:getTotalProductCount'),
+  getLowStockItemCount: () => ipcRenderer.invoke('dashboard:getLowStockItemCount'),
+  getTodaySalesTotal: () => ipcRenderer.invoke('dashboard:getTodaySalesTotal'),
+  getMonthlyRevenueAndProfit: () => ipcRenderer.invoke('dashboard:getMonthlyRevenueAndProfit'),
+  getInventoryValue: () => ipcRenderer.invoke('dashboard:getInventoryValue'),
+  getTopSellingProducts: (limit) => ipcRenderer.invoke('dashboard:getTopSellingProducts', limit),
+  getRevenueAndProfitBySupplier: () => ipcRenderer.invoke('dashboard:getRevenueAndProfitBySupplier'),
+  getRevenueByPaymentMethod: () => ipcRenderer.invoke('dashboard:getRevenueByPaymentMethod'),
+  getProfitByCategory: () => ipcRenderer.invoke('dashboard:getProfitByCategory'),
+  getInventoryTrend: (months) => ipcRenderer.invoke('dashboard:getInventoryTrend', months),
+  getProfitAndRevenueTrend: (months) => ipcRenderer.invoke('dashboard:getProfitAndRevenueTrend', months),
+  getMonthlyProfitMetrics: () => ipcRenderer.invoke('dashboard:getMonthlyProfitMetrics'),
+  
   // Settings
   getAllSettings: () => ipcRenderer.invoke('settings:getAll'),
   getSettingByKey: (key) => ipcRenderer.invoke('settings:getByKey', key),

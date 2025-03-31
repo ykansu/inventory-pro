@@ -5,7 +5,8 @@ import {
   SupplierService, 
   SaleService, 
   SettingService, 
-  DatabaseManagementService 
+  DatabaseManagementService,
+  DashboardService
 } from '../services/DatabaseService';
 
 // Create the context
@@ -202,7 +203,8 @@ export const DatabaseProvider = ({ children }) => {
     suppliers: SupplierService,
     sales: SaleService,
     settings: SettingService,
-    database: DatabaseManagementService
+    database: DatabaseManagementService,
+    dashboard: DashboardService
   };
 
   return (
