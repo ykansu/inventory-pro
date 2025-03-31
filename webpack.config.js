@@ -12,7 +12,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'renderer.js',
-    publicPath: '/',
+    publicPath: isDevelopment ? '/' : './',
   },
   devServer: {
     static: {
