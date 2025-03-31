@@ -16,6 +16,8 @@
       "receipt": "Receipt #",
       "dateTime": "Date & Time",
       "items": "Items",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
       "total": "Total",
       "payment": "Payment",
       "actions": "Actions"
@@ -32,6 +34,7 @@
     "price": "Price",
     "total": "Total",
     "subtotal": "Subtotal",
+    "discount": "Discount",
     "tax": "Tax",
     "paymentMethod": "Payment Method"
   },

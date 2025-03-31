@@ -343,6 +343,8 @@ const SalesHistory = () => {
                   <th>{t('sales:table.headers.receipt')}</th>
                   <th>{t('sales:table.headers.dateTime')}</th>
                   <th>{t('sales:table.headers.items')}</th>
+                  <th>{t('sales:table.headers.subtotal')}</th>
+                  <th>{t('sales:table.headers.discount')}</th>
                   <th>{t('sales:table.headers.total')}</th>
                   <th>{t('sales:table.headers.payment')}</th>
                   <th>{t('sales:table.headers.actions')}</th>
@@ -351,7 +353,7 @@ const SalesHistory = () => {
               <tbody>
                 {sales.length === 0 ? (
                   <tr className="empty-state">
-                    <td colSpan="6">
+                    <td colSpan="8">
                       <p>{t('sales:table.noRecords')}</p>
                     </td>
                   </tr>
@@ -361,6 +363,8 @@ const SalesHistory = () => {
                       <td>{sale.receipt_number || '-'}</td>
                       <td>{formatDate(sale.created_at)}</td>
                       <td>{sale.total_items || 0}</td>
+                      <td>{formatWithCurrency(sale.subtotal || 0)}</td>
+                      <td>{sale.discount_amount > 0 ? `-${formatWithCurrency(sale.discount_amount || 0)}` : '-'}</td>
                       <td>{formatWithCurrency(sale.total_amount || 0)}</td>
                       <td>{t(`sales:paymentMethods.${sale.payment_method}`)}</td>
                       <td>
@@ -417,6 +421,12 @@ const SalesHistory = () => {
                   <span>{t('sales:receipt.subtotal')}:</span>
                   <span>{formatWithCurrency(selectedSale.subtotal)}</span>
                 </div>
+                {selectedSale.discount_amount > 0 && (
+                  <div className="summary-row discount">
+                    <span>{t('sales:receipt.discount')}:</span>
+                    <span>-{formatWithCurrency(selectedSale.discount_amount)}</span>
+                  </div>
+                )}
                 {settings.enableTax && selectedSale.tax_amount > 0 && (
                   <div className="summary-row">
                     <span>{t('sales:receipt.tax')}:</span>

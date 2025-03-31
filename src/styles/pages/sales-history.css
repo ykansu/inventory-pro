@@ -304,6 +304,11 @@
   padding: 0.25rem 0;
 }
 
+.summary-row.discount {
+  color: #059669;
+  font-weight: 500;
+}
+
 .summary-row.total {
   font-weight: bold;
   border-top: 1px solid #e5e7eb;

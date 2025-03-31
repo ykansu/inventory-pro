@@ -16,6 +16,8 @@
       "receipt": "Fiş #",
       "dateTime": "Tarih & Saat",
       "items": "Ürünler",
+      "subtotal": "Ara Toplam",
+      "discount": "İndirim",
       "total": "Toplam",
       "payment": "Ödeme",
       "actions": "İşlemler"
@@ -32,6 +34,7 @@
     "price": "Fiyat",
     "total": "Toplam",
     "subtotal": "Ara Toplam",
+    "discount": "İndirim",
     "tax": "Vergi",
     "paymentMethod": "Ödeme Yöntemi"
   },
