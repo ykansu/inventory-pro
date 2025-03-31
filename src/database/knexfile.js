@@ -1,21 +1,23 @@
 const path = require('path');
 const fs = require('fs');
-const config = require('./config');
 
-// Determine if we're in a production environment
-const isProduction = process.env.NODE_ENV === 'production';
+// Fixed database path as requested (no more AppData)
+const dbPath = path.join('D:', 'repos', 'inventory-pro', 'src', 'database', 'inventory-pro.db');
 
 // Ensure the database directory exists
-const dbDir = path.dirname(config.dbPath);
+const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
+
+// Determine if we're in a production environment
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Production DB config
 module.exports = {
   client: 'sqlite3',
   connection: {
-    filename: config.dbPath,
+    filename: dbPath,
   },
   useNullAsDefault: true,
   migrations: {

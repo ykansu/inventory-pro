@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { app, dialog } = require('electron');
 const config = require('./config');
-const db = require('./connection');
+const dbConnection = require('./connection');
 
 // Format date for backup filename
 function formatDate(date) {
@@ -18,6 +18,7 @@ function formatDate(date) {
 
 // Get all data tables
 async function getAllTables() {
+  const db = await dbConnection.getConnection();
   return [
     { name: 'categories', data: await db('categories').select('*') },
     { name: 'suppliers', data: await db('suppliers').select('*') },
@@ -49,7 +50,7 @@ async function exportToJson(customPath = null) {
     const exportData = {
       metadata: {
         timestamp: new Date().toISOString(),
-        appVersion: app.getVersion(),
+        appVersion: app.getVersion ? app.getVersion() : 'unknown',
         tables: tables.map(t => t.name)
       },
       data: {}
@@ -85,8 +86,11 @@ async function importFromJson(jsonFile) {
     
     console.log('Starting JSON import process');
     
+    // Get database connection
+    const db = await dbConnection.getConnection();
+    
     // Begin transaction
-    await db.transaction(async trx => {
+    return await db.transaction(async trx => {
       try {
         // Disable foreign key constraints during import
         await trx.raw('PRAGMA foreign_keys = OFF;');
@@ -200,15 +204,17 @@ async function importFromJson(jsonFile) {
             // Update foreign key references
             if (data.sale_id && idMappings.sales[data.sale_id]) {
               data.sale_id = idMappings.sales[data.sale_id];
-            } else {
-              // Skip if sale doesn't exist
+            } else if (data.sale_id) {
+              // Skip this sale item if the referenced sale doesn't exist
+              console.log(`Skipping sale item: missing sale reference for ${data.sale_id}`);
               continue;
             }
             
             if (data.product_id && idMappings.products[data.product_id]) {
               data.product_id = idMappings.products[data.product_id];
-            } else {
-              // Skip if product doesn't exist
+            } else if (data.product_id) {
+              // Skip this sale item if the referenced product doesn't exist
+              console.log(`Skipping sale item: missing product reference for ${data.product_id}`);
               continue;
             }
             
@@ -216,57 +222,71 @@ async function importFromJson(jsonFile) {
           }
         }
         
-        // Handle stock adjustments separately (they have product references)
         if (importData.data.stock_adjustments && importData.data.stock_adjustments.length) {
           console.log(`Importing ${importData.data.stock_adjustments.length} stock adjustments`);
           for (const item of importData.data.stock_adjustments) {
             const { id, ...data } = item;
             
-            // Update product references
+            // Update foreign key references
             if (data.product_id && idMappings.products[data.product_id]) {
               data.product_id = idMappings.products[data.product_id];
-              await trx('stock_adjustments').insert(data);
+            } else if (data.product_id) {
+              // Skip this adjustment if the referenced product doesn't exist
+              console.log(`Skipping stock adjustment: missing product reference for ${data.product_id}`);
+              continue;
             }
+            
+            await trx('stock_adjustments').insert(data);
           }
         }
         
-        // Optionally import settings
-        if (importData.data.settings && importData.data.settings.length) {
-          console.log(`Importing ${importData.data.settings.length} settings`);
-          for (const item of importData.data.settings) {
-            const existingSetting = await trx('settings')
-              .where({ key: item.key })
-              .first();
-            
-            if (existingSetting) {
-              await trx('settings')
-                .where({ key: item.key })
-                .update({ value: item.value });
-            } else {
-              await trx('settings').insert(item);
-            }
-          }
-        }
+        // Do not import settings to avoid overwriting critical app configuration
+        // unless specifically requested
         
         // Re-enable foreign key constraints
         await trx.raw('PRAGMA foreign_keys = ON;');
         console.log('Foreign key constraints re-enabled');
+        
+        console.log('Data import completed successfully');
+        return { success: true, message: 'Import completed successfully' };
       } catch (error) {
         console.error('Error during import transaction:', error);
-        // Try to re-enable foreign keys even if import failed
-        try {
-          await trx.raw('PRAGMA foreign_keys = ON;');
-        } catch (e) {
-          // Ignore error when trying to re-enable foreign keys
-        }
         throw error;
       }
     });
-    
-    console.log(`Data imported successfully from: ${jsonFile}`);
-    return true;
   } catch (error) {
-    console.error('Data import failed:', error);
+    console.error('Import failed:', error);
+    throw error;
+  }
+}
+
+// Create a backup before importing
+async function createPreImportBackup() {
+  try {
+    const db = await dbConnection.getConnection();
+    const backupDir = path.join(config.db.path, 'backups', 'pre_import');
+    
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+    
+    const timestamp = formatDate(new Date());
+    const backupFile = path.join(backupDir, `backup_${timestamp}.db`);
+    
+    // Create a database backup
+    const backupDb = fs.createWriteStream(backupFile);
+    const dbFile = fs.createReadStream(config.db.path);
+    
+    return new Promise((resolve, reject) => {
+      dbFile.pipe(backupDb);
+      dbFile.on('end', () => {
+        console.log(`Pre-import backup created at: ${backupFile}`);
+        resolve(backupFile);
+      });
+      dbFile.on('error', reject);
+    });
+  } catch (error) {
+    console.error('Pre-import backup failed:', error);
     throw error;
   }
 }
@@ -396,5 +416,6 @@ function cleanupOldJsonBackups() {
 module.exports = {
   exportToJson,
   importFromJson,
+  createPreImportBackup,
   scheduleJsonBackups
 }; 

@@ -1,37 +1,72 @@
-const db = require('../database/connection');
+const dbConnection = require('../database/connection');
+
+// Helper functions for formatting
+const formatDateHelper = (date, options = {}, defaultValue = '') => {
+  try {
+    // Handle undefined, null, or invalid dates
+    if (date === undefined || date === null) {
+      return defaultValue;
+    }
+    
+    // Convert string or number to Date object if needed
+    let dateObj = date;
+    if (!(date instanceof Date)) {
+      dateObj = new Date(date);
+    }
+    
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return defaultValue;
+    }
+    
+    return dateObj.toLocaleString('default', options);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return defaultValue;
+  }
+};
 
 // Base model with common CRUD operations
 class BaseModel {
   constructor(tableName) {
     this.tableName = tableName;
-    this.db = db;
+  }
+  
+  // Get the database connection
+  async getDb() {
+    return dbConnection.getConnection();
   }
   
   // Get all records
   async getAll() {
-    return this.db(this.tableName).select('*');
+    const db = await this.getDb();
+    return db(this.tableName).select('*');
   }
   
   // Get record by ID
   async getById(id) {
-    return this.db(this.tableName).where({ id }).first();
+    const db = await this.getDb();
+    return db(this.tableName).where({ id }).first();
   }
   
   // Create a new record
   async create(data) {
-    const [id] = await this.db(this.tableName).insert(data);
+    const db = await this.getDb();
+    const [id] = await db(this.tableName).insert(data);
     return this.getById(id);
   }
   
   // Update a record
   async update(id, data) {
-    await this.db(this.tableName).where({ id }).update(data);
+    const db = await this.getDb();
+    await db(this.tableName).where({ id }).update(data);
     return this.getById(id);
   }
   
   // Delete a record
   async delete(id) {
-    return this.db(this.tableName).where({ id }).del();
+    const db = await this.getDb();
+    return db(this.tableName).where({ id }).del();
   }
 }
 
@@ -44,8 +79,9 @@ class Product extends BaseModel {
   // Get products with category and supplier information
   async getAllWithDetails() {
     try {
+      const db = await this.getDb();
       // Get all products with joins
-      return await this.db(this.tableName)
+      return await db(this.tableName)
         .select(
           'products.*',
           'categories.name as category_name',
@@ -61,20 +97,23 @@ class Product extends BaseModel {
   
   // Get product by barcode
   async getByBarcode(barcode) {
-    return this.db(this.tableName).where({ barcode }).first();
+    const db = await this.getDb();
+    return db(this.tableName).where({ barcode }).first();
   }
   
   // Get products with low stock
   async getLowStock() {
-    return this.db(this.tableName)
+    const db = await this.getDb();
+    return db(this.tableName)
       .whereRaw('stock_quantity <= min_stock_threshold')
       .select('*');
   }
   
   // Update stock quantity
   async updateStock(id, quantity, adjustmentType, reason, reference) {
+    const db = await this.getDb();
     // Start a transaction
-    return this.db.transaction(async trx => {
+    return db.transaction(async trx => {
       // Get current product
       const product = await trx(this.tableName).where({ id }).first();
       
@@ -110,13 +149,15 @@ class Product extends BaseModel {
   
   // Get total count of products
   async getTotalCount() {
-    const result = await this.db(this.tableName).count('id as count').first();
+    const db = await this.getDb();
+    const result = await db(this.tableName).count('id as count').first();
     return result ? result.count : 0;
   }
   
   // Get count of low stock products
   async getLowStockCount() {
-    const result = await this.db(this.tableName)
+    const db = await this.getDb();
+    const result = await db(this.tableName)
       .whereRaw('stock_quantity <= min_stock_threshold')
       .count('id as count')
       .first();
@@ -125,8 +166,9 @@ class Product extends BaseModel {
   
   // Get total inventory value
   async getTotalInventoryValue() {
-    const result = await this.db(this.tableName)
-      .select(this.db.raw('SUM(stock_quantity * cost_price) as value'))
+    const db = await this.getDb();
+    const result = await db(this.tableName)
+      .select(db.raw('SUM(stock_quantity * cost_price) as value'))
       .first();
     return result && result.value ? parseFloat(result.value) : 0;
   }
@@ -143,7 +185,8 @@ class Product extends BaseModel {
       const monthsData = [];
       for (let i = months - 1; i >= 0; i--) {
         const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthName = monthDate.toLocaleString('default', { month: 'short' });
+        // Use our safe formatter instead of direct toLocaleString
+        const monthName = formatDateHelper(monthDate, { month: 'short' }, `Month-${i}`);
         monthsData.push({
           month: monthName,
           date: monthDate
@@ -178,8 +221,20 @@ class Product extends BaseModel {
       let baseValue = currentInventoryValue * 0.7;
       
       for (const monthData of monthsData) {
+        // Skip invalid month data
+        if (!monthData || !monthData.date) {
+          continue;
+        }
+        
         // Add seasonal variation by month
-        const month = monthData.date.getMonth();
+        let month;
+        try {
+          month = monthData.date.getMonth();
+        } catch (error) {
+          console.error("Error getting month:", error);
+          continue;
+        }
+        
         let seasonalFactor = 1.0;
         
         // Higher inventory in winter, lower in summer
@@ -212,7 +267,8 @@ class Product extends BaseModel {
   // Helper method to calculate current inventory value
   async getCurrentInventoryValue() {
     try {
-      const products = await this.db(this.tableName).select('stock_quantity', 'cost_price');
+      const db = await this.getDb();
+      const products = await db(this.tableName).select('stock_quantity', 'cost_price');
       
       // Calculate total inventory value
       let totalValue = 0;
@@ -240,10 +296,11 @@ class Category extends BaseModel {
   
   // Get category with product count
   async getAllWithProductCount() {
-    return this.db(this.tableName)
+    const db = await this.getDb();
+    return db(this.tableName)
       .select(
         'categories.*',
-        this.db.raw('COUNT(products.id) as product_count')
+        db.raw('COUNT(products.id) as product_count')
       )
       .leftJoin('products', 'categories.id', 'products.category_id')
       .groupBy('categories.id');
@@ -258,10 +315,11 @@ class Supplier extends BaseModel {
   
   // Get supplier with product count
   async getAllWithProductCount() {
-    return this.db(this.tableName)
+    const db = await this.getDb();
+    return db(this.tableName)
       .select(
         'suppliers.*',
-        this.db.raw('COUNT(products.id) as product_count')
+        db.raw('COUNT(products.id) as product_count')
       )
       .leftJoin('products', 'suppliers.id', 'products.supplier_id')
       .groupBy('suppliers.id');
@@ -276,7 +334,8 @@ class Sale extends BaseModel {
   
   // Create a sale with items
   async createWithItems(saleData, items) {
-    return this.db.transaction(async trx => {
+    const db = await this.getDb();
+    return db.transaction(async trx => {
       try {
         // Get current real date for proper storage
         const now = new Date();
@@ -371,13 +430,14 @@ class Sale extends BaseModel {
   // Get sale with items
   async getWithItems(id) {
     try {
-      const sale = await this.db(this.tableName).where({ id }).first();
+      const db = await this.getDb();
+      const sale = await db(this.tableName).where({ id }).first();
       
       if (!sale) {
         return null;
       }
       
-      const items = await this.db('sale_items')
+      const items = await db('sale_items')
         .where({ sale_id: id })
         .select('*');
         
@@ -410,9 +470,11 @@ class Sale extends BaseModel {
       formattedStartDate = new Date(formattedStartDate).toISOString();
       formattedEndDate = new Date(formattedEndDate).toISOString();
 
+      // Get database connection
+      const db = await this.getDb();
       
       // Query sales directly with date filtering in SQLite
-      const query = this.db(this.tableName)
+      const query = db(this.tableName)
         .select(`${this.tableName}.*`)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate);
@@ -426,7 +488,8 @@ class Sale extends BaseModel {
       }
       
       // Enhancement: Include item count for each sale using a more efficient join
-      const salesWithItemCounts = await this.db(this.tableName)
+      const db2 = await this.getDb();
+      const salesWithItemCounts = await db2(this.tableName)
         .select(`${this.tableName}.id`)
         .count('sale_items.id as item_count')
         .leftJoin('sale_items', `${this.tableName}.id`, 'sale_items.sale_id')
@@ -464,8 +527,11 @@ class Sale extends BaseModel {
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
+      // Get database connection
+      const db = await this.getDb();
+      
       // Get all sales for current month
-      const sales = await this.db(this.tableName)
+      const sales = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
         .where('is_returned', false)
@@ -486,7 +552,8 @@ class Sale extends BaseModel {
       const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
       
       // Get all sale items with product details to calculate cost
-      const saleItemsWithCost = await this.db('sale_items')
+      const db2 = await this.getDb();
+      const saleItemsWithCost = await db2('sale_items')
         .join('products', 'sale_items.product_id', 'products.id')
         .whereIn('sale_items.sale_id', saleIds)
         .select(
@@ -518,23 +585,40 @@ class Sale extends BaseModel {
   }
   
   // Get profit by category for the current month
-  async getCategoryProfits() {
+  async getProfitByCategory(period = 'month') {
     try {
-      // Get the current date
+      // Calculate date range based on period
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+      let startDate, endDate;
       
-      // Format start and end dates for the current month
-      const startDate = new Date(currentYear, now.getMonth(), 1);
-      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
+      if (period === 'week') {
+        // Set to beginning of current week (Sunday)
+        const day = now.getDay(); // 0 = Sunday
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - day);
+        startDate.setHours(0, 0, 0, 0);
+        
+        endDate = new Date(now);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (period === 'year') {
+        // Set to beginning of current year
+        startDate = new Date(now.getFullYear(), 0, 1);
+        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
+      } else {
+        // Default to month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
       
       // Format dates for SQLite query
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
+      // Get database connection
+      const db = await this.getDb();
+      
       // Get all sales for current month
-      const salesIds = await this.db(this.tableName)
+      const salesIds = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
         .where('is_returned', false)
@@ -545,15 +629,16 @@ class Sale extends BaseModel {
       }
       
       // Get all sale items with category and cost information
-      const categoryProfits = await this.db('sale_items')
+      const db2 = await this.getDb();
+      const categoryProfits = await db2('sale_items')
         .join('products', 'sale_items.product_id', 'products.id')
         .leftJoin('categories', 'products.category_id', 'categories.id')
         .whereIn('sale_items.sale_id', salesIds)
         .select(
           'categories.id as category_id',
           'categories.name as name',
-          this.db.raw('SUM(sale_items.total_price) as revenue'),
-          this.db.raw('SUM(products.cost_price * sale_items.quantity) as cost')
+          db2.raw('SUM(sale_items.total_price) as revenue'),
+          db2.raw('SUM(products.cost_price * sale_items.quantity) as cost')
         )
         .groupBy('categories.id', 'categories.name');
       
@@ -565,235 +650,6 @@ class Sale extends BaseModel {
         const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
         
         return {
-          name: category.name || 'Uncategorized',
-          revenue,
-          cost,
-          profit,
-          margin: Math.round(margin * 10) / 10 // Round to 1 decimal place
-        };
-      });
-      
-      // Sort by profit (highest first)
-      return categoriesWithProfit.sort((a, b) => b.profit - a.profit);
-    } catch (error) {
-      console.error('Error in getCategoryProfits:', error);
-      throw error;
-    }
-  }
-  
-  // Get profit value trend for the last 6 months
-  async getProfitValueTrend() {
-    try {
-      // Get current date
-      const now = new Date();
-      
-      // Generate the last 6 months
-      const months = [];
-      for (let i = 5; i >= 0; i--) {
-        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        months.push({
-          month: month.toLocaleString('default', { month: 'short' }),
-          year: month.getFullYear(),
-          monthNum: month.getMonth(), // 0-indexed
-          startDate: new Date(month.getFullYear(), month.getMonth(), 1),
-          endDate: new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59, 999)
-        });
-      }
-      
-      // Initialize result array
-      const trendData = [];
-      
-      // Process each month
-      for (const monthData of months) {
-        // Format dates for SQLite
-        const formattedStartDate = monthData.startDate.toISOString();
-        const formattedEndDate = monthData.endDate.toISOString();
-        
-        // Get all sales for this month
-        const sales = await this.db(this.tableName)
-          .where('created_at', '>=', formattedStartDate)
-          .where('created_at', '<=', formattedEndDate)
-          .where('is_returned', false)
-          .select('id', 'total_amount');
-        
-        if (sales.length === 0) {
-          trendData.push({
-            month: monthData.month,
-            value: 0
-          });
-          continue;
-        }
-        
-        // Get sale IDs
-        const saleIds = sales.map(sale => sale.id);
-        
-        // Calculate monthly revenue
-        const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
-        
-        // Get all sale items with product details to calculate cost
-        const saleItemsWithCost = await this.db('sale_items')
-          .join('products', 'sale_items.product_id', 'products.id')
-          .whereIn('sale_items.sale_id', saleIds)
-          .select(
-            'sale_items.quantity',
-            'products.cost_price'
-          );
-        
-        // Calculate total cost and profit
-        let totalCost = 0;
-        
-        saleItemsWithCost.forEach(item => {
-          totalCost += parseFloat(item.cost_price) * parseInt(item.quantity);
-        });
-        
-        const monthlyProfit = monthlyRevenue - totalCost;
-        
-        trendData.push({
-          month: monthData.month,
-          value: Math.round(monthlyProfit)
-        });
-      }
-      
-      return trendData;
-    } catch (error) {
-      console.error('Error in getProfitValueTrend:', error);
-      throw error;
-    }
-  }
-  
-  // Get profit and revenue trend for the past months
-  async getProfitAndRevenueTrend(months = 6) {
-    try {
-      // Get current date
-      const now = new Date();
-      
-      // Generate the last N months
-      const monthsData = [];
-      for (let i = months - 1; i >= 0; i--) {
-        const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        monthsData.push({
-          month: month.toLocaleString('default', { month: 'short' }),
-          year: month.getFullYear(),
-          monthNum: month.getMonth(), // 0-indexed
-          startDate: new Date(month.getFullYear(), month.getMonth(), 1),
-          endDate: new Date(month.getFullYear(), month.getMonth() + 1, 0, 23, 59, 59, 999)
-        });
-      }
-      
-      // Initialize result array
-      const trendData = [];
-      
-      // Process each month
-      for (const monthData of monthsData) {
-        // Format dates for SQLite
-        const formattedStartDate = monthData.startDate.toISOString();
-        const formattedEndDate = monthData.endDate.toISOString();
-        
-        // Get all sales for this month
-        const sales = await this.db(this.tableName)
-          .where('created_at', '>=', formattedStartDate)
-          .where('created_at', '<=', formattedEndDate)
-          .where('is_returned', false)
-          .select('id', 'total_amount');
-        
-        if (sales.length === 0) {
-          trendData.push({
-            month: monthData.month,
-            revenue: 0,
-            profit: 0
-          });
-          continue;
-        }
-        
-        // Get sale IDs
-        const saleIds = sales.map(sale => sale.id);
-        
-        // Calculate monthly revenue
-        const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
-        
-        // Get all sale items with product details to calculate cost
-        const saleItemsWithCost = await this.db('sale_items')
-          .join('products', 'sale_items.product_id', 'products.id')
-          .whereIn('sale_items.sale_id', saleIds)
-          .select(
-            'sale_items.quantity',
-            'sale_items.unit_price',
-            'sale_items.total_price',
-            'products.cost_price'
-          );
-        
-        // Calculate total cost and profit
-        let totalCost = 0;
-        
-        saleItemsWithCost.forEach(item => {
-          totalCost += parseFloat(item.cost_price) * parseInt(item.quantity);
-        });
-        
-        const monthlyProfit = monthlyRevenue - totalCost;
-        
-        trendData.push({
-          month: monthData.month,
-          revenue: Math.round(monthlyRevenue),
-          profit: Math.round(monthlyProfit)
-        });
-      }
-      
-      return trendData;
-    } catch (error) {
-      console.error('Error in getProfitAndRevenueTrend:', error);
-      throw error;
-    }
-  }
-  
-  // Get profit by category
-  async getProfitByCategory() {
-    try {
-      // Get the current date
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
-      
-      // Format start and end dates for the current month
-      const startDate = new Date(currentYear, now.getMonth(), 1);
-      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
-      
-      // Format dates for SQLite query
-      const formattedStartDate = startDate.toISOString();
-      const formattedEndDate = endDate.toISOString();
-      
-      // Get all sales for current month
-      const salesIds = await this.db(this.tableName)
-        .where('created_at', '>=', formattedStartDate)
-        .where('created_at', '<=', formattedEndDate)
-        .where('is_returned', false)
-        .pluck('id');
-      
-      if (salesIds.length === 0) {
-        return [];
-      }
-      
-      // Get all sale items with category and cost information
-      const categoryProfits = await this.db('sale_items')
-        .join('products', 'sale_items.product_id', 'products.id')
-        .leftJoin('categories', 'products.category_id', 'categories.id')
-        .whereIn('sale_items.sale_id', salesIds)
-        .select(
-          'categories.id as category_id',
-          'categories.name as name',
-          this.db.raw('SUM(sale_items.total_price) as revenue'),
-          this.db.raw('SUM(products.cost_price * sale_items.quantity) as cost')
-        )
-        .groupBy('categories.id', 'categories.name');
-      
-      // Calculate profit and margin for each category
-      const categoriesWithProfit = categoryProfits.map(category => {
-        const revenue = parseFloat(category.revenue) || 0;
-        const cost = parseFloat(category.cost) || 0;
-        const profit = revenue - cost;
-        const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-        
-        return {
-          id: category.category_id,
           name: category.name || 'Uncategorized',
           revenue,
           cost,
@@ -811,23 +667,40 @@ class Sale extends BaseModel {
   }
   
   // Get top selling products
-  async getTopSellingProducts(limit = 5, sortBy = 'quantity') {
+  async getTopSellingProducts(period = 'month', limit = 5) {
     try {
-      // Get the current date
+      // Calculate date range based on period
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+      let startDate, endDate;
       
-      // Format start and end dates for the current month
-      const startDate = new Date(currentYear, now.getMonth(), 1);
-      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
+      if (period === 'week') {
+        // Set to beginning of current week (Sunday)
+        const day = now.getDay(); // 0 = Sunday
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - day);
+        startDate.setHours(0, 0, 0, 0);
+        
+        endDate = new Date(now);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (period === 'year') {
+        // Set to beginning of current year
+        startDate = new Date(now.getFullYear(), 0, 1);
+        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
+      } else {
+        // Default to month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
       
       // Format dates for SQLite query
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
+      // Get database connection
+      const db = await this.getDb();
+      
       // Get all sales for current month
-      const salesIds = await this.db(this.tableName)
+      const salesIds = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
         .where('is_returned', false)
@@ -838,7 +711,8 @@ class Sale extends BaseModel {
       }
       
       // Get product sales aggregated by product
-      let query = this.db('sale_items')
+      const db2 = await this.getDb();
+      let query = db2('sale_items')
         .join('products', 'sale_items.product_id', 'products.id')
         .leftJoin('categories', 'products.category_id', 'categories.id')
         .whereIn('sale_items.sale_id', salesIds)
@@ -846,53 +720,40 @@ class Sale extends BaseModel {
           'products.id as id',
           'products.name as name',
           'categories.name as category',
-          this.db.raw('SUM(sale_items.quantity) as quantity_sold'),
-          this.db.raw('SUM(sale_items.total_price) as revenue'),
-          this.db.raw('SUM(products.cost_price * sale_items.quantity) as cost')
+          db2.raw('SUM(sale_items.quantity) as quantity_sold'),
+          db2.raw('SUM(sale_items.total_price) as revenue'),
+          db2.raw('SUM(products.cost_price * sale_items.quantity) as cost')
         )
         .groupBy('products.id', 'products.name', 'categories.name');
       
-      // Sort based on the sortBy parameter
-      if (sortBy === 'revenue') {
-        query = query.orderBy('revenue', 'desc');
-      } else if (sortBy === 'profit') {
-        // We'll sort after calculating profit in JavaScript
+      // Add limit if specified
+      if (limit) {
+        query = query.orderBy('quantity_sold', 'desc').limit(limit);
       } else {
-        // Default sort by quantity
         query = query.orderBy('quantity_sold', 'desc');
       }
       
-      // Apply limit
-      query = query.limit(limit);
-      
-      // Execute query
+      // Execute the query
       const topProducts = await query;
       
-      // Calculate profit and format results
-      const formattedProducts = topProducts.map(product => {
+      // Calculate profit and margin for each product
+      return topProducts.map(product => {
         const revenue = parseFloat(product.revenue) || 0;
         const cost = parseFloat(product.cost) || 0;
         const profit = revenue - cost;
-        const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+        const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
         
         return {
           id: product.id,
           name: product.name,
           category: product.category || 'Uncategorized',
-          quantity: parseInt(product.quantity_sold),
-          revenue: revenue,
-          cost: cost,
-          profit: profit,
-          profitMargin: Math.round(profitMargin * 10) / 10 // Round to 1 decimal place
+          quantity_sold: parseInt(product.quantity_sold) || 0,
+          revenue,
+          cost,
+          profit,
+          margin: Math.round(margin * 10) / 10 // Round to 1 decimal place
         };
       });
-      
-      // If sorting by profit, do it now
-      if (sortBy === 'profit') {
-        formattedProducts.sort((a, b) => b.profit - a.profit);
-      }
-      
-      return formattedProducts;
     } catch (error) {
       console.error('Error in getTopSellingProducts:', error);
       throw error;
@@ -900,23 +761,40 @@ class Sale extends BaseModel {
   }
   
   // Get revenue and profit by supplier
-  async getRevenueAndProfitBySupplier() {
+  async getRevenueAndProfitBySupplier(period = 'month') {
     try {
-      // Get the current date
+      // Calculate date range based on period
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+      let startDate, endDate;
       
-      // Format start and end dates for the current month
-      const startDate = new Date(currentYear, now.getMonth(), 1);
-      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
+      if (period === 'week') {
+        // Set to beginning of current week (Sunday)
+        const day = now.getDay(); // 0 = Sunday
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - day);
+        startDate.setHours(0, 0, 0, 0);
+        
+        endDate = new Date(now);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (period === 'year') {
+        // Set to beginning of current year
+        startDate = new Date(now.getFullYear(), 0, 1);
+        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
+      } else {
+        // Default to month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
       
       // Format dates for SQLite query
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
+      // Get database connection
+      const db = await this.getDb();
+      
       // Get all sales for current month
-      const salesIds = await this.db(this.tableName)
+      const salesIds = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
         .where('is_returned', false)
@@ -927,37 +805,37 @@ class Sale extends BaseModel {
       }
       
       // Get supplier data aggregated
-      const supplierData = await this.db('sale_items')
+      const db2 = await this.getDb();
+      const supplierData = await db2('sale_items')
         .join('products', 'sale_items.product_id', 'products.id')
         .leftJoin('suppliers', 'products.supplier_id', 'suppliers.id')
         .whereIn('sale_items.sale_id', salesIds)
         .select(
           'suppliers.id as supplier_id',
           'suppliers.company_name as name',
-          this.db.raw('SUM(sale_items.total_price) as revenue'),
-          this.db.raw('SUM(products.cost_price * sale_items.quantity) as cost')
+          db2.raw('SUM(sale_items.total_price) as revenue'),
+          db2.raw('SUM(products.cost_price * sale_items.quantity) as cost')
         )
         .groupBy('suppliers.id', 'suppliers.company_name');
       
-      // Calculate profit and format results
-      const formattedSupplierData = supplierData.map(supplier => {
+      // Calculate profit and margin for each supplier
+      const suppliersWithProfit = supplierData.map(supplier => {
         const revenue = parseFloat(supplier.revenue) || 0;
         const cost = parseFloat(supplier.cost) || 0;
         const profit = revenue - cost;
-        const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+        const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
         
         return {
-          id: supplier.supplier_id,
           name: supplier.name || 'Unknown Supplier',
-          revenue: revenue,
-          cost: cost,
-          profit: profit,
-          profitMargin: Math.round(profitMargin * 10) / 10 // Round to 1 decimal place
+          revenue,
+          cost,
+          profit,
+          margin: Math.round(margin * 10) / 10 // Round to 1 decimal place
         };
       });
       
       // Sort by revenue (highest first)
-      return formattedSupplierData.sort((a, b) => b.revenue - a.revenue);
+      return suppliersWithProfit.sort((a, b) => b.revenue - a.revenue);
     } catch (error) {
       console.error('Error in getRevenueAndProfitBySupplier:', error);
       throw error;
@@ -965,121 +843,197 @@ class Sale extends BaseModel {
   }
   
   // Get revenue by payment method
-  async getRevenueByPaymentMethod() {
+  async getRevenueByPaymentMethod(period = 'month') {
     try {
-      // Get the current date
+      // Calculate date range based on period
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+      let startDate, endDate;
       
-      // Format start and end dates for the current month
-      const startDate = new Date(currentYear, now.getMonth(), 1);
-      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
+      if (period === 'week') {
+        // Set to beginning of current week (Sunday)
+        const day = now.getDay(); // 0 = Sunday
+        startDate = new Date(now);
+        startDate.setDate(now.getDate() - day);
+        startDate.setHours(0, 0, 0, 0);
+        
+        endDate = new Date(now);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (period === 'year') {
+        // Set to beginning of current year
+        startDate = new Date(now.getFullYear(), 0, 1);
+        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
+      } else {
+        // Default to month
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
       
       // Format dates for SQLite query
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
+      // Get database connection
+      const db = await this.getDb();
+      
       // Get all sales for current month grouped by payment method
-      const paymentData = await this.db(this.tableName)
+      const paymentData = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
         .where('is_returned', false)
         .select(
           'payment_method',
-          this.db.raw('SUM(total_amount) as revenue'),
-          this.db.raw('COUNT(*) as count')
+          db.raw('SUM(total_amount) as revenue'),
+          db.raw('COUNT(*) as count')
         )
         .groupBy('payment_method');
       
-      // Format results
-      const formattedPaymentData = paymentData.map(payment => {
-        return {
-          method: payment.payment_method || 'Unknown',
-          revenue: parseFloat(payment.revenue) || 0,
-          count: parseInt(payment.count) || 0
-        };
-      });
-      
-      // Handle case where no data is returned
-      if (formattedPaymentData.length === 0) {
-        return [
-          { method: 'Cash', revenue: 0, count: 0 },
-          { method: 'Credit Card', revenue: 0, count: 0 },
-          { method: 'Debit Card', revenue: 0, count: 0 },
-          { method: 'Bank Transfer', revenue: 0, count: 0 }
-        ];
-      }
-      
-      // Add common payment methods if they don't exist in data
-      const commonMethods = ['Cash', 'Credit Card', 'Debit Card', 'Bank Transfer'];
-      const existingMethods = formattedPaymentData.map(p => p.method);
-      
-      commonMethods.forEach(method => {
-        if (!existingMethods.includes(method)) {
-          formattedPaymentData.push({
-            method,
-            revenue: 0,
-            count: 0
-          });
-        }
-      });
+      // Format data
+      const formattedData = paymentData.map(item => ({
+        name: item.payment_method,
+        revenue: parseFloat(item.revenue) || 0,
+        count: parseInt(item.count)
+      }));
       
       // Sort by revenue (highest first)
-      return formattedPaymentData.sort((a, b) => b.revenue - a.revenue);
+      return formattedData.sort((a, b) => b.revenue - a.revenue);
     } catch (error) {
       console.error('Error in getRevenueByPaymentMethod:', error);
       throw error;
     }
   }
   
-  // Process a return/refund
-  async processReturn(id, returnData, itemsToReturn) {
-    return this.db.transaction(async trx => {
-      try {
-        // Update the sale as returned
-        await trx(this.tableName)
-          .where({ id })
-          .update({
-            is_returned: true,
-            notes: returnData.notes,
-            updated_at: new Date()
-          });
-        
-        // Update product stock for each returned item
-        for (const item of itemsToReturn) {
-          await trx('products')
-            .where({ id: item.product_id })
-            .increment('stock_quantity', item.quantity);
+  // Get profit and revenue trend for past months
+  async getProfitAndRevenueTrend(months = 6) {
+    try {
+      // Get current date
+      const now = new Date();
+      
+      // Generate data for the past N months
+      const monthsData = [];
+      
+      // Get database connection once
+      const db = await this.getDb();
+      
+      for (let i = months - 1; i >= 0; i--) {
+        try {
+          // Calculate month start and end dates
+          const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+          
+          // Format dates for SQLite - with validation
+          let formattedStartDate, formattedEndDate;
+          try {
+            formattedStartDate = monthStart.toISOString();
+            formattedEndDate = monthEnd.toISOString();
+          } catch (error) {
+            console.error("Error converting dates to ISO format:", error);
+            continue;
+          }
+          
+          // Get month name (e.g., "Jan") using safe formatter
+          const monthName = formatDateHelper(monthStart, { month: 'short' }, `Month-${i}`);
+          
+          // Get all sales for this month
+          const sales = await db(this.tableName)
+            .where('created_at', '>=', formattedStartDate)
+            .where('created_at', '<=', formattedEndDate)
+            .where('is_returned', false)
+            .select('id', 'total_amount');
+          
+          // Calculate revenue
+          const revenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
+          
+          // If we have sales, calculate profit
+          let profit = 0;
+          
+          if (sales.length > 0) {
+            // Get sale IDs
+            const saleIds = sales.map(sale => sale.id);
             
-          // Record stock adjustment
-          await trx('stock_adjustments').insert({
-            product_id: item.product_id,
-            quantity_change: item.quantity,
-            adjustment_type: 'return',
-            reason: returnData.reason,
-            reference: `Return-${id}`,
-            created_at: new Date(),
-            updated_at: new Date()
+            // Get all sale items with product details to calculate cost
+            const db2 = await this.getDb();
+            const saleItemsWithCost = await db2('sale_items')
+              .join('products', 'sale_items.product_id', 'products.id')
+              .whereIn('sale_items.sale_id', saleIds)
+              .select(
+                'sale_items.quantity',
+                'products.cost_price'
+              );
+            
+            // Calculate total cost
+            const totalCost = saleItemsWithCost.reduce((sum, item) => {
+              const cost = parseFloat(item.cost_price) || 0;
+              const quantity = parseInt(item.quantity) || 0;
+              return sum + (cost * quantity);
+            }, 0);
+            
+            profit = revenue - totalCost;
+          }
+          
+          // Add month data
+          monthsData.push({
+            month: monthName,
+            revenue: Math.round(revenue),
+            profit: Math.round(profit)
           });
+        } catch (error) {
+          console.error(`Error processing month ${i}:`, error);
+          // Continue to next month
+          continue;
         }
-        
-        // Get the updated sale
-        const sale = await trx(this.tableName).where({ id }).first();
-        
-        // Get the sale items
-        const items = await trx('sale_items').where({ sale_id: id }).select('*');
-        
-        // Return the complete sale with items
-        return {
-          ...sale,
-          items
-        };
-      } catch (error) {
-        console.error(`Error in processReturn for sale ${id}:`, error);
-        throw error;
       }
-    });
+      
+      return monthsData;
+    } catch (error) {
+      console.error('Error in getProfitAndRevenueTrend:', error);
+      // Return empty array instead of throwing
+      return [];
+    }
+  }
+  
+  // Get a setting by key
+  async getByKey(key) {
+    // Try case-sensitive lookup first
+    const db = await this.getDb();
+    let setting = await db(this.tableName).where({ key }).first();
+    
+    // If not found, try case-insensitive lookup
+    if (!setting && typeof key === 'string') {
+      setting = await db(this.tableName)
+        .whereRaw('LOWER(key) = LOWER(?)', [key])
+        .first();
+    }
+    
+    return setting ? JSON.parse(setting.value) : null;
+  }
+  
+  // Set a setting
+  async set(key, value) {
+    const db = await this.getDb();
+    const storedValue = JSON.stringify(value);
+    
+    // Check if the setting exists
+    const exists = await this.getByKey(key);
+    
+    if (!exists) {
+      // Insert new setting
+      await db(this.tableName).insert({
+        key,
+        value: storedValue,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    } else {
+      // Update existing setting
+      await db(this.tableName)
+        .where({ key })
+        .update({
+          value: storedValue,
+          updated_at: new Date().toISOString()
+        });
+    }
+    
+    return value;
   }
 }
 
@@ -1092,11 +1046,12 @@ class Setting extends BaseModel {
   // Get setting by key
   async getByKey(key) {
     // Try case-sensitive lookup first
-    let setting = await this.db(this.tableName).where({ key }).first();
+    const db = await this.getDb();
+    let setting = await db(this.tableName).where({ key }).first();
     
     // If not found, try case-insensitive lookup
     if (!setting && typeof key === 'string') {
-      setting = await this.db(this.tableName)
+      setting = await db(this.tableName)
         .whereRaw('LOWER(key) = LOWER(?)', [key])
         .first();
     }
@@ -1136,13 +1091,14 @@ class Setting extends BaseModel {
       storedValue = value.toString();
     }
     
-    await this.db(this.tableName).insert({
+    const db = await this.getDb();
+    await db(this.tableName).insert({
       key,
       value: storedValue,
       type,
       description,
-      created_at: new Date(),
-      updated_at: new Date()
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     });
     
     return this.getByKey(key);
@@ -1165,11 +1121,12 @@ class Setting extends BaseModel {
       storedValue = value.toString();
     }
     
-    await this.db(this.tableName)
+    const db = await this.getDb();
+    await db(this.tableName)
       .where({ key })
       .update({
         value: storedValue,
-        updated_at: new Date()
+        updated_at: new Date().toISOString()
       });
       
     return this.getByKey(key);

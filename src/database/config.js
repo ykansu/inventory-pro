@@ -1,16 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-let app;
-
-// Try to require electron, but handle the case when running from CLI
-try {
-  const electron = require('electron');
-  app = electron.app || (electron.remote && electron.remote.app);
-} catch (error) {
-  console.log('Running outside of Electron context');
-  app = null;
-}
-
+const os = require('os');
 const Store = require('electron-store');
 
 // Store configuration settings
@@ -18,38 +8,22 @@ const store = new Store({
   name: 'database-config',
 });
 
-// Get user data path (platform-specific)
-let userDataPath;
-if (app && app.getPath) {
-  userDataPath = app.getPath('userData');
-} else {
-  // When running outside of Electron (e.g., migrations from CLI)
-  userDataPath = path.join(__dirname, '..', '..', 'data');
-  
-  // Ensure the data directory exists
-  if (!fs.existsSync(userDataPath)) {
-    fs.mkdirSync(userDataPath, { recursive: true });
-  }
+// Fixed database path as requested
+const DB_PATH = path.join('D:', 'repos', 'inventory-pro', 'src', 'database', 'inventory-pro.db');
+const BACKUP_PATH = path.join('D:', 'repos', 'inventory-pro', 'src', 'database', 'backups');
+
+// Ensure backup directory exists
+if (!fs.existsSync(BACKUP_PATH)) {
+  fs.mkdirSync(BACKUP_PATH, { recursive: true });
 }
 
 // Get desktop path for default JSON exports
-let desktopPath;
-if (app && app.getPath) {
-  desktopPath = app.getPath('desktop');
-} else {
-  desktopPath = path.join(require('os').homedir(), 'Desktop');
-}
+const desktopPath = path.join(os.homedir(), 'Desktop');
 
 // Database configuration
 const config = {
-  // Database file path
-  dbPath: store.get('dbPath', path.join(userDataPath, 'inventory-pro.db')),
-  
-  // Set custom database path
-  setDbPath(newPath) {
-    store.set('dbPath', newPath);
-    this.dbPath = newPath;
-  },
+  // Database file path (fixed)
+  dbPath: DB_PATH,
   
   // Get current database path
   getDbPath() {
@@ -62,7 +36,7 @@ const config = {
     frequency: store.get('backup.frequency', 'daily'), // daily, weekly, monthly
     time: store.get('backup.time', '23:00'), // Time for scheduled backups
     maxBackups: store.get('backup.maxBackups', 7), // Number of backups to keep
-    path: store.get('backup.path', path.join(userDataPath, 'backups')),
+    path: BACKUP_PATH,
     jsonPath: store.get('backup.jsonPath', desktopPath), // Default to desktop for JSON exports
     
     // JSON backup schedule settings

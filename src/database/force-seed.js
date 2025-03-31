@@ -12,7 +12,7 @@ const knex = require('knex');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config');
-const db = require('./connection');
+const dbConnection = require('./connection');
 
 /**
  * Remove any problematic migration records
@@ -52,9 +52,10 @@ async function forceSeedDatabase(options = { skipSeeding: false }) {
   try {
     console.log('Starting force seed operation...');
     
-    // First check if we can connect to the database
+    // Get database connection
+    let db;
     try {
-      await db.raw('SELECT 1');
+      db = await dbConnection.getConnection();
       console.log('Database connection verified');
     } catch (connError) {
       console.error('Database connection failed:', connError);

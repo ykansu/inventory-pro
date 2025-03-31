@@ -65,37 +65,36 @@ app.on('activate', () => {
 });
 
 // Database functionality
-const { initDatabase } = require('./database/init');
+const dbConnection = require('./database/connection');
 const { createBackup, restoreFromBackup, scheduleBackups } = require('./database/backup');
 const { exportToJson, importFromJson, scheduleJsonBackups } = require('./database/json-backup');
-const { fixMigrations } = require('./database/fix-migration');
 const { Product, Category, Supplier, Sale, Setting } = require('./models');
-const db = require('./database/connection');
 
 // Initialize database when app is ready
 app.whenReady().then(async () => {
   try {
-    // Fix any migration issues first
-    console.log('Running migration fix utility...');
-    try {
-      await fixMigrations();
-    } catch (fixError) {
-      console.error('Error running migration fix:', fixError);
-      // Continue even if fix fails
+    // Initialize database using the new consistent approach
+    console.log('Initializing database...');
+    const result = await dbConnection.initDatabase({ seedIfNew: true });
+    
+    if (result.success) {
+      console.log('Database initialized successfully');
+      
+      // Schedule automatic JSON backups if enabled
+      scheduleJsonBackups();
+    } else {
+      console.error('Database initialization failed:', result.error);
+      dialog.showErrorBox(
+        'Database Error',
+        'Failed to initialize the database. The application may not function correctly.'
+      );
     }
-    
-    // Initialize database
-    await initDatabase({ skipSeeding: true });
-    
-    // Schedule automatic backups
-    scheduleBackups();
-    
-    // Schedule automatic JSON backups if enabled
-    scheduleJsonBackups();
-    
-    console.log('Database initialized successfully');
   } catch (error) {
     console.error('Failed to initialize database:', error);
+    dialog.showErrorBox(
+      'Database Error',
+      'Failed to initialize the database. The application may not function correctly.'
+    );
   }
 });
 
@@ -424,15 +423,7 @@ ipcMain.handle('database:resetDatabase', async () => {
     // Close and reestablish the database connection to ensure clean state
     try {
       console.log('Reinitializing database connection after reset...');
-      await db.closeConnection();
-      
-      // Wait briefly to ensure connection is fully closed
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Recreate the connection
-      await db.reinitializeConnection();
-      
-      // Verify connection is working
+      const db = await dbConnection.getConnection();
       await db.raw('SELECT 1');
       console.log('Database connection successfully reinitialized and verified');
     } catch (connectionError) {
@@ -442,7 +433,8 @@ ipcMain.handle('database:resetDatabase', async () => {
         console.log('Attempting to reload database module...');
         delete require.cache[require.resolve('./database/connection')];
         const freshDb = require('./database/connection');
-        await freshDb.raw('SELECT 1');
+        const db = await freshDb.getConnection();
+        await db.raw('SELECT 1');
         console.log('Database module reloaded successfully');
       } catch (reloadError) {
         console.error('Failed to reload database module:', reloadError);
@@ -595,15 +587,7 @@ ipcMain.handle('database:importFromJson', async (_, jsonFilePath) => {
     // Close and reestablish the database connection to ensure clean state
     try {
       console.log('Reinitializing database connection after import...');
-      await db.closeConnection();
-      
-      // Wait briefly to ensure connection is fully closed
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Recreate the connection
-      await db.reinitializeConnection();
-      
-      // Verify connection is working
+      const db = await dbConnection.getConnection();
       await db.raw('SELECT 1');
       console.log('Database connection successfully reinitialized and verified after import');
     } catch (connectionError) {
@@ -613,7 +597,8 @@ ipcMain.handle('database:importFromJson', async (_, jsonFilePath) => {
         console.log('Attempting to reload database module after import...');
         delete require.cache[require.resolve('./database/connection')];
         const freshDb = require('./database/connection');
-        await freshDb.raw('SELECT 1');
+        const db = await freshDb.getConnection();
+        await db.raw('SELECT 1');
         console.log('Database module reloaded successfully after import');
       } catch (reloadError) {
         console.error('Failed to reload database module after import:', reloadError);
@@ -634,7 +619,7 @@ app.on('before-quit', async (event) => {
   event.preventDefault();
   
   // Close database connections
-  await db.closeConnection();
+  await dbConnection.closeConnection();
   
   // Now actually quit
   app.exit(0);
@@ -790,37 +775,38 @@ ipcMain.handle('dashboard:getProfitAndRevenueTrend', async (_, months = 6) => {
 ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
   try {
     const { Sale } = require('./models');
-    const currentMonth = new Date();
-    const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
     
-    // Get all sales for the current month
-    const sales = await Sale.db('sales')
-      .where('created_at', '>=', startDate.toISOString())
-      .where('created_at', '<=', endDate.toISOString())
+    // Get database connection from Sale model
+    const db = await Sale.getDb();
+    
+    // Get all sales for current month
+    const sales = await db('sales')
+      .where('created_at', '>=', startDate)
+      .where('created_at', '<=', endDate)
       .where('is_returned', false)
       .select('id', 'total_amount');
     
     if (sales.length === 0) {
-      return {
-        monthlyRevenue: 0,
-        monthlyProfit: 0,
-        profitMargin: 0
-      };
+      return { success: true, data: { monthlyRevenue: 0, monthlyProfit: 0, profitMargin: 0 } };
     }
     
-    // Calculate revenue
+    // Calculate monthly revenue
     const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
     
     // Get sale IDs
     const saleIds = sales.map(sale => sale.id);
     
     // Get all sale items with product details to calculate cost
-    const saleItemsWithCost = await Sale.db('sale_items')
+    const saleItemsWithCost = await db('sale_items')
       .join('products', 'sale_items.product_id', 'products.id')
       .whereIn('sale_items.sale_id', saleIds)
       .select(
         'sale_items.quantity',
+        'sale_items.unit_price',
+        'sale_items.total_price',
         'products.cost_price'
       );
     
@@ -835,9 +821,12 @@ ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
     const profitMargin = monthlyRevenue > 0 ? Math.round((monthlyProfit / monthlyRevenue) * 100) : 0;
     
     return {
-      monthlyRevenue: Math.round(monthlyRevenue),
-      monthlyProfit: Math.round(monthlyProfit),
-      profitMargin
+      success: true,
+      data: {
+        monthlyRevenue: Math.round(monthlyRevenue),
+        monthlyProfit: Math.round(monthlyProfit),
+        profitMargin
+      }
     };
   } catch (error) {
     console.error('Error getting monthly profit metrics:', error);

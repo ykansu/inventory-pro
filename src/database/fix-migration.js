@@ -8,13 +8,22 @@
 const knex = require('knex');
 const config = require('./config');
 const knexConfig = require('./knexfile');
+const dbConnection = require('./connection');
 
 async function fixMigrations() {
   console.log('Starting migration fix utility...');
   console.log('Database path:', config.dbPath);
   
   // Create a new database connection
-  const db = knex(knexConfig);
+  let db;
+  try {
+    db = await dbConnection.getConnection();
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    // Fallback to creating a new connection directly
+    db = knex(knexConfig);
+    console.log('Using fallback direct database connection');
+  }
   
   try {
     // Check if we have the knex_migrations table
@@ -22,7 +31,15 @@ async function fixMigrations() {
     
     if (!hasMigrationsTable) {
       console.log('No knex_migrations table found. No fixes needed.');
-      await db.destroy();
+      if (db) {
+        try {
+          if (typeof db.destroy === 'function') {
+            await db.destroy();
+          }
+        } catch (e) {
+          // Ignore errors when closing
+        }
+      }
       return;
     }
     
@@ -49,11 +66,27 @@ async function fixMigrations() {
     }
     
     // Close the database connection
-    await db.destroy();
+    if (db) {
+      try {
+        if (typeof db.destroy === 'function') {
+          await db.destroy();
+        }
+      } catch (e) {
+        // Ignore errors when closing
+      }
+    }
     console.log('Migration fix completed.');
   } catch (error) {
     console.error('Error fixing migrations:', error);
-    await db.destroy();
+    if (db) {
+      try {
+        if (typeof db.destroy === 'function') {
+          await db.destroy();
+        }
+      } catch (e) {
+        // Ignore errors when closing
+      }
+    }
   }
 }
 
