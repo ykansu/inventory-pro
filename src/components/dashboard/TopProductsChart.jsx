@@ -77,72 +77,12 @@ const TopProductsChart = () => {
           
           setTopProducts(sortedData);
         } else {
-          // Fallback sample data if no real data is available
-          setTopProducts([
-            { 
-              id: 1, 
-              name: 'Smartphone Model X', 
-              quantity: 120, 
-              revenue: 180000, 
-              profit: 54000,
-              profitMargin: 30
-            },
-            { 
-              id: 2, 
-              name: 'Laptop Pro 15"', 
-              quantity: 85, 
-              revenue: 297500, 
-              profit: 74375,
-              profitMargin: 25
-            },
-            { 
-              id: 3, 
-              name: 'Wireless Earbuds', 
-              quantity: 350, 
-              revenue: 87500, 
-              profit: 35000,
-              profitMargin: 40
-            },
-            { 
-              id: 4, 
-              name: 'Smart Watch Series 5', 
-              quantity: 95, 
-              revenue: 57000, 
-              profit: 19950,
-              profitMargin: 35
-            },
-            { 
-              id: 5, 
-              name: 'Bluetooth Speaker', 
-              quantity: 110, 
-              revenue: 44000, 
-              profit: 13200,
-              profitMargin: 30
-            }
-          ].slice(0, showCount));
+          setTopProducts([]);
         }
       } catch (error) {
         console.error('Error fetching top products:', error);
         setError(error);
-        // Sample data as fallback
-        setTopProducts([
-          { 
-            id: 1, 
-            name: 'Smartphone Model X', 
-            quantity: 120, 
-            revenue: 180000, 
-            profit: 54000,
-            profitMargin: 30
-          },
-          { 
-            id: 2, 
-            name: 'Laptop Pro 15"', 
-            quantity: 85, 
-            revenue: 297500, 
-            profit: 74375,
-            profitMargin: 25
-          }
-        ].slice(0, showCount));
+        setTopProducts([]);
       } finally {
         setLoading(false);
       }

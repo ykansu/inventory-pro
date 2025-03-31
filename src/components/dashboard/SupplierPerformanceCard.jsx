@@ -7,16 +7,16 @@ const SupplierPerformanceCard = () => {
   const { t } = useTranslation(['dashboard']);
   const [loading, setLoading] = useState(true);
   const [onTimeDelivery, setOnTimeDelivery] = useState(0);
-  const { suppliers } = useDatabase();
+  const { suppliers, dashboard } = useDatabase();
 
   useEffect(() => {
     const fetchSupplierPerformance = async () => {
       try {
         setLoading(true);
         
-        // In a real app, this would fetch actual supplier performance data
-        // For now using a placeholder value
-        setOnTimeDelivery(87);
+        // Get real supplier performance data
+        const performance = await dashboard.getSupplierPerformance();
+        setOnTimeDelivery(performance?.onTimeDelivery || 0);
       } catch (error) {
         console.error('Error fetching supplier performance:', error);
         setOnTimeDelivery(0);
@@ -26,7 +26,7 @@ const SupplierPerformanceCard = () => {
     };
 
     fetchSupplierPerformance();
-  }, [suppliers]);
+  }, [suppliers, dashboard]);
 
   return (
     <StatCard

@@ -58,29 +58,12 @@ const ProfitTrendChart = () => {
         if (data && data.length > 0) {
           setTrendData(data);
         } else {
-          // Fallback sample data
-          setTrendData([
-            { month: 'Jan', revenue: 28000, profit: 10640 },
-            { month: 'Feb', revenue: 32400, profit: 12636 },
-            { month: 'Mar', revenue: 29800, profit: 11324 },
-            { month: 'Apr', revenue: 37500, profit: 14250 },
-            { month: 'May', revenue: 34200, profit: 13338 },
-            { month: 'Jun', revenue: 38900, profit: 15600 }
-          ]);
+          setTrendData([]);
         }
       } catch (error) {
         console.error('Error fetching trend data:', error);
         setError(error);
-        
-        // Set fallback data
-        setTrendData([
-          { month: 'Jan', revenue: 28000, profit: 10640 },
-          { month: 'Feb', revenue: 32400, profit: 12636 },
-          { month: 'Mar', revenue: 29800, profit: 11324 },
-          { month: 'Apr', revenue: 37500, profit: 14250 },
-          { month: 'May', revenue: 34200, profit: 13338 },
-          { month: 'Jun', revenue: 38900, profit: 15600 }
-        ]);
+        setTrendData([]);
       } finally {
         setLoading(false);
       }

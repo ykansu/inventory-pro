@@ -401,6 +401,36 @@ export const DashboardService = {
       console.error('Error fetching monthly profit metrics:', error);
       throw error;
     }
+  },
+  
+  // Get inventory turnover rate
+  getInventoryTurnoverRate: async () => {
+    try {
+      return await window.database.getInventoryTurnoverRate();
+    } catch (error) {
+      console.error('Error fetching inventory turnover rate:', error);
+      throw error;
+    }
+  },
+  
+  // Get stock variance
+  getStockVariance: async () => {
+    try {
+      return await window.database.getStockVariance();
+    } catch (error) {
+      console.error('Error fetching stock variance:', error);
+      throw error;
+    }
+  },
+  
+  // Get supplier performance
+  getSupplierPerformance: async () => {
+    try {
+      return await window.database.getSupplierPerformance();
+    } catch (error) {
+      console.error('Error fetching supplier performance:', error);
+      throw error;
+    }
   }
 };
 

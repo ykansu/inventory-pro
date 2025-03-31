@@ -68,64 +68,12 @@ const CategoryProfitsChart = () => {
           }));
           setCategoryProfits(processedData);
         } else {
-          // Sample data for fallback
-          setCategoryProfits([
-            {
-              id: 1,
-              name: 'Electronics',
-              revenue: 12500,
-              cost: 8750,
-              profit: 3750,
-              margin: 30
-            },
-            {
-              id: 2,
-              name: 'Clothing',
-              revenue: 8200,
-              cost: 4100,
-              profit: 4100,
-              margin: 50
-            },
-            {
-              id: 3,
-              name: 'Home & Kitchen',
-              revenue: 6800,
-              cost: 4760,
-              profit: 2040,
-              margin: 30
-            },
-            {
-              id: 4,
-              name: 'Books',
-              revenue: 3400,
-              cost: 1700,
-              profit: 1700,
-              margin: 50
-            }
-          ]);
+          setCategoryProfits([]);
         }
       } catch (error) {
         console.error('Error fetching category profits:', error);
         setError(error);
-        // Sample data as fallback
-        setCategoryProfits([
-          {
-            id: 1,
-            name: 'Electronics',
-            revenue: 12500,
-            cost: 8750,
-            profit: 3750,
-            margin: 30
-          },
-          {
-            id: 2,
-            name: 'Clothing',
-            revenue: 8200,
-            cost: 4100,
-            profit: 4100,
-            margin: 50
-          }
-        ]);
+        setCategoryProfits([]);
       } finally {
         setLoading(false);
       }
@@ -308,8 +256,8 @@ const CategoryProfitsChart = () => {
               <div className="details-cell">{t('dashboard:labels.profit')}</div>
               <div className="details-cell">{t('dashboard:labels.margin')}</div>
             </div>
-            {categoryProfits.map(category => (
-              <div key={category.id} className="category-details-row">
+            {categoryProfits.map((category, index) => (
+              <div key={`category-${index}-${category.name}`} className="category-details-row">
                 <div className="details-cell">{category.name}</div>
                 <div className="details-cell">{formatCurrency(category.revenue, currency)}</div>
                 <div className="details-cell">{formatCurrency(category.cost, currency)}</div>

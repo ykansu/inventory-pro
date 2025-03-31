@@ -38,12 +38,14 @@ const InventoryMetricsCards = () => {
         // Get inventory value from the dashboard service
         const totalValue = await dashboard.getInventoryValue();
         
-        // In a real app, these would be calculated from actual data
-        // For now using placeholder values for turnover and variance
+        // Get turnover rate and stock variance from the database
+        const turnoverRate = await dashboard.getInventoryTurnoverRate();
+        const stockVariance = await dashboard.getStockVariance();
+        
         setInventoryMetrics({
-          turnoverRate: 4.2,
-          totalValue,
-          stockVariance: 2.3
+          turnoverRate: turnoverRate || 0,
+          totalValue: totalValue || 0,
+          stockVariance: stockVariance || 0
         });
       } catch (error) {
         console.error('Error fetching inventory metrics:', error);

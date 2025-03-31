@@ -86,24 +86,14 @@ const RevenueByPaymentChart = () => {
           setRevenueByPayment(filteredData);
           setTotalRevenue(filteredData.reduce((sum, method) => sum + method.revenue, 0));
         } else {
-          // Fallback sample data if no real data is available
-          const sampleData = [
-            { method: 'cash', revenue: 8500 },
-            { method: 'card', revenue: 15000 }
-          ];
-          setRevenueByPayment(sampleData);
-          setTotalRevenue(sampleData.reduce((sum, method) => sum + method.revenue, 0));
+          setRevenueByPayment([]);
+          setTotalRevenue(0);
         }
       } catch (error) {
         console.error('Error fetching revenue by payment:', error);
         setError(error);
-        // Sample data as fallback
-        const sampleData = [
-          { method: 'cash', revenue: 8500 },
-          { method: 'card', revenue: 15000 }
-        ];
-        setRevenueByPayment(sampleData);
-        setTotalRevenue(sampleData.reduce((sum, method) => sum + method.revenue, 0));
+        setRevenueByPayment([]);
+        setTotalRevenue(0);
       } finally {
         setLoading(false);
       }

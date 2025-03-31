@@ -66,29 +66,16 @@ const RevenueBySupplierChart = () => {
           setTotalRevenue(sortedData.reduce((sum, supplier) => sum + supplier.revenue, 0));
           setTotalProfit(sortedData.reduce((sum, supplier) => sum + supplier.profit, 0));
         } else {
-          // Fallback sample data if no real data is available
-          const sampleData = [
-            { id: 1, name: 'Supplier X', revenue: 15800, profit: 6320 },
-            { id: 2, name: 'Supplier Y', revenue: 9750, profit: 3900 },
-            { id: 3, name: 'Supplier Z', revenue: 7200, profit: 2880 },
-            { id: 4, name: 'Supplier A', revenue: 4750, profit: 1900 }
-          ].sort((a, b) => b.revenue - a.revenue);
-          
-          setSupplierData(sampleData);
-          setTotalRevenue(sampleData.reduce((sum, supplier) => sum + supplier.revenue, 0));
-          setTotalProfit(sampleData.reduce((sum, supplier) => sum + supplier.profit, 0));
+          setSupplierData([]);
+          setTotalRevenue(0);
+          setTotalProfit(0);
         }
       } catch (error) {
         console.error('Error fetching supplier data:', error);
         setError(error);
-        // Sample data as fallback
-        const sampleData = [
-          { id: 1, name: 'Supplier X', revenue: 15800, profit: 6320 },
-          { id: 2, name: 'Supplier Y', revenue: 9750, profit: 3900 }
-        ];
-        setSupplierData(sampleData);
-        setTotalRevenue(sampleData.reduce((sum, supplier) => sum + supplier.revenue, 0));
-        setTotalProfit(sampleData.reduce((sum, supplier) => sum + supplier.profit, 0));
+        setSupplierData([]);
+        setTotalRevenue(0);
+        setTotalProfit(0);
       } finally {
         setLoading(false);
       }
@@ -190,11 +177,11 @@ const RevenueBySupplierChart = () => {
               <div>{t('dashboard:labels.profit')}</div>
               <div>{t('dashboard:labels.marginPct')}</div>
             </div>
-            {supplierData.map(supplier => {
+            {supplierData.map((supplier, index) => {
               const marginPct = ((supplier.profit / supplier.revenue) * 100).toFixed(1);
               
               return (
-                <div key={supplier.id} className="supplier-summary-row">
+                <div key={`supplier-${index}-${supplier.name}`} className="supplier-summary-row">
                   <div className="supplier-name">{supplier.name}</div>
                   <div className="supplier-revenue">{formatCurrency(supplier.revenue, currency)}</div>
                   <div className="supplier-profit">{formatCurrency(supplier.profit, currency)}</div>

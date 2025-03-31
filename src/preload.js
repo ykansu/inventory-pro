@@ -54,6 +54,9 @@ contextBridge.exposeInMainWorld('database', {
   getInventoryTrend: (months) => ipcRenderer.invoke('dashboard:getInventoryTrend', months),
   getProfitAndRevenueTrend: (months) => ipcRenderer.invoke('dashboard:getProfitAndRevenueTrend', months),
   getMonthlyProfitMetrics: () => ipcRenderer.invoke('dashboard:getMonthlyProfitMetrics'),
+  getInventoryTurnoverRate: () => ipcRenderer.invoke('dashboard:getInventoryTurnoverRate'),
+  getStockVariance: () => ipcRenderer.invoke('dashboard:getStockVariance'),
+  getSupplierPerformance: () => ipcRenderer.invoke('dashboard:getSupplierPerformance'),
   
   // Settings
   getAllSettings: () => ipcRenderer.invoke('settings:getAll'),

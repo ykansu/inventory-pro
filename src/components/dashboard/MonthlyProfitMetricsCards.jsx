@@ -35,7 +35,7 @@ const MonthlyProfitMetricsCards = () => {
         setLoading(true);
         setError(null);
         const metrics = await dashboard.getMonthlyProfitMetrics();
-        setProfitMetrics(metrics);
+        setProfitMetrics(metrics || { monthlyRevenue: 0, monthlyProfit: 0, profitMargin: 0 });
       } catch (error) {
         console.error('Error fetching profit metrics:', error);
         setError(error);
@@ -49,7 +49,27 @@ const MonthlyProfitMetricsCards = () => {
   }, [dashboard]);
 
   const handleRetry = () => {
+    const fetchProfitMetrics = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const metrics = await dashboard.getMonthlyProfitMetrics();
+        setProfitMetrics(metrics || { monthlyRevenue: 0, monthlyProfit: 0, profitMargin: 0 });
+      } catch (error) {
+        console.error('Error fetching profit metrics:', error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchProfitMetrics();
+  };
+
+  // Format the profit margin value
+  const formatProfitMargin = (value) => {
+    if (value === undefined || value === null) return '0%';
+    return `${value}%`;
   };
 
   return (
@@ -74,7 +94,7 @@ const MonthlyProfitMetricsCards = () => {
       
       <StatCard
         title={t('dashboard:stats.profitMargin')}
-        value={`${profitMetrics.profitMargin}%`}
+        value={formatProfitMargin(profitMetrics.profitMargin)}
         isLoading={loading}
         error={error}
         onRetry={handleRetry}
