@@ -100,6 +100,7 @@
     "bank_transfer": "Bank Transfer",
     "check": "Check",
     "mobile_payment": "Mobile Payment",
-    "other": "Other"
+    "other": "Other",
+    "split": "Split (Cash + Card)"
   }
 }

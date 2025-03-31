@@ -35,6 +35,7 @@ const RevenueByPaymentChart = () => {
     'bank_transfer': 'rgba(156, 39, 176, 0.6)',
     'check': 'rgba(255, 152, 0, 0.6)',
     'mobile_payment': 'rgba(233, 30, 99, 0.6)',
+    'split': 'rgba(124, 58, 237, 0.6)',
     'other': 'rgba(158, 158, 158, 0.6)'
   };
 
@@ -45,6 +46,7 @@ const RevenueByPaymentChart = () => {
     'bank_transfer': 'rgba(156, 39, 176, 1)',
     'check': 'rgba(255, 152, 0, 1)',
     'mobile_payment': 'rgba(233, 30, 99, 1)',
+    'split': 'rgba(124, 58, 237, 1)',
     'other': 'rgba(158, 158, 158, 1)'
   };
 

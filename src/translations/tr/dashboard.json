@@ -100,6 +100,7 @@
     "bank_transfer": "Banka Havalesi",
     "check": "Çek",
     "mobile_payment": "Mobil Ödeme",
-    "other": "Diğer"
+    "other": "Diğer",
+    "split": "Karma (Nakit + Kart)"
   }
 }
