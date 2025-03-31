@@ -33,12 +33,20 @@ const POS = () => {
   const [subtotal, setSubtotal] = useState(0);
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
+  const [discount, setDiscount] = useState(0); // Discount amount
+  const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed'
+  const [discountValue, setDiscountValue] = useState(''); // User input value
   
   // State for payment modal
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [amountReceived, setAmountReceived] = useState('');
   const [change, setChange] = useState(0);
+  
+  // State for split payment
+  const [cashAmount, setCashAmount] = useState('');
+  const [cardAmount, setCardAmount] = useState('');
+  const [splitChange, setSplitChange] = useState(0);
   
   // State for receipt modal
   const [showReceiptModal, setShowReceiptModal] = useState(false);
@@ -88,18 +96,26 @@ const POS = () => {
     loadData();
   }, []);
   
-  // Calculate totals whenever cart items change
+  // Calculate totals whenever cart items or discount change
   useEffect(() => {
     const newSubtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
     
+    // Apply discount to subtotal
+    const discountedSubtotal = Math.max(0, newSubtotal - discount);
+    
     // Only calculate tax if tax calculation is enabled
-    const newTax = settings.enableTax ? newSubtotal * (settings.taxRate / 100) : 0;
-    const newTotal = newSubtotal + newTax;
+    const newTax = settings.enableTax ? discountedSubtotal * (settings.taxRate / 100) : 0;
+    const newTotal = discountedSubtotal + newTax;
     
     setSubtotal(newSubtotal);
     setTax(newTax);
     setTotal(newTotal);
-  }, [cartItems, settings.taxRate, settings.enableTax]);
+  }, [cartItems, settings.taxRate, settings.enableTax, discount]);
+  
+  // Update discount when discount value or type changes
+  useEffect(() => {
+    applyDiscount();
+  }, [discountValue, discountType]);
   
   // Filter products based on search query and selected category
   useEffect(() => {
@@ -232,6 +248,55 @@ const POS = () => {
   // Clear cart
   const clearCart = () => {
     setCartItems([]);
+    clearDiscount(); // Clear discount when cart is cleared
+  };
+  
+  // Apply discount to the subtotal
+  const applyDiscount = () => {
+    if (!discountValue || isNaN(parseFloat(discountValue)) || parseFloat(discountValue) < 0) {
+      setDiscount(0);
+      setDiscountValue('');
+      return;
+    }
+
+    const value = parseFloat(discountValue);
+    
+    if (discountType === 'percentage') {
+      // Ensure percentage is between 0 and 100
+      if (value > 100) {
+        setDiscountValue('100');
+        setDiscount(subtotal);
+      } else {
+        setDiscount((subtotal * value) / 100);
+      }
+    } else { // fixed amount
+      // Ensure fixed discount doesn't exceed subtotal
+      if (value > subtotal) {
+        setDiscountValue(subtotal.toFixed(2));
+        setDiscount(subtotal);
+      } else {
+        setDiscount(value);
+      }
+    }
+  };
+
+  // Clear the discount
+  const clearDiscount = () => {
+    setDiscount(0);
+    setDiscountValue('');
+  };
+  
+  // Calculate split payment change
+  const calculateSplitPayment = (cash) => {
+    const cashValue = parseFloat(cash) || 0;
+    setCashAmount(cash);
+    
+    // Calculate how much should be paid by card after cash payment
+    const remainingAmount = Math.max(0, total - cashValue);
+    setCardAmount(remainingAmount.toFixed(2));
+    
+    // If cash exceeds total, calculate change
+    setSplitChange(Math.max(0, cashValue - total));
   };
   
   // Process payment
@@ -241,20 +306,39 @@ const POS = () => {
       return;
     }
     
+    // Validation for different payment methods
     if (paymentMethod === 'cash' && (parseFloat(amountReceived) || 0) < total) {
       alert(t('pos:payment.insufficientAmount'));
       return;
     }
     
+    if (paymentMethod === 'split') {
+      const totalPayment = (parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0);
+      if (totalPayment < total) {
+        alert(t('pos:payment.insufficientSplitAmount'));
+        return;
+      }
+    }
+    
     try {
       setIsProcessing(true);
       
-      // Call the completeSale function
-      await completeSale(
-        paymentMethod, 
-        parseFloat(amountReceived) || total, 
-        parseFloat(change) || 0
-      );
+      // Call the completeSale function with the appropriate parameters
+      if (paymentMethod === 'split') {
+        await completeSale(
+          'split',
+          (parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0),
+          parseFloat(splitChange) || 0,
+          parseFloat(cashAmount) || 0,
+          parseFloat(cardAmount) || 0
+        );
+      } else {
+        await completeSale(
+          paymentMethod,
+          parseFloat(amountReceived) || total,
+          parseFloat(change) || 0
+        );
+      }
       
       // Close payment modal
       setShowPaymentModal(false);
@@ -334,7 +418,7 @@ const POS = () => {
   };
   
   // Complete sale function
-  const completeSale = async (paymentMethod, amountReceived = 0, change = 0) => {
+  const completeSale = async (paymentMethod, amountReceived = 0, change = 0, cashPortion = 0, cardPortion = 0) => {
     if (cartItems.length === 0) {
       toast.error(t('pos:payment.emptyCart'));
       return;
@@ -348,11 +432,14 @@ const POS = () => {
       const saleData = {
         receipt_number: receiptNumber,
         subtotal: subtotal,
+        discount_amount: discount,  // Include discount amount
         tax_amount: tax,
         total_amount: total,
         payment_method: paymentMethod,
         amount_paid: parseFloat(amountReceived) || total,
         change_amount: parseFloat(change) || 0,
+        cash_amount: paymentMethod === 'split' ? cashPortion : (paymentMethod === 'cash' ? amountReceived : 0),
+        card_amount: paymentMethod === 'split' ? cardPortion : (paymentMethod === 'card' ? total : 0),
         created_at: new Date(),
         updated_at: new Date()
       };
@@ -411,8 +498,11 @@ const POS = () => {
         changeAmount: change,
         total: total,
         tax: tax,
+        discount: discount,
         subtotal: subtotal,
-        date: formatDate(new Date())
+        date: formatDate(new Date()),
+        cashAmount: cashPortion,
+        cardAmount: cardPortion
       });
       
       // Show success message
@@ -467,7 +557,11 @@ const POS = () => {
       // Reset payment state
       setAmountReceived('');
       setChange(0);
+      setCashAmount('');
+      setCardAmount('');
+      setSplitChange(0);
       setPaymentMethod('cash');
+      clearDiscount(); // Clear the discount when cart is cleared
       if (searchInputRef.current) {
         searchInputRef.current.focus();
       }
@@ -589,6 +683,44 @@ const POS = () => {
               <span>{t('pos:summary.subtotal')}:</span>
               <span>{formatPriceWithCurrency(subtotal)}</span>
             </div>
+            
+            {/* Discount section */}
+            <div className="discount-section">
+              <div className="discount-controls">
+                <select 
+                  value={discountType} 
+                  onChange={(e) => setDiscountType(e.target.value)}
+                  className="discount-type-select"
+                >
+                  <option value="percentage">{t('pos:discount.percentage')}</option>
+                  <option value="fixed">{t('pos:discount.fixed')}</option>
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  max={discountType === 'percentage' ? '100' : subtotal}
+                  step="0.01"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
+                  placeholder={discountType === 'percentage' ? '0%' : '0.00'}
+                  className="discount-input"
+                />
+                <button 
+                  onClick={clearDiscount}
+                  className="clear-discount"
+                  disabled={!discount}
+                >
+                  ×
+                </button>
+              </div>
+              {discount > 0 && (
+                <div className="summary-row discount-row">
+                  <span>{t('pos:summary.discount')}:</span>
+                  <span>-{formatPriceWithCurrency(discount)}</span>
+                </div>
+              )}
+            </div>
+            
             {settings.enableTax && (
               <div className="summary-row">
                 <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
@@ -621,6 +753,19 @@ const POS = () => {
               disabled={cartItems.length === 0}
             >
               {t('pos:payment.card')}
+            </button>
+            <button 
+              className="payment-button split"
+              onClick={() => {
+                setPaymentMethod('split');
+                setCashAmount('');
+                setCardAmount(total.toFixed(2));
+                setSplitChange(0);
+                setShowPaymentModal(true);
+              }}
+              disabled={cartItems.length === 0}
+            >
+              {t('pos:payment.split')}
             </button>
           </div>
         </div>
@@ -663,6 +808,47 @@ const POS = () => {
                     </div>
                   </div>
                 )}
+
+                {paymentMethod === 'split' && (
+                  <div className="split-payment-form">
+                    <div className="form-group">
+                      <label>{t('pos:payment.cashPortion')}:</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={cashAmount}
+                        onChange={(e) => calculateSplitPayment(e.target.value)}
+                        className="amount-input"
+                        autoFocus
+                      />
+                      {splitChange > 0 && (
+                        <div className="change-amount">
+                          <span>{t('pos:payment.change')}:</span>
+                          <span>{formatPriceWithCurrency(splitChange)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="form-group">
+                      <label>{t('pos:payment.cardPortion')}:</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={cardAmount}
+                        onChange={(e) => setCardAmount(e.target.value)}
+                        className="amount-input"
+                        disabled={splitChange > 0}
+                      />
+                    </div>
+                    <div className="payment-summary split-total">
+                      <div className="summary-row">
+                        <span>{t('pos:payment.totalPayment')}:</span>
+                        <span>{formatPriceWithCurrency((parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) - splitChange)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="modal-footer">
@@ -675,7 +861,11 @@ const POS = () => {
               <button 
                 className="button primary"
                 onClick={processPayment}
-                disabled={paymentMethod === 'cash' && (parseFloat(amountReceived) || 0) < total || isProcessing}
+                disabled={
+                  (paymentMethod === 'cash' && (parseFloat(amountReceived) || 0) < (total - discountValue)) || 
+                  (paymentMethod === 'split' && ((parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) < (total - discountValue))) ||
+                  isProcessing
+                }
               >
                 {isProcessing ? t('common:processing') : t('pos:payment.complete')}
               </button>
@@ -730,6 +920,12 @@ const POS = () => {
                     <span>{t('pos:summary.subtotal')}:</span>
                     <span>{formatPriceWithCurrency(currentReceipt.subtotal)}</span>
                   </div>
+                  {currentReceipt.discount > 0 && (
+                    <div className="summary-row discount">
+                      <span>{t('pos:summary.discount')}:</span>
+                      <span>-{formatPriceWithCurrency(currentReceipt.discount)}</span>
+                    </div>
+                  )}
                   {currentReceipt.tax > 0 && (
                     <div className="summary-row">
                       <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
@@ -744,7 +940,25 @@ const POS = () => {
                     <span>{t('pos:receipt.paymentMethod')}:</span>
                     <span>{t(`pos:paymentMethods.${currentReceipt.payment_method}`)}</span>
                   </div>
-                  {currentReceipt.payment_method === 'cash' && (
+                  
+                  {currentReceipt.payment_method === 'split' ? (
+                    <>
+                      <div className="summary-row">
+                        <span>{t('pos:receipt.cashAmount')}:</span>
+                        <span>{formatPriceWithCurrency(currentReceipt.cashAmount)}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span>{t('pos:receipt.cardAmount')}:</span>
+                        <span>{formatPriceWithCurrency(currentReceipt.cardAmount)}</span>
+                      </div>
+                      {currentReceipt.changeAmount > 0 && (
+                        <div className="summary-row">
+                          <span>{t('pos:receipt.change')}:</span>
+                          <span>{formatPriceWithCurrency(currentReceipt.changeAmount)}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : currentReceipt.payment_method === 'cash' && (
                     <>
                       <div className="summary-row">
                         <span>{t('pos:receipt.amountReceived')}:</span>

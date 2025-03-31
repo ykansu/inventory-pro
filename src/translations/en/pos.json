@@ -26,23 +26,39 @@
   "summary": {
     "subtotal": "Subtotal",
     "tax": "Tax ({{rate}})",
-    "total": "Total"
+    "total": "Total",
+    "discount": "Discount"
+  },
+  "discount": {
+    "title": "Apply Discount",
+    "percentage": "Percentage (%)",
+    "fixed": "Fixed Amount",
+    "apply": "Apply",
+    "clear": "Clear",
+    "invalid": "Invalid discount value"
   },
   "payment": {
     "cash": "Cash Payment",
     "card": "Card Payment",
+    "split": "Split Payment",
     "cashTitle": "Cash Payment",
     "cardTitle": "Card Payment",
+    "splitTitle": "Split Payment",
     "complete": "Complete Sale",
     "amountReceived": "Amount Received",
+    "cashPortion": "Cash Amount",
+    "cardPortion": "Card Amount",
+    "totalPayment": "Total Payment",
     "change": "Change",
     "emptyCart": "The cart is empty. Add items before proceeding.",
     "insufficientAmount": "The amount received is less than the total amount.",
+    "insufficientSplitAmount": "The combined payment amount is less than the total amount.",
     "error": "An error occurred while processing the payment."
   },
   "paymentMethods": {
     "cash": "Cash",
-    "card": "Card"
+    "card": "Card",
+    "split": "Split (Cash + Card)"
   },
   "receipt": {
     "title": "Receipt",
@@ -53,6 +69,8 @@
     "total": "Total",
     "paymentMethod": "Payment Method",
     "amountReceived": "Amount Received",
+    "cashAmount": "Cash Amount",
+    "cardAmount": "Card Amount",
     "change": "Change",
     "print": "Print Receipt",
     "close": "Close",

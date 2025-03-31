@@ -9,7 +9,8 @@
   },
   "paymentMethods": {
     "cash": "Nakit",
-    "card": "Kart"
+    "card": "Kart",
+    "split": "Karma (Nakit + Kart)"
   },
   "table": {
     "headers": {
@@ -36,7 +37,11 @@
     "subtotal": "Ara Toplam",
     "discount": "İndirim",
     "tax": "Vergi",
-    "paymentMethod": "Ödeme Yöntemi"
+    "paymentMethod": "Ödeme Yöntemi",
+    "amountReceived": "Alınan Tutar",
+    "cashAmount": "Nakit Tutarı",
+    "cardAmount": "Kart Tutarı",
+    "change": "Para Üstü"
   },
   "actions": {
     "printReceipt": "Fişi Yazdır",

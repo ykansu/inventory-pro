@@ -316,6 +316,7 @@ const SalesHistory = () => {
             <option value="">{t('sales:filters.allPaymentMethods')}</option>
             <option value="cash">{t('sales:paymentMethods.cash')}</option>
             <option value="card">{t('sales:paymentMethods.card')}</option>
+            <option value="split">{t('sales:paymentMethods.split')}</option>
           </select>
           <input 
             type="text" 
@@ -366,7 +367,18 @@ const SalesHistory = () => {
                       <td>{formatWithCurrency(sale.subtotal || 0)}</td>
                       <td>{sale.discount_amount > 0 ? `-${formatWithCurrency(sale.discount_amount || 0)}` : '-'}</td>
                       <td>{formatWithCurrency(sale.total_amount || 0)}</td>
-                      <td>{t(`sales:paymentMethods.${sale.payment_method}`)}</td>
+                      <td>
+                        {sale.payment_method === 'split' ? (
+                          <div className="payment-method-split">
+                            {t(`sales:paymentMethods.${sale.payment_method}`)}
+                            <div className="payment-details">
+                              {formatWithCurrency(sale.cash_amount || 0)} + {formatWithCurrency(sale.card_amount || 0)}
+                            </div>
+                          </div>
+                        ) : (
+                          t(`sales:paymentMethods.${sale.payment_method}`)
+                        )}
+                      </td>
                       <td>
                         <button 
                           className="action-button view"
@@ -441,6 +453,36 @@ const SalesHistory = () => {
                   <span>{t('sales:receipt.paymentMethod')}:</span>
                   <span>{t(`sales:paymentMethods.${selectedSale.payment_method}`)}</span>
                 </div>
+
+                {selectedSale.payment_method === 'split' ? (
+                  <>
+                    <div className="summary-row payment-detail">
+                      <span>{t('sales:receipt.cashAmount')}:</span>
+                      <span>{formatWithCurrency(selectedSale.cash_amount || 0)}</span>
+                    </div>
+                    <div className="summary-row payment-detail">
+                      <span>{t('sales:receipt.cardAmount')}:</span>
+                      <span>{formatWithCurrency(selectedSale.card_amount || 0)}</span>
+                    </div>
+                    {selectedSale.change_amount > 0 && (
+                      <div className="summary-row">
+                        <span>{t('sales:receipt.change')}:</span>
+                        <span>{formatWithCurrency(selectedSale.change_amount)}</span>
+                      </div>
+                    )}
+                  </>
+                ) : selectedSale.payment_method === 'cash' && (
+                  <>
+                    <div className="summary-row">
+                      <span>{t('sales:receipt.amountReceived')}:</span>
+                      <span>{formatWithCurrency(selectedSale.amount_paid)}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span>{t('sales:receipt.change')}:</span>
+                      <span>{formatWithCurrency(selectedSale.change_amount)}</span>
+                    </div>
+                  </>
+                )}
               </div>
               <div className="receipt-actions">
                 <button 

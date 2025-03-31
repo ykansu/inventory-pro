@@ -9,7 +9,8 @@
   },
   "paymentMethods": {
     "cash": "Cash",
-    "card": "Card"
+    "card": "Card",
+    "split": "Split (Cash + Card)"
   },
   "table": {
     "headers": {
@@ -36,7 +37,11 @@
     "subtotal": "Subtotal",
     "discount": "Discount",
     "tax": "Tax",
-    "paymentMethod": "Payment Method"
+    "paymentMethod": "Payment Method",
+    "amountReceived": "Amount Received",
+    "cashAmount": "Cash Amount",
+    "cardAmount": "Card Amount",
+    "change": "Change"
   },
   "actions": {
     "printReceipt": "Print Receipt",

@@ -27,23 +27,39 @@
   "summary": {
     "subtotal": "Ara Toplam",
     "tax": "Vergi ({{rate}})",
-    "total": "Toplam"
+    "total": "Toplam",
+    "discount": "İndirim"
+  },
+  "discount": {
+    "title": "İndirim Uygula",
+    "percentage": "Yüzde (%)",
+    "fixed": "Sabit Tutar",
+    "apply": "Uygula",
+    "clear": "Temizle",
+    "invalid": "Geçersiz indirim değeri"
   },
   "payment": {
     "cash": "Nakit Ödeme",
     "card": "Kart Ödeme",
+    "split": "Karma Ödeme",
     "cashTitle": "Nakit Ödeme",
     "cardTitle": "Kart Ödeme",
+    "splitTitle": "Karma Ödeme",
     "complete": "Satışı Tamamla",
     "amountReceived": "Alınan Tutar",
+    "cashPortion": "Nakit Tutarı",
+    "cardPortion": "Kart Tutarı",
+    "totalPayment": "Toplam Ödeme",
     "change": "Para Üstü",
     "emptyCart": "Sepet boş. İşleme devam etmeden önce ürün ekleyin.",
     "insufficientAmount": "Alınan tutar toplam tutardan az.",
+    "insufficientSplitAmount": "Toplam ödeme tutarı, toplam tutar yetersiz.",
     "error": "Ödeme işlemi sırasında bir hata oluştu."
   },
   "paymentMethods": {
     "cash": "Nakit",
-    "card": "Kart"
+    "card": "Kart",
+    "split": "Karma (Nakit + Kart)"
   },
   "receipt": {
     "title": "Fiş",
@@ -54,6 +70,8 @@
     "total": "Toplam",
     "paymentMethod": "Ödeme Yöntemi",
     "amountReceived": "Alınan Tutar",
+    "cashAmount": "Nakit Tutarı",
+    "cardAmount": "Kart Tutarı",
     "change": "Para Üstü",
     "print": "Fişi Yazdır",
     "close": "Kapat",
