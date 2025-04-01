@@ -33,34 +33,53 @@ JSON_BACKUP_FREQUENCY=daily
 JSON_BACKUP_TIME=23:00
 MAX_JSON_BACKUPS=5
 JSON_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
+
+# Excel Export Configuration
+EXCEL_BACKUP_ENABLED=false
+EXCEL_BACKUP_FREQUENCY=daily
+EXCEL_BACKUP_TIME=23:00
+MAX_EXCEL_BACKUPS=5
+EXCEL_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
 `;
 
   fs.writeFileSync(envExample, defaultConfig, 'utf8');
   console.log(`Created .env.example file at: ${envExample}`);
 }
 
-// Main function
-function setupEnv() {
-  console.log('Setting up environment configuration file...');
-
-  try {
-    // Create example env file if it doesn't exist
-    if (!fs.existsSync(envExample)) {
-      createExampleEnvFile();
-    }
-
-    // If .env doesn't exist, copy from example
-    if (!fs.existsSync(envTarget)) {
-      fs.copyFileSync(envExample, envTarget);
-      console.log('Created .env file from .env.example');
-    } else {
-      console.log('.env file already exists, no changes made');
-    }
-  } catch (error) {
-    console.error('Error setting up environment file:', error);
-    process.exit(1);
+// Create a default .env file if it doesn't exist
+function createEnvFile() {
+  if (fs.existsSync(envExample)) {
+    // Copy from example file if it exists
+    fs.copyFileSync(envExample, envTarget);
+    console.log(`Created .env file from example: ${envTarget}`);
+  } else {
+    // Create new example file
+    createExampleEnvFile();
+    // Use it to create .env file
+    fs.copyFileSync(envExample, envTarget);
+    console.log(`Created .env file: ${envTarget}`);
   }
 }
 
-// Run the setup
-setupEnv(); 
+// Main function
+async function main() {
+  console.log('Setting up environment configuration...');
+  
+  // Create .env.example if it doesn't exist
+  if (!fs.existsSync(envExample)) {
+    createExampleEnvFile();
+  }
+  
+  // Create .env if it doesn't exist
+  if (!fs.existsSync(envTarget)) {
+    createEnvFile();
+  }
+  
+  console.log('Environment configuration setup complete.');
+}
+
+// Run the main function
+main().catch(err => {
+  console.error('Failed to set up environment configuration:', err);
+  process.exit(1);
+}); 

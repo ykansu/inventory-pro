@@ -11,7 +11,6 @@ const InventoryMetricsCards = () => {
   const [inventoryMetrics, setInventoryMetrics] = useState({
     turnoverRate: 0,
     totalValue: 0,
-    stockVariance: 0
   });
   const { settings, dashboard } = useDatabase();
   const [currency, setCurrency] = useState('usd');
@@ -40,12 +39,10 @@ const InventoryMetricsCards = () => {
         
         // Get turnover rate and stock variance from the database
         const turnoverRate = await dashboard.getInventoryTurnoverRate();
-        const stockVariance = await dashboard.getStockVariance();
         
         setInventoryMetrics({
           turnoverRate: turnoverRate || 0,
           totalValue: totalValue || 0,
-          stockVariance: stockVariance || 0
         });
       } catch (error) {
         console.error('Error fetching inventory metrics:', error);
@@ -81,15 +78,6 @@ const InventoryMetricsCards = () => {
         error={error}
         onRetry={handleRetry}
         tooltipKey="inventoryValue"
-      />
-      
-      <StatCard
-        title={t('dashboard:stats.stockVariance')}
-        value={`${inventoryMetrics.stockVariance.toFixed(1)}%`}
-        isLoading={loading}
-        error={error}
-        onRetry={handleRetry}
-        tooltipKey="stockVariance"
       />
     </>
   );

@@ -85,6 +85,18 @@ contextBridge.exposeInMainWorld('database', {
   getJsonBackupSettings: () => ipcRenderer.invoke('database:getJsonBackupSettings'),
   updateJsonBackupSettings: (settings) => ipcRenderer.invoke('database:updateJsonBackupSettings', settings),
   
+  // Excel import/export
+  exportToExcel: (customPath) => ipcRenderer.invoke('database:exportToExcel', customPath),
+  importFromExcel: (excelFilePath) => ipcRenderer.invoke('database:importFromExcel', excelFilePath),
+  selectExcelFile: () => ipcRenderer.invoke('database:selectExcelFile'),
+  selectExcelExportDir: () => ipcRenderer.invoke('database:selectExcelExportDir'),
+  updateExcelExportDir: (dirPath) => ipcRenderer.invoke('database:updateExcelExportDir', dirPath),
+  getExcelExportDir: () => ipcRenderer.invoke('database:getExcelExportDir'),
+  
+  // Excel backup scheduler
+  getExcelBackupSettings: () => ipcRenderer.invoke('database:getExcelBackupSettings'),
+  updateExcelBackupSettings: (settings) => ipcRenderer.invoke('database:updateExcelBackupSettings', settings),
+  
   // Configuration
   getConfigPath: () => ipcRenderer.invoke('config:getPath'),
   reloadConfig: () => ipcRenderer.invoke('config:reload'),

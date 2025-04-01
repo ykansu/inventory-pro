@@ -243,153 +243,53 @@ class Product extends BaseModel {
     }
   }
   
-  // Calculate stock variance percentage
-  async getStockVariance() {
-    try {
-      const db = await this.getDb();
-      
-      // Check if stock_counts table exists
-      const hasStockCountsTable = await db.schema.hasTable('stock_counts');
-      
-      if (!hasStockCountsTable) {
-        console.log('stock_counts table does not exist, returning default variance value');
-        return 2.5; // Average variance for retail as default
-      }
-      
-      // Get the latest stock count records
-      const stockCounts = await db('stock_counts')
-        .select(
-          'stock_counts.product_id',
-          'stock_counts.counted_quantity',
-          'products.stock_quantity as system_quantity'
-        )
-        .join('products', 'stock_counts.product_id', 'products.id')
-        .orderBy('stock_counts.created_at', 'desc')
-        .limit(100); // Limit to recent counts
-      
-      if (stockCounts.length === 0) {
-        // No stock counts available, return default variance
-        return 2.5; // Average variance for retail
-      }
-      
-      // Calculate total variance percentage
-      let totalVariancePercentage = 0;
-      let countedProducts = 0;
-      
-      stockCounts.forEach(count => {
-        const systemQuantity = parseFloat(count.system_quantity) || 0;
-        const countedQuantity = parseFloat(count.counted_quantity) || 0;
-        
-        // Skip if system quantity is zero to avoid division by zero
-        if (systemQuantity === 0) {
-          return;
-        }
-        
-        // Calculate variance percentage for this product
-        const variance = countedQuantity - systemQuantity;
-        const variancePercentage = (variance / systemQuantity) * 100;
-        
-        // Add to total (using absolute value)
-        totalVariancePercentage += Math.abs(variancePercentage);
-        countedProducts++;
-      });
-      
-      // Calculate average variance percentage
-      const averageVariancePercentage = countedProducts > 0 
-        ? totalVariancePercentage / countedProducts 
-        : 2.5; // Default if no valid products
-      
-      return averageVariancePercentage;
-    } catch (error) {
-      console.error('Error in getStockVariance:', error);
-      return 2.5; // Default fallback
-    }
-  }
-  
   // Get inventory trend data for the past months
   async getInventoryTrend(months = 6) {
     try {
-      console.log("getInventoryTrend called with months:", months);
+      const db = await this.getDb();
+
+      // return trendData as an array of length months, containing the sum of stock_quantity for each month
+      // stock_quantity is a calculated as the sum of the product's stock_quantity times the product's cost_price
+      // the date should be the first day of the month
+      // the data should be in descending order
+      // Get the date from X months ago
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - months);
+      const startDateStr = startDate.toISOString();
       
-      // Get current date
+      // For SQLite, we need to use strftime instead of MONTH function
+      const trendData = await db('products')
+        .select(
+          db.raw("strftime('%Y-%m', created_at) as month"),
+          db.raw('SUM(stock_quantity * cost_price) as value')
+        )
+        .where('created_at', '>=', startDateStr)
+        .groupBy(db.raw("strftime('%Y-%m', created_at)"))
+        .orderBy(db.raw("strftime('%Y-%m', created_at)"), 'desc')
+        .limit(months);
+      
+      // Fill in missing months with zero values
+      const result = [];
       const now = new Date();
       
-      // Generate last N months
-      const monthsData = [];
-      for (let i = months - 1; i >= 0; i--) {
-        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        // Use our safe formatter instead of direct toLocaleString
-        const monthName = formatDateHelper(monthDate, { month: 'short' }, `Month-${i}`);
-        monthsData.push({
-          month: monthName,
-          date: monthDate
+      for (let i = 0; i < months; i++) {
+        const date = new Date();
+        date.setMonth(now.getMonth() - i);
+        const monthStr = date.toISOString().substring(0, 7);
+        
+        // Find if we have data for this month
+        const existingData = trendData.find(item => item.month === monthStr);
+        
+        result.push({
+          month: monthStr,
+          value: existingData ? parseFloat(existingData.value) || 0 : 0
         });
       }
       
-      // Get current inventory value
-      const currentInventoryValue = await this.getCurrentInventoryValue();
-      console.log("Current inventory value:", currentInventoryValue);
+      return result.reverse();
+
       
-      if (currentInventoryValue <= 0) {
-        console.log("No inventory value found, returning sample data");
-        // Return sample data with gradual increase
-        return monthsData.map((monthData, index) => ({
-          month: monthData.month,
-          value: 10000 + (index * 1000) 
-        }));
-      }
-      
-      // Create trend data with some variation based on current value
-      const trendData = [];
-      
-      // Randomization seed based on business name to keep consistent between refreshes
-      const seed = 12345;
-      const random = (min, max) => {
-        const x = Math.sin(seed + trendData.length) * 10000;
-        const r = x - Math.floor(x);
-        return min + r * (max - min);
-      };
-      
-      // Base value starts at 70% of current and gradually increases
-      let baseValue = currentInventoryValue * 0.7;
-      
-      for (const monthData of monthsData) {
-        // Skip invalid month data
-        if (!monthData || !monthData.date) {
-          continue;
-        }
         
-        // Add seasonal variation by month
-        let month;
-        try {
-          month = monthData.date.getMonth();
-        } catch (error) {
-          console.error("Error getting month:", error);
-          continue;
-        }
-        
-        let seasonalFactor = 1.0;
-        
-        // Higher inventory in winter, lower in summer
-        if (month <= 1 || month >= 10) {  // Winter (Nov-Feb)
-          seasonalFactor = 1.1;
-        } else if (month >= 5 && month <= 7) {  // Summer (Jun-Aug)
-          seasonalFactor = 0.9;
-        }
-        
-        // Calculate value with randomness
-        const value = baseValue * seasonalFactor * random(0.95, 1.05);
-        
-        trendData.push({
-          month: monthData.month,
-          value: Math.round(value)
-        });
-        
-        // Increase base value by 5% for each month (to show growth)
-        baseValue *= 1.05;
-      }
-      
-      return trendData;
     } catch (error) {
       console.error("Error in getInventoryTrend:", error);
       // Return empty array on error
@@ -433,77 +333,6 @@ class Supplier extends BaseModel {
       )
       .leftJoin('products', 'suppliers.id', 'products.supplier_id')
       .groupBy('suppliers.id');
-  }
-  
-  // Get supplier on-time delivery performance
-  async getSupplierPerformance() {
-    try {
-      const db = await this.getDb();
-      
-      // Calculate last 30 days for recent deliveries
-      const now = new Date();
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(now.getDate() - 30);
-      
-      // Check if purchase_orders table exists
-      const hasPurchaseOrdersTable = await db.schema.hasTable('purchase_orders');
-      
-      if (!hasPurchaseOrdersTable) {
-        // If table doesn't exist, return a reasonable default value
-        console.log('purchase_orders table does not exist, returning default performance value');
-        return {
-          onTimeDelivery: 87,  // 87% as a reasonable default
-          qualityScore: 92     // 92% as a reasonable default
-        };
-      }
-      
-      // Get all deliveries from the last 30 days
-      const recentDeliveries = await db('purchase_orders')
-        .where('delivery_date', '>=', thirtyDaysAgo.toISOString())
-        .where('status', 'delivered')
-        .select('*');
-      
-      if (recentDeliveries.length === 0) {
-        // No recent deliveries to calculate performance
-        return {
-          onTimeDelivery: 87,  // Default values if no data
-          qualityScore: 92
-        };
-      }
-      
-      // Calculate on-time delivery percentage
-      let onTimeCount = 0;
-      
-      recentDeliveries.forEach(delivery => {
-        // A delivery is considered on-time if actual_delivery_date <= expected_delivery_date
-        if (delivery.actual_delivery_date && delivery.expected_delivery_date) {
-          const actualDate = new Date(delivery.actual_delivery_date);
-          const expectedDate = new Date(delivery.expected_delivery_date);
-          
-          if (actualDate <= expectedDate) {
-            onTimeCount++;
-          }
-        }
-      });
-      
-      const onTimePercentage = Math.round((onTimeCount / recentDeliveries.length) * 100);
-      
-      // For a more complete metrics, we would also calculate quality score from quality_checks
-      // Since that's not implemented yet, we'll return a calculated value based on on-time delivery
-      // In a real system, this would come from actual quality inspection data
-      const qualityScore = Math.min(100, Math.max(70, onTimePercentage + 5));
-      
-      return {
-        onTimeDelivery: onTimePercentage,
-        qualityScore: qualityScore
-      };
-    } catch (error) {
-      console.error('Error calculating supplier performance:', error);
-      return {
-        onTimeDelivery: 87,  // Default values on error
-        qualityScore: 92
-      };
-    }
   }
 }
 

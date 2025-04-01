@@ -26,12 +26,15 @@ ChartJS.register(
 );
 
 const InventoryTrendChart = () => {
+  const defaultArray = [Array(6).fill(0)];
   const { t } = useTranslation(['dashboard']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [inventoryTrend, setInventoryTrend] = useState([]);
+  const [inventoryTrend, setInventoryTrend] = useState(defaultArray);
   const [currency, setCurrency] = useState('usd');
   const { settings, dashboard } = useDatabase();
+
+  
 
   useEffect(() => {
     // Get currency from settings
@@ -56,11 +59,12 @@ const InventoryTrendChart = () => {
       try {
         // Get real data from database
         const data = await dashboard.getInventoryTrend(6);
-        setInventoryTrend(data || []);
+        console.log(data);
+        setInventoryTrend(data || defaultArray);
       } catch (error) {
         console.error('Error fetching inventory trend:', error);
         setError(error);
-        setInventoryTrend([]);
+        setInventoryTrend(defaultArray);
       } finally {
         setLoading(false);
       }

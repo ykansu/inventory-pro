@@ -45,42 +45,12 @@ const Settings = () => {
     showTaxDetails: true
   });
 
-  // Add new state and handlers for JSON export path
-  const [jsonExportDir, setJsonExportDir] = useState('');
-
-  // Add state for JSON backup scheduler settings
-  const [jsonBackupSettings, setJsonBackupSettings] = useState({
-    enabled: false,
-    frequency: 'daily',
-    time: '23:00',
-    maxBackups: 5
-  });
-
   // Load settings on mount
   useEffect(() => {
     if (!isLoading && settings) {
       updateLocalStatesFromSettings(settings);
     }
   }, [isLoading, settings, language]);
-
-  // Load JSON export directory and backup scheduler settings on mount
-  useEffect(() => {
-    const loadJsonSettings = async () => {
-      try {
-        const path = await database.getJsonExportDir();
-        setJsonExportDir(path || '');
-        
-        const backupSettings = await database.getJsonBackupSettings();
-        setJsonBackupSettings(backupSettings);
-      } catch (error) {
-        console.error('Failed to load JSON settings', error);
-      }
-    };
-    
-    if (!isLoading) {
-      loadJsonSettings();
-    }
-  }, [isLoading]);
   
   // Function to update all local state from settings object
   const updateLocalStatesFromSettings = async (settingsObject) => {
@@ -329,27 +299,6 @@ const Settings = () => {
   };
   
   // Database management
-  const handleCreateBackup = async () => {
-    try {
-      await database.createBackup();
-      toast.success(t('settings:database.backup.success'));
-    } catch (error) {
-      toast.error(t('settings:database.backup.error'));
-      console.error('Backup creation failed:', error);
-    }
-  };
-  
-  const handleRestoreBackup = async () => {
-    try {
-      await database.restoreFromBackup();
-      toast.success(t('settings:database.restore.success'));
-      window.location.reload();
-    } catch (error) {
-      toast.error(t('settings:database.restore.error'));
-      console.error('Restore from backup failed:', error);
-    }
-  };
-  
   const handleResetDatabase = async () => {
     if (window.confirm(t('settings:database.reset.confirmMessage'))) {
       try {
@@ -442,56 +391,58 @@ const Settings = () => {
       }
     }
   };
-
-  const handleChangeJsonExportDir = async () => {
+  
+  // Add handlers for Excel import/export
+  const handleExportToExcel = async () => {
     try {
-      const dirPath = await database.selectJsonExportDir();
-      if (dirPath) {
-        const result = await database.updateJsonExportDir(dirPath);
-        setJsonExportDir(result || dirPath);
-        toast.success(t('settings:database.jsonExportSettings.success'));
-      }
+      const exportPath = await database.exportToExcel();
+      toast.success(t('settings:database.exportToExcel.success', 'Excel export successful'));
     } catch (error) {
-      console.error('Error changing JSON export directory:', error);
-      toast.error(t('settings:database.jsonExportSettings.error'));
+      toast.error(t('settings:database.exportToExcel.error', 'Excel export failed'));
+      console.error('Excel export failed:', error);
     }
   };
 
-  const handleJsonBackupSettingChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-    
-    setJsonBackupSettings(prev => ({
-      ...prev,
-      [name]: newValue
-    }));
-  };
-  
-  const handleSaveJsonBackupSettings = async () => {
-    try {
-      toast.loading(t('common:processing'), { id: 'jsonBackupSettings' });
-      
-      // Validate time format (HH:MM)
-      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-      if (!timeRegex.test(jsonBackupSettings.time)) {
-        toast.dismiss('jsonBackupSettings');
-        toast.error(t('settings:database.backupScheduler.invalidTimeFormat'));
-        return;
+  const handleImportFromExcel = async () => {
+    if (window.confirm(t('settings:database.importFromExcel.confirmMessage', 'This will replace all your current data with the data from the Excel file. Are you sure?'))) {
+      try {
+        // First, select the Excel file
+        const excelFilePath = await database.selectExcelFile();
+        
+        if (!excelFilePath) {
+          return; // User canceled the file selection
+        }
+        
+        // Show loading state
+        toast.loading(t('common:processing'), { id: 'importExcel' });
+        
+        // Import data
+        const result = await database.importFromExcel(excelFilePath);
+        
+        // Clear loading toast
+        toast.dismiss('importExcel');
+        
+        // Show success message
+        toast.success(t('settings:database.importFromExcel.success', 'Excel import successful'));
+        
+        // Wait a moment to ensure database connection is fully reestablished
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        window.location.reload();
+      } catch (error) {
+        // Clear loading toast
+        toast.dismiss('importExcel');
+        
+        toast.error(t('settings:database.importFromExcel.error', 'Excel import failed'));
+        console.error('Excel import failed:', error);
+        
+        // If import fails, suggest the user reload the application
+        setTimeout(() => {
+          if (window.confirm('There was an error importing the Excel data. Would you like to reload the application?')) {
+            window.location.reload();
+          }
+        }, 1000);
       }
-      
-      // Save settings
-      const result = await database.updateJsonBackupSettings(jsonBackupSettings);
-      
-      toast.dismiss('jsonBackupSettings');
-      if (result && result.success) {
-        toast.success(t('settings:database.backupScheduler.success'));
-      } else {
-        toast.error(t('settings:database.backupScheduler.error'));
-      }
-    } catch (error) {
-      toast.dismiss('jsonBackupSettings');
-      toast.error(t('settings:database.backupScheduler.error'));
-      console.error('Error saving JSON backup settings:', error);
     }
   };
 
@@ -809,28 +760,6 @@ const Settings = () => {
               
               <div className="database-actions">
                 <div className="action-card">
-                  <h4>{t('settings:database.backup.title')}</h4>
-                  <p>{t('settings:database.backup.description')}</p>
-                  <button 
-                    className="button secondary"
-                    onClick={handleCreateBackup}
-                  >
-                    {t('settings:database.backup.action')}
-                  </button>
-                </div>
-                
-                <div className="action-card">
-                  <h4>{t('settings:database.restore.title')}</h4>
-                  <p>{t('settings:database.restore.description')}</p>
-                  <button 
-                    className="button secondary"
-                    onClick={handleRestoreBackup}
-                  >
-                    {t('settings:database.restore.action')}
-                  </button>
-                </div>
-                
-                <div className="action-card">
                   <h4>{t('settings:database.exportToJson.title')}</h4>
                   <p>{t('settings:database.exportToJson.description')}</p>
                   <button 
@@ -853,86 +782,24 @@ const Settings = () => {
                 </div>
                 
                 <div className="action-card">
-                  <h4>{t('settings:database.jsonExportSettings.title')}</h4>
-                  <p>{t('settings:database.jsonExportSettings.description')}</p>
-                  <div className="form-group">
-                    <label>{t('settings:database.jsonExportSettings.path')}</label>
-                    <div className="path-display">
-                      <span>{jsonExportDir || t('settings:database.jsonExportSettings.defaultPath')}</span>
-                    </div>
-                    <button 
-                      className="button secondary"
-                      onClick={handleChangeJsonExportDir}
-                    >
-                      {t('settings:database.jsonExportSettings.changePathButton')}
-                    </button>
-                  </div>
+                  <h4>{t('settings:database.exportToExcel.title', 'Export to Excel')}</h4>
+                  <p>{t('settings:database.exportToExcel.description', 'Export all your inventory data to an Excel file for backup or analysis.')}</p>
+                  <button 
+                    className="button secondary"
+                    onClick={handleExportToExcel}
+                  >
+                    {t('settings:database.exportToExcel.action', 'Export Excel')}
+                  </button>
                 </div>
                 
                 <div className="action-card">
-                  <h4>{t('settings:database.backupScheduler.title')}</h4>
-                  <p>{t('settings:database.backupScheduler.description')}</p>
-                  
-                  <div className="form-group">
-                    <div className="checkbox-group">
-                      <input 
-                        type="checkbox"
-                        id="jsonBackupEnabled"
-                        name="enabled"
-                        checked={jsonBackupSettings.enabled}
-                        onChange={handleJsonBackupSettingChange}
-                      />
-                      <label htmlFor="jsonBackupEnabled">
-                        {t('settings:database.backupScheduler.enabled')}
-                      </label>
-                    </div>
-                  </div>
-                  
-                  {jsonBackupSettings.enabled && (
-                    <>
-                      <div className="form-group">
-                        <label>{t('settings:database.backupScheduler.frequency')}</label>
-                        <select 
-                          name="frequency" 
-                          value={jsonBackupSettings.frequency}
-                          onChange={handleJsonBackupSettingChange}
-                        >
-                          <option value="daily">{t('settings:database.backupScheduler.frequencies.daily')}</option>
-                          <option value="weekly">{t('settings:database.backupScheduler.frequencies.weekly')}</option>
-                          <option value="monthly">{t('settings:database.backupScheduler.frequencies.monthly')}</option>
-                        </select>
-                      </div>
-                      
-                      <div className="form-group">
-                        <label>{t('settings:database.backupScheduler.time')}</label>
-                        <input 
-                          type="text" 
-                          name="time"
-                          placeholder={t('settings:database.backupScheduler.timePlaceholder')}
-                          value={jsonBackupSettings.time}
-                          onChange={handleJsonBackupSettingChange}
-                        />
-                      </div>
-                      
-                      <div className="form-group">
-                        <label>{t('settings:general.maxBackups')}</label>
-                        <input 
-                          type="number" 
-                          name="maxBackups"
-                          min="1"
-                          max="50"
-                          value={jsonBackupSettings.maxBackups}
-                          onChange={handleJsonBackupSettingChange}
-                        />
-                      </div>
-                    </>
-                  )}
-                  
+                  <h4>{t('settings:database.importFromExcel.title', 'Import from Excel')}</h4>
+                  <p>{t('settings:database.importFromExcel.description', 'Import inventory data from an Excel file. This will replace your current data.')}</p>
                   <button 
-                    className="button primary"
-                    onClick={handleSaveJsonBackupSettings}
+                    className="button secondary"
+                    onClick={handleImportFromExcel}
                   >
-                    {t('settings:saveButton')}
+                    {t('settings:database.importFromExcel.action', 'Import Excel')}
                   </button>
                 </div>
                 

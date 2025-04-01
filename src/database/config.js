@@ -51,6 +51,13 @@ JSON_BACKUP_FREQUENCY=daily
 JSON_BACKUP_TIME=23:00
 MAX_JSON_BACKUPS=5
 JSON_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
+
+# Excel Export Configuration
+EXCEL_BACKUP_ENABLED=false
+EXCEL_BACKUP_FREQUENCY=daily
+EXCEL_BACKUP_TIME=23:00
+MAX_EXCEL_BACKUPS=5
+EXCEL_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
 `;
 
   try {
@@ -113,6 +120,13 @@ const config = {
     jsonBackupFrequency: process.env.JSON_BACKUP_FREQUENCY || 'daily', // daily, weekly, monthly
     jsonBackupTime: process.env.JSON_BACKUP_TIME || '23:00', // Time for scheduled JSON backups
     maxJsonBackups: getNumberEnv('MAX_JSON_BACKUPS', 5), // Number of JSON backups to keep
+    
+    // Excel backup schedule settings
+    excelPath: process.env.EXCEL_BACKUP_PATH || path.join(os.homedir(), 'Desktop'), // Default to desktop for Excel exports
+    excelBackupEnabled: getBooleanEnv('EXCEL_BACKUP_ENABLED', false),
+    excelBackupFrequency: process.env.EXCEL_BACKUP_FREQUENCY || 'daily', // daily, weekly, monthly
+    excelBackupTime: process.env.EXCEL_BACKUP_TIME || '23:00', // Time for scheduled Excel backups
+    maxExcelBackups: getNumberEnv('MAX_EXCEL_BACKUPS', 5), // Number of Excel backups to keep
   },
   
   // Update configuration in the .env file
@@ -176,6 +190,11 @@ const config = {
       jsonBackupFrequency: process.env.JSON_BACKUP_FREQUENCY || 'daily',
       jsonBackupTime: process.env.JSON_BACKUP_TIME || '23:00',
       maxJsonBackups: getNumberEnv('MAX_JSON_BACKUPS', 5),
+      excelPath: process.env.EXCEL_BACKUP_PATH || path.join(os.homedir(), 'Desktop'),
+      excelBackupEnabled: getBooleanEnv('EXCEL_BACKUP_ENABLED', false),
+      excelBackupFrequency: process.env.EXCEL_BACKUP_FREQUENCY || 'daily',
+      excelBackupTime: process.env.EXCEL_BACKUP_TIME || '23:00',
+      maxExcelBackups: getNumberEnv('MAX_EXCEL_BACKUPS', 5),
     };
     
     return this;
@@ -186,7 +205,8 @@ const config = {
 [
   path.dirname(config.dbPath),
   config.backup.path,
-  config.backup.jsonPath
+  config.backup.jsonPath,
+  config.backup.excelPath
 ].forEach(dir => {
   if (!fs.existsSync(dir)) {
     try {

@@ -1,13 +1,11 @@
 import React from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
-import StatCard from '../components/dashboard/StatCard';
 import TotalProductsCard from '../components/dashboard/TotalProductsCard';
 import LowStockItemsCard from '../components/dashboard/LowStockItemsCard';
 import TodaySalesCard from '../components/dashboard/TodaySalesCard';
 import MonthlyProfitMetricsCards from '../components/dashboard/MonthlyProfitMetricsCards';
 import InventoryMetricsCards from '../components/dashboard/InventoryMetricsCards';
-import SupplierPerformanceCard from '../components/dashboard/SupplierPerformanceCard';
 import ProfitTrendChart from '../components/dashboard/ProfitTrendChart';
 import CategoryProfitsChart from '../components/dashboard/CategoryProfitsChart';
 import TopProductsChart from '../components/dashboard/TopProductsChart';
@@ -51,7 +49,6 @@ const Dashboard = () => {
         <TodaySalesCard />
         <MonthlyProfitMetricsCards />
         <InventoryMetricsCards />
-        <SupplierPerformanceCard />
       </div>
       
       {/* Dashboard Sections - Grid Layout */}

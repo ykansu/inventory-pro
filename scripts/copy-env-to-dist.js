@@ -32,6 +32,13 @@ JSON_BACKUP_FREQUENCY=daily
 JSON_BACKUP_TIME=23:00
 MAX_JSON_BACKUPS=5
 JSON_BACKUP_PATH=${path.join(process.env.USERPROFILE || process.env.HOME || '', 'Desktop')}
+
+# Excel Export Configuration
+EXCEL_BACKUP_ENABLED=false
+EXCEL_BACKUP_FREQUENCY=daily
+EXCEL_BACKUP_TIME=23:00
+MAX_EXCEL_BACKUPS=5
+EXCEL_BACKUP_PATH=${path.join(process.env.USERPROFILE || process.env.HOME || '', 'Desktop')}
 `;
 
   fs.writeFileSync(envSource, defaultConfig, 'utf8');

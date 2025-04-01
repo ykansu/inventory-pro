@@ -627,4 +627,84 @@ export const DatabaseManagementService = {
       throw error;
     }
   },
+  
+  // Export data to Excel file
+  exportToExcel: async (customPath = null) => {
+    try {
+      return await window.database.exportToExcel(customPath);
+    } catch (error) {
+      console.error('Error exporting data to Excel:', error);
+      throw error;
+    }
+  },
+  
+  // Import data from Excel file
+  importFromExcel: async (excelFilePath) => {
+    try {
+      return await window.database.importFromExcel(excelFilePath);
+    } catch (error) {
+      console.error('Error importing data from Excel:', error);
+      throw error;
+    }
+  },
+  
+  // Select Excel file for import
+  selectExcelFile: async () => {
+    try {
+      return await window.database.selectExcelFile();
+    } catch (error) {
+      console.error('Error selecting Excel file:', error);
+      throw error;
+    }
+  },
+  
+  // Select directory for Excel export
+  selectExcelExportDir: async () => {
+    try {
+      return await window.database.selectExcelExportDir();
+    } catch (error) {
+      console.error('Error selecting Excel export directory:', error);
+      throw error;
+    }
+  },
+  
+  // Update Excel export directory
+  updateExcelExportDir: async (dirPath) => {
+    try {
+      return await window.database.updateExcelExportDir(dirPath);
+    } catch (error) {
+      console.error('Error updating Excel export directory:', error);
+      throw error;
+    }
+  },
+  
+  // Get Excel export directory
+  getExcelExportDir: async () => {
+    try {
+      return await window.database.getExcelExportDir();
+    } catch (error) {
+      console.error('Error getting Excel export directory:', error);
+      throw error;
+    }
+  },
+  
+  // Get Excel backup scheduler settings
+  getExcelBackupSettings: async () => {
+    try {
+      return await window.database.getExcelBackupSettings();
+    } catch (error) {
+      console.error('Error getting Excel backup settings:', error);
+      throw error;
+    }
+  },
+  
+  // Update Excel backup scheduler settings
+  updateExcelBackupSettings: async (settings) => {
+    try {
+      return await window.database.updateExcelBackupSettings(settings);
+    } catch (error) {
+      console.error('Error updating Excel backup settings:', error);
+      throw error;
+    }
+  },
 };

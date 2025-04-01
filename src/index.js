@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
+const os = require('os');
 
 // Dynamically load modules with error handling
 function safeRequire(modulePath) {
@@ -82,6 +83,9 @@ let scheduleBackups = null;
 let exportToJson = null;
 let importFromJson = null;
 let scheduleJsonBackups = null;
+let exportToExcel = null;
+let importFromExcel = null;
+let scheduleExcelBackups = null;
 let Product = null;
 let Category = null;
 let Supplier = null;
@@ -125,6 +129,14 @@ app.whenReady().then(async () => {
       scheduleJsonBackups = jsonBackupModule.scheduleJsonBackups;
     }
     
+    // Load Excel backup modules
+    const excelBackupModule = safeRequire('./database/excel-backup');
+    if (excelBackupModule) {
+      exportToExcel = excelBackupModule.exportToExcel;
+      importFromExcel = excelBackupModule.importFromExcel;
+      scheduleExcelBackups = excelBackupModule.runScheduledExcelBackup;
+    }
+    
     // Load model modules
     const models = safeRequire('./models');
     if (models) {
@@ -142,9 +154,26 @@ app.whenReady().then(async () => {
     if (result.success) {
       console.log('Database initialized successfully');
       
+      // Schedule automatic backups if enabled
+      if (scheduleBackups) {
+        scheduleBackups();
+      }
+      
       // Schedule automatic JSON backups if enabled
       if (scheduleJsonBackups) {
         scheduleJsonBackups();
+      }
+      
+      // Schedule automatic Excel backups if enabled
+      if (config.backup.excelBackupEnabled) {
+        console.log('Setting up scheduled Excel backups');
+        const excelBackupScheduler = safeRequire('./database/excel-backup-scheduler');
+        if (excelBackupScheduler && excelBackupScheduler.scheduleExcelBackups) {
+          excelBackupScheduler.scheduleExcelBackups();
+          console.log('Excel backup scheduler started');
+        } else {
+          console.error('Failed to load Excel backup scheduler module');
+        }
       }
     } else {
       console.error('Database initialization failed:', result.error);
@@ -1087,6 +1116,138 @@ ipcMain.handle('language:set', async (_, language) => {
     return await SettingModule.setLanguage(language);
   } catch (error) {
     console.error('Error setting language:', error);
+    throw error;
+  }
+});
+
+// Add IPC handlers for Excel import/export
+ipcMain.handle('database:exportToExcel', async (_, customPath) => {
+  try {
+    if (!exportToExcel) {
+      const excelBackupModule = safeRequire('./database/excel-backup');
+      if (!excelBackupModule || !excelBackupModule.exportToExcel) {
+        throw new Error('Excel export module not loaded');
+      }
+      exportToExcel = excelBackupModule.exportToExcel;
+    }
+    return await exportToExcel(customPath);
+  } catch (error) {
+    console.error('Error exporting to Excel:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('database:importFromExcel', async (_, excelFilePath) => {
+  try {
+    // Create a backup before import
+    if (createBackup && config && config.backup && config.backup.path) {
+      await createBackup(path.join(config.backup.path, 'pre_excel_import'));
+    }
+    
+    // Import the Excel file
+    if (!importFromExcel) {
+      const excelBackupModule = safeRequire('./database/excel-backup');
+      if (!excelBackupModule || !excelBackupModule.importFromExcel) {
+        throw new Error('Excel import module not loaded');
+      }
+      importFromExcel = excelBackupModule.importFromExcel;
+    }
+    return await importFromExcel(excelFilePath);
+  } catch (error) {
+    console.error('Error importing from Excel:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('database:selectExcelFile', async () => {
+  try {
+    const excelBackupModule = safeRequire('./database/excel-backup');
+    if (!excelBackupModule) {
+      throw new Error('Excel backup module not loaded');
+    }
+    return await excelBackupModule.selectExcelFile();
+  } catch (error) {
+    console.error('Error selecting Excel file:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('database:selectExcelExportDir', async () => {
+  try {
+    const excelBackupModule = safeRequire('./database/excel-backup');
+    if (!excelBackupModule) {
+      throw new Error('Excel backup module not loaded');
+    }
+    return await excelBackupModule.selectExcelExportDir();
+  } catch (error) {
+    console.error('Error selecting Excel export directory:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('database:updateExcelExportDir', async (_, dirPath) => {
+  try {
+    const excelBackupModule = safeRequire('./database/excel-backup');
+    if (!excelBackupModule) {
+      throw new Error('Excel backup module not loaded');
+    }
+    return await excelBackupModule.updateExcelExportDir(dirPath);
+  } catch (error) {
+    console.error('Error updating Excel export directory:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('database:getExcelExportDir', async () => {
+  try {
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
+    return config.backup.excelPath;
+  } catch (error) {
+    console.error('Error getting Excel export directory:', error);
+    return path.join(os.homedir(), 'Desktop');
+  }
+});
+
+ipcMain.handle('database:getExcelBackupSettings', () => {
+  try {
+    const excelBackupModule = safeRequire('./database/excel-backup');
+    if (!excelBackupModule) {
+      throw new Error('Excel backup module not loaded');
+    }
+    return excelBackupModule.getExcelBackupSettings();
+  } catch (error) {
+    console.error('Error getting Excel backup settings:', error);
+    return {
+      enabled: config?.backup?.excelBackupEnabled || false,
+      frequency: config?.backup?.excelBackupFrequency || 'daily',
+      time: config?.backup?.excelBackupTime || '23:00',
+      maxBackups: config?.backup?.maxExcelBackups || 5,
+      path: config?.backup?.excelPath || path.join(os.homedir(), 'Desktop')
+    };
+  }
+});
+
+ipcMain.handle('database:updateExcelBackupSettings', async (_, settings) => {
+  try {
+    const excelBackupModule = safeRequire('./database/excel-backup');
+    if (!excelBackupModule) {
+      throw new Error('Excel backup module not loaded');
+    }
+    const result = await excelBackupModule.updateExcelBackupSettings(settings);
+    
+    // Restart Excel backup scheduling if enabled
+    if (settings.enabled) {
+      const excelBackupScheduler = safeRequire('./database/excel-backup-scheduler');
+      if (excelBackupScheduler) {
+        excelBackupScheduler.scheduleExcelBackups();
+      }
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error updating Excel backup settings:', error);
     throw error;
   }
 });

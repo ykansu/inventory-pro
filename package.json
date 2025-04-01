@@ -47,6 +47,7 @@
     "dotenv": "^16.4.7",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^8.2.0",
+    "exceljs": "^4.4.0",
     "i18next": "^24.2.3",
     "knex": "^3.1.0",
     "react": "^18.2.0",
