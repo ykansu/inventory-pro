@@ -952,19 +952,18 @@ ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
     
     // Get all sale items with product details to calculate cost
     const saleItemsWithCost = await db('sale_items')
-      .join('products', 'sale_items.product_id', 'products.id')
       .whereIn('sale_items.sale_id', saleIds)
       .select(
         'sale_items.quantity',
         'sale_items.unit_price',
         'sale_items.total_price',
-        'products.cost_price'
+        'sale_items.historical_cost_price'
       );
     
     // Calculate total cost
     let totalCost = 0;
     saleItemsWithCost.forEach(item => {
-      totalCost += parseFloat(item.cost_price) * parseInt(item.quantity);
+      totalCost += parseFloat(item.historical_cost_price) * parseInt(item.quantity);
     });
     
     // Calculate profit and margin

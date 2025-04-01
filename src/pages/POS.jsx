@@ -80,12 +80,12 @@ const POS = () => {
             businessPhone: allSettings.business_phone || '',
             businessEmail: allSettings.business_email || '',
             taxRate: parseFloat(allSettings.tax_rate) || 18,
-            enableTax: allSettings.enable_tax !== undefined ? allSettings.enable_tax : true,
+            enableTax: allSettings.enable_tax === true,
             currency: allSettings.currency?.toLowerCase() || 'usd',
             dateFormat: allSettings.date_format || 'mm/dd/yyyy',
             receiptHeader: allSettings.receipt_header || '',
             receiptFooter: allSettings.receipt_footer || 'Thank you for your purchase!',
-            enableNotifications: allSettings.enable_notifications !== undefined ? allSettings.enable_notifications : true
+            enableNotifications: allSettings.enable_notifications === true
           });
         }
       } catch (error) {
@@ -103,8 +103,8 @@ const POS = () => {
     // Apply discount to subtotal
     const discountedSubtotal = Math.max(0, newSubtotal - discount);
     
-    // Only calculate tax if tax calculation is enabled
-    const newTax = settings.enableTax ? discountedSubtotal * (settings.taxRate / 100) : 0;
+    // Only calculate tax if tax calculation is enabled and tax rate is greater than 0
+    const newTax = settings.enableTax && settings.taxRate > 0 ? discountedSubtotal * (settings.taxRate / 100) : 0;
     const newTotal = discountedSubtotal + newTax;
     
     setSubtotal(newSubtotal);

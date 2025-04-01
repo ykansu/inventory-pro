@@ -385,13 +385,22 @@ class Sale extends BaseModel {
         // Insert the sale
         const [saleId] = await trx(this.tableName).insert(formattedSaleData);
         
-        // Prepare the items with sale_id
+        // Get current cost prices for all products
+        const productCosts = await trx('products')
+          .whereIn('id', items.map(item => item.product_id))
+          .select('id', 'cost_price');
+        
+        // Create a map of product costs for easy lookup
+        const costPriceMap = new Map(productCosts.map(p => [p.id, p.cost_price]));
+        
+        // Prepare the items with sale_id and historical cost price
         const saleItems = items.map(item => ({
           sale_id: saleId,
           product_id: item.product_id,
           product_name: item.product_name,
           quantity: item.quantity,
           unit_price: item.unit_price,
+          historical_cost_price: costPriceMap.get(item.product_id) || 0,
           discount_amount: item.discount_amount || 0,
           total_price: item.total_price,
           created_at: nowISOString,
@@ -544,7 +553,7 @@ class Sale extends BaseModel {
       const hasSaleItemsTable = await db.schema.hasTable('sale_items');
       
       if (!hasSalesTable || !hasSaleItemsTable) {
-        console.log('sales or sale_items table does not exist, returning default metrics');
+        console.log('Required tables do not exist, returning default metrics');
         return {
           monthlyRevenue: 0,
           monthlyProfit: 0,
@@ -573,23 +582,21 @@ class Sale extends BaseModel {
       // Calculate monthly revenue
       const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
       
-      // Get all sale items with product details to calculate cost
-      const db2 = await this.getDb();
-      const saleItemsWithCost = await db2('sale_items')
-        .join('products', 'sale_items.product_id', 'products.id')
-        .whereIn('sale_items.sale_id', saleIds)
+      // Get all sale items with historical cost information
+      const saleItemsWithCost = await db('sale_items')
+        .whereIn('sale_id', saleIds)
         .select(
-          'sale_items.quantity',
-          'sale_items.unit_price',
-          'sale_items.total_price',
-          'products.cost_price'
+          'quantity',
+          'unit_price',
+          'total_price',
+          'historical_cost_price'
         );
       
-      // Calculate total cost and profit
+      // Calculate total cost and profit using historical cost prices
       let totalCost = 0;
       
       saleItemsWithCost.forEach(item => {
-        totalCost += parseFloat(item.cost_price) * parseInt(item.quantity);
+        totalCost += parseFloat(item.historical_cost_price) * parseInt(item.quantity);
       });
       
       const monthlyProfit = monthlyRevenue - totalCost;
@@ -664,7 +671,7 @@ class Sale extends BaseModel {
         return [];
       }
       
-      // Get all sale items with category and cost information
+      // Get all sale items with category and historical cost information
       const db2 = await this.getDb();
       const categoryProfits = await db2('sale_items')
         .join('products', 'sale_items.product_id', 'products.id')
@@ -674,7 +681,7 @@ class Sale extends BaseModel {
           'categories.id as category_id',
           'categories.name as name',
           db2.raw('SUM(sale_items.total_price) as revenue'),
-          db2.raw('SUM(products.cost_price * sale_items.quantity) as cost')
+          db2.raw('SUM(sale_items.historical_cost_price * sale_items.quantity) as cost')
         )
         .groupBy('categories.id', 'categories.name');
       
@@ -768,7 +775,7 @@ class Sale extends BaseModel {
           'categories.name as category',
           db2.raw('SUM(sale_items.quantity) as quantity_sold'),
           db2.raw('SUM(sale_items.total_price) as revenue'),
-          db2.raw('SUM(products.cost_price * sale_items.quantity) as cost')
+          db2.raw('SUM(sale_items.historical_cost_price * sale_items.quantity) as cost')
         )
         .groupBy('products.id', 'products.name', 'categories.name');
       
@@ -817,8 +824,8 @@ class Sale extends BaseModel {
       const hasSaleItemsTable = await db.schema.hasTable('sale_items');
       const hasSuppliersTable = await db.schema.hasTable('suppliers');
       
-      if (!hasSalesTable || !hasSaleItemsTable || !hasSuppliersTable) {
-        console.log('Required tables do not exist, returning empty supplier data');
+      if (!hasSalesTable || !hasSaleItemsTable) {
+        console.log('Required tables do not exist, returning empty supplier profit data');
         return [];
       }
       
@@ -860,7 +867,7 @@ class Sale extends BaseModel {
         return [];
       }
       
-      // Get supplier data aggregated
+      // Get all sale items with supplier and historical cost information
       const db2 = await this.getDb();
       const supplierData = await db2('sale_items')
         .join('products', 'sale_items.product_id', 'products.id')
@@ -870,7 +877,7 @@ class Sale extends BaseModel {
           'suppliers.id as supplier_id',
           'suppliers.company_name as name',
           db2.raw('SUM(sale_items.total_price) as revenue'),
-          db2.raw('SUM(products.cost_price * sale_items.quantity) as cost')
+          db2.raw('SUM(sale_items.historical_cost_price * sale_items.quantity) as cost')
         )
         .groupBy('suppliers.id', 'suppliers.company_name');
       
@@ -1048,19 +1055,18 @@ class Sale extends BaseModel {
             // Get sale IDs
             const saleIds = sales.map(sale => sale.id);
             
-            // Get all sale items with product details to calculate cost
+            // Get all sale items with historical cost information
             const db2 = await this.getDb();
             const saleItemsWithCost = await db2('sale_items')
-              .join('products', 'sale_items.product_id', 'products.id')
               .whereIn('sale_items.sale_id', saleIds)
               .select(
                 'sale_items.quantity',
-                'products.cost_price'
+                'sale_items.historical_cost_price'
               );
             
-            // Calculate total cost
+            // Calculate total cost using historical cost price
             const totalCost = saleItemsWithCost.reduce((sum, item) => {
-              const cost = parseFloat(item.cost_price) || 0;
+              const cost = parseFloat(item.historical_cost_price) || 0;
               const quantity = parseInt(item.quantity) || 0;
               return sum + (cost * quantity);
             }, 0);
