@@ -52,7 +52,7 @@ yarn start
 
 ### Build for Production
 ```bash
-npm run build
+npm run build:prod && npm run make
 # or
 yarn build
 ```
@@ -135,5 +135,4 @@ Create a `.env` file in the root directory with the following variables:
 
 - Electron.js
 - React
-- shadcn/ui
 - SQLite
