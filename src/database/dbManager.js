@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const knex = require('knex');
 const knexConfig = require('./knexfile');
+const config = require('./config');
 
 // Create a new database connection
 let db = null;
@@ -23,14 +24,14 @@ async function initDatabase(options = { seedIfNew: true }) {
   try {
     console.log('Initializing database...');
     
-    // Ensure the database directory exists (D:\repos\inventory-pro\src\database\migrations)
-    const dbDir = path.dirname(knexConfig.connection.filename);
+    // Ensure the database directory exists
+    const dbDir = path.dirname(config.dbPath);
     if (!fs.existsSync(dbDir)) {
       console.log(`Creating database directory: ${dbDir}`);
       fs.mkdirSync(dbDir, { recursive: true });
     }
     
-    console.log(`Using database at: ${knexConfig.connection.filename}`);
+    console.log(`Using database at: ${config.dbPath}`);
     
     // Create/get database connection
     if (!db) {
@@ -112,8 +113,27 @@ async function closeConnection() {
   }
 }
 
+/**
+ * Reload configuration
+ * Call this when the environment file is changed
+ */
+async function reloadConfiguration() {
+  // Reload config from .env file
+  config.reloadConfig();
+  
+  // If we have a database connection, close it
+  // It will be recreated with the new configuration when needed
+  if (db) {
+    await closeConnection();
+  }
+  
+  console.log('Database configuration reloaded');
+  return { success: true };
+}
+
 module.exports = {
   initDatabase,
   getConnection,
   closeConnection,
+  reloadConfiguration
 };

@@ -3,8 +3,17 @@ const path = require('path');
 const url = require('url');
 const fs = require('fs');
 
+// Dynamically load modules with error handling
+function safeRequire(modulePath) {
+  try {
+    return require(modulePath);
+  } catch (error) {
+    console.error(`Failed to load module: ${modulePath}`, error);
+    return null;
+  }
+}
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-// Use try-catch to handle module not found errors gracefully
 try {
   if (require('electron-squirrel-startup')) {
     app.quit();
@@ -21,99 +30,11 @@ if (process.env.NODE_ENV === 'development') {
       hardResetMethod: 'exit'
     });
   } catch (err) {
-    console.warn('Failed to load electron-reload, continuing without it:', err);
+    console.warn('Failed to load electron-reload:', err);
   }
 }
 
-// Initialize global config variable
-let config = null;
-// Initialize other database modules
-let dbConnection = null;
-let createBackup = null;
-let restoreFromBackup = null;
-let scheduleBackups = null;
-let exportToJson = null;
-let importFromJson = null;
-let scheduleJsonBackups = null;
-let Product = null;
-let Category = null;
-let Supplier = null;
-let Sale = null;
-let Setting = null;
-
-// Load database modules safely
-function loadDatabaseModules() {
-  try {
-    console.log('Loading database modules...');
-    
-    // Load database modules
-    dbConnection = require('./database/connection');
-    
-    // Load backup modules
-    const backupModule = require('./database/backup');
-    createBackup = backupModule.createBackup;
-    restoreFromBackup = backupModule.restoreFromBackup;
-    scheduleBackups = backupModule.scheduleBackups;
-    
-    // Load JSON backup modules
-    const jsonBackupModule = require('./database/json-backup');
-    exportToJson = jsonBackupModule.exportToJson;
-    importFromJson = jsonBackupModule.importFromJson;
-    scheduleJsonBackups = jsonBackupModule.scheduleJsonBackups;
-    
-    // Load model modules
-    const models = require('./models');
-    Product = models.Product;
-    Category = models.Category;
-    Supplier = models.Supplier;
-    Sale = models.Sale;
-    Setting = models.Setting;
-    
-    console.log('Database modules loaded successfully');
-    return true;
-  } catch (error) {
-    console.error('Failed to load database modules:', error);
-    return false;
-  }
-}
-
-// This will be called when Electron has finished initialization
-app.whenReady().then(async () => {
-  try {
-    // Initialize config first
-    config = require('./database/config');
-    
-    // Load all database modules
-    const modulesLoaded = loadDatabaseModules();
-    if (!modulesLoaded) {
-      throw new Error('Failed to load required database modules');
-    }
-    
-    // Initialize database
-    console.log('Initializing database...');
-    const result = await dbConnection.initDatabase({ seedIfNew: true });
-    
-    if (result.success) {
-      console.log('Database initialized successfully');
-      
-      // Schedule automatic JSON backups if enabled
-      scheduleJsonBackups();
-    } else {
-      console.error('Database initialization failed:', result.error);
-      dialog.showErrorBox(
-        'Database Error',
-        'Failed to initialize the database. The application may not function correctly.'
-      );
-    }
-  } catch (error) {
-    console.error('Failed to initialize database:', error);
-    dialog.showErrorBox(
-      'Database Error',
-      'Failed to initialize the database. The application may not function correctly.'
-    );
-  }
-});
-
+// Create a window when the app is ready
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -137,12 +58,107 @@ const createWindow = () => {
     // In production, load the bundled file
     mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
+  
+  // Show any initialization errors in the window
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (initializationError) {
+      dialog.showErrorBox(
+        'Initialization Error',
+        `Failed to initialize the application: ${initializationError}`
+      );
+    }
+  });
 };
+
+// Track initialization errors
+let initializationError = null;
+
+// Initialize modules when app is ready
+let config = null;
+let dbConnection = null;
+let createBackup = null;
+let restoreFromBackup = null;
+let scheduleBackups = null;
+let exportToJson = null;
+let importFromJson = null;
+let scheduleJsonBackups = null;
+let Product = null;
+let Category = null;
+let Supplier = null;
+let Sale = null;
+let Setting = null;
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.whenReady().then(async () => {
+  try {
+    // Initialize window
+    createWindow();
+    
+    // Load configuration
+    console.log('Loading configuration...');
+    config = safeRequire('./database/config');
+    if (!config) {
+      throw new Error('Failed to load configuration module');
+    }
+    
+    // Load database modules
+    console.log('Loading database modules...');
+    dbConnection = safeRequire('./database/connection');
+    if (!dbConnection) {
+      throw new Error('Failed to load database connection module');
+    }
+    
+    // Load backup modules
+    const backupModule = safeRequire('./database/backup');
+    if (backupModule) {
+      createBackup = backupModule.createBackup;
+      restoreFromBackup = backupModule.restoreFromBackup;
+      scheduleBackups = backupModule.scheduleBackups;
+    }
+    
+    // Load JSON backup modules
+    const jsonBackupModule = safeRequire('./database/json-backup');
+    if (jsonBackupModule) {
+      exportToJson = jsonBackupModule.exportToJson;
+      importFromJson = jsonBackupModule.importFromJson;
+      scheduleJsonBackups = jsonBackupModule.scheduleJsonBackups;
+    }
+    
+    // Load model modules
+    const models = safeRequire('./models');
+    if (models) {
+      Product = models.Product;
+      Category = models.Category;
+      Supplier = models.Supplier;
+      Sale = models.Sale;
+      Setting = models.Setting;
+    }
+    
+    // Initialize database
+    console.log('Initializing database...');
+    const result = await dbConnection.initDatabase({ seedIfNew: true });
+    
+    if (result.success) {
+      console.log('Database initialized successfully');
+      
+      // Schedule automatic JSON backups if enabled
+      if (scheduleJsonBackups) {
+        scheduleJsonBackups();
+      }
+    } else {
+      console.error('Database initialization failed:', result.error);
+      dialog.showErrorBox(
+        'Database Error',
+        'Failed to initialize the database. The application may not function correctly.'
+      );
+    }
+  } catch (error) {
+    console.error('Failed to initialize application:', error);
+    initializationError = error.message;
+    // Continue to create the window, but show the error
+  }
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -162,7 +178,7 @@ app.on('activate', () => {
 });
 
 // Database functionality
-// Removed redundant imports as they are now loaded in loadDatabaseModules()
+// All required modules are loaded at initialization time, don't import again
 
 // IPC handlers for database operations
 
@@ -481,10 +497,17 @@ ipcMain.handle('database:resetDatabase', async () => {
   try {
     console.log('Starting database reset process...');
     // Create a backup before resetting
-    await createBackup(path.join(config.backup.path, 'pre_reset'));
+    if (createBackup && config && config.backup && config.backup.path) {
+      await createBackup(path.join(config.backup.path, 'pre_reset'));
+    }
     
     // Import the force seed utility
-    const { forceSeedDatabase } = require('./database/force-seed');
+    const forceSeedModule = safeRequire('./database/force-seed');
+    const forceSeedDatabase = forceSeedModule ? forceSeedModule.forceSeedDatabase : null;
+    
+    if (!forceSeedDatabase) {
+      throw new Error('Force seed module could not be loaded');
+    }
     
     // Reset the database
     console.log('Initiating database reset...');
@@ -503,8 +526,8 @@ ipcMain.handle('database:resetDatabase', async () => {
       try {
         console.log('Attempting to reload database module...');
         delete require.cache[require.resolve('./database/connection')];
-        const freshDb = require('./database/connection');
-        const db = await freshDb.getConnection();
+        dbConnection = safeRequire('./database/connection');
+        const db = await dbConnection.getConnection();
         await db.raw('SELECT 1');
         console.log('Database module reloaded successfully');
       } catch (reloadError) {
@@ -558,8 +581,10 @@ ipcMain.handle('database:selectJsonExportDir', async () => {
 // Update JSON export directory
 ipcMain.handle('database:updateJsonExportDir', async (_, dirPath) => {
   try {
-    if (!config) config = require('./database/config');
-    config.setBackupSettings({ jsonPath: dirPath });
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
+    config.updateConfig({ 'backup.jsonPath': dirPath });
     return dirPath;
   } catch (error) {
     console.error('Error updating JSON export directory:', error);
@@ -570,7 +595,9 @@ ipcMain.handle('database:updateJsonExportDir', async (_, dirPath) => {
 // Get JSON export directory
 ipcMain.handle('database:getJsonExportDir', async () => {
   try {
-    if (!config) config = require('./database/config');
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
     return config.backup.jsonPath;
   } catch (error) {
     console.error('Error getting JSON export directory:', error);
@@ -578,15 +605,18 @@ ipcMain.handle('database:getJsonExportDir', async () => {
   }
 });
 
-// Get JSON backup scheduler settings
-ipcMain.handle('database:getJsonBackupSettings', async () => {
+// Get JSON backup settings
+ipcMain.handle('database:getJsonBackupSettings', () => {
   try {
-    if (!config) config = require('./database/config');
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
     return {
       enabled: config.backup.jsonBackupEnabled,
       frequency: config.backup.jsonBackupFrequency,
       time: config.backup.jsonBackupTime,
-      maxBackups: config.backup.maxJsonBackups
+      maxBackups: config.backup.maxJsonBackups,
+      path: config.backup.jsonPath
     };
   } catch (error) {
     console.error('Error getting JSON backup settings:', error);
@@ -594,22 +624,28 @@ ipcMain.handle('database:getJsonBackupSettings', async () => {
   }
 });
 
-// Update JSON backup scheduler settings
+// Update JSON backup settings
 ipcMain.handle('database:updateJsonBackupSettings', async (_, settings) => {
   try {
-    if (!config) config = require('./database/config');
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
     
-    // Update settings
-    config.setBackupSettings({
-      jsonBackupEnabled: settings.enabled,
-      jsonBackupFrequency: settings.frequency,
-      jsonBackupTime: settings.time,
-      maxJsonBackups: settings.maxBackups
-    });
+    // Convert settings to config format
+    const configUpdates = {};
+    if (settings.enabled !== undefined) configUpdates['backup.jsonBackupEnabled'] = settings.enabled;
+    if (settings.frequency) configUpdates['backup.jsonBackupFrequency'] = settings.frequency;
+    if (settings.time) configUpdates['backup.jsonBackupTime'] = settings.time;
+    if (settings.maxBackups) configUpdates['backup.maxJsonBackups'] = settings.maxBackups;
+    if (settings.path) configUpdates['backup.jsonPath'] = settings.path;
     
-    // Restart scheduler
-    const { scheduleJsonBackups } = require('./database/json-backup');
-    scheduleJsonBackups();
+    // Update configuration
+    config.updateConfig(configUpdates);
+    
+    // Restart JSON backup scheduling
+    if (scheduleJsonBackups) {
+      scheduleJsonBackups();
+    }
     
     return { success: true };
   } catch (error) {
@@ -620,7 +656,9 @@ ipcMain.handle('database:updateJsonBackupSettings', async (_, settings) => {
 
 ipcMain.handle('database:getBackupList', async () => {
   try {
-    if (!config) config = require('./database/config');
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
     const backupDir = config.backup.path;
     
     if (!fs.existsSync(backupDir)) {
@@ -649,9 +687,15 @@ ipcMain.handle('database:importFromJson', async (_, jsonFilePath) => {
   try {
     console.log('Starting JSON import from:', jsonFilePath);
     // Create a backup before importing
-    await createBackup(path.join(config.backup.path, 'pre_import'));
+    if (createBackup && config && config.backup && config.backup.path) {
+      await createBackup(path.join(config.backup.path, 'pre_import'));
+    }
     
     // Import the data
+    if (!importFromJson) {
+      throw new Error('Import module could not be loaded');
+    }
+    
     const result = await importFromJson(jsonFilePath);
     console.log('JSON import completed with result:', result);
     
@@ -667,8 +711,8 @@ ipcMain.handle('database:importFromJson', async (_, jsonFilePath) => {
       try {
         console.log('Attempting to reload database module after import...');
         delete require.cache[require.resolve('./database/connection')];
-        const freshDb = require('./database/connection');
-        const db = await freshDb.getConnection();
+        dbConnection = safeRequire('./database/connection');
+        const db = await dbConnection.getConnection();
         await db.raw('SELECT 1');
         console.log('Database module reloaded successfully after import');
       } catch (reloadError) {
@@ -700,7 +744,9 @@ app.on('before-quit', async (event) => {
 ipcMain.handle('dashboard:getStats', async () => {
   try {
     // Get all key dashboard metrics in one query for efficiency
-    // Using global variables instead of requiring modules again
+    if (!Product || !Sale) {
+      throw new Error('Model modules not loaded');
+    }
     
     const [
       totalProducts,
@@ -735,7 +781,6 @@ ipcMain.handle('dashboard:getStats', async () => {
 
 ipcMain.handle('dashboard:getTotalProductCount', async () => {
   try {
-    // Using global Product variable
     return await Product.getTotalCount();
   } catch (error) {
     console.error('Error getting total product count:', error);
@@ -745,7 +790,6 @@ ipcMain.handle('dashboard:getTotalProductCount', async () => {
 
 ipcMain.handle('dashboard:getLowStockItemCount', async () => {
   try {
-    // Using global Product variable
     return await Product.getLowStockCount();
   } catch (error) {
     console.error('Error getting low stock item count:', error);
@@ -755,7 +799,6 @@ ipcMain.handle('dashboard:getLowStockItemCount', async () => {
 
 ipcMain.handle('dashboard:getTodaySalesTotal', async () => {
   try {
-    // Using global Sale variable
     return await Sale.getTodaySalesTotal();
   } catch (error) {
     console.error('Error getting today\'s sales total:', error);
@@ -765,7 +808,6 @@ ipcMain.handle('dashboard:getTodaySalesTotal', async () => {
 
 ipcMain.handle('dashboard:getMonthlyRevenueAndProfit', async () => {
   try {
-    // Using global Sale variable
     return await Sale.getMonthlyRevenueAndProfit();
   } catch (error) {
     console.error('Error getting monthly revenue and profit:', error);
@@ -775,7 +817,6 @@ ipcMain.handle('dashboard:getMonthlyRevenueAndProfit', async () => {
 
 ipcMain.handle('dashboard:getInventoryValue', async () => {
   try {
-    // Using global Product variable
     return await Product.getTotalInventoryValue();
   } catch (error) {
     console.error('Error getting inventory value:', error);
@@ -785,7 +826,6 @@ ipcMain.handle('dashboard:getInventoryValue', async () => {
 
 ipcMain.handle('dashboard:getTopSellingProducts', async (_, limit = 5) => {
   try {
-    // Using global Sale variable
     return await Sale.getTopSellingProducts(limit);
   } catch (error) {
     console.error('Error getting top selling products:', error);
@@ -795,7 +835,6 @@ ipcMain.handle('dashboard:getTopSellingProducts', async (_, limit = 5) => {
 
 ipcMain.handle('dashboard:getRevenueAndProfitBySupplier', async () => {
   try {
-    // Using global Sale variable
     return await Sale.getRevenueAndProfitBySupplier();
   } catch (error) {
     console.error('Error getting revenue and profit by supplier:', error);
@@ -805,7 +844,6 @@ ipcMain.handle('dashboard:getRevenueAndProfitBySupplier', async () => {
 
 ipcMain.handle('dashboard:getRevenueByPaymentMethod', async () => {
   try {
-    // Using global Sale variable
     return await Sale.getRevenueByPaymentMethod();
   } catch (error) {
     console.error('Error getting revenue by payment method:', error);
@@ -815,7 +853,6 @@ ipcMain.handle('dashboard:getRevenueByPaymentMethod', async () => {
 
 ipcMain.handle('dashboard:getProfitByCategory', async () => {
   try {
-    // Using global Sale variable
     return await Sale.getProfitByCategory();
   } catch (error) {
     console.error('Error getting profit by category:', error);
@@ -825,7 +862,6 @@ ipcMain.handle('dashboard:getProfitByCategory', async () => {
 
 ipcMain.handle('dashboard:getInventoryTrend', async (_, months = 6) => {
   try {
-    // Using global Product variable
     return await Product.getInventoryTrend(months);
   } catch (error) {
     console.error('Error getting inventory trend:', error);
@@ -835,7 +871,6 @@ ipcMain.handle('dashboard:getInventoryTrend', async (_, months = 6) => {
 
 ipcMain.handle('dashboard:getProfitAndRevenueTrend', async (_, months = 6) => {
   try {
-    // Using global Sale variable
     return await Sale.getProfitAndRevenueTrend(months);
   } catch (error) {
     console.error('Error getting profit and revenue trend:', error);
@@ -845,7 +880,6 @@ ipcMain.handle('dashboard:getProfitAndRevenueTrend', async (_, months = 6) => {
 
 ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
   try {
-    // Using global Sale variable
     const now = new Date();
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
@@ -927,7 +961,6 @@ ipcMain.handle('dashboard:getMonthlyProfitMetrics', async () => {
 // Handler for inventory turnover rate
 ipcMain.handle('dashboard:getInventoryTurnoverRate', async () => {
   try {
-    // Using global Product variable
     return await Product.getInventoryTurnoverRate();
   } catch (error) {
     console.error('Error getting inventory turnover rate:', error);
@@ -938,7 +971,6 @@ ipcMain.handle('dashboard:getInventoryTurnoverRate', async () => {
 // Handler for stock variance
 ipcMain.handle('dashboard:getStockVariance', async () => {
   try {
-    // Using global Product variable
     return await Product.getStockVariance();
   } catch (error) {
     console.error('Error getting stock variance:', error);
@@ -949,10 +981,112 @@ ipcMain.handle('dashboard:getStockVariance', async () => {
 // Handler for supplier performance
 ipcMain.handle('dashboard:getSupplierPerformance', async () => {
   try {
-    // Using global Supplier variable
     return await Supplier.getSupplierPerformance();
   } catch (error) {
     console.error('Error getting supplier performance:', error);
     return { onTimeDelivery: 87, qualityScore: 92 }; // Default fallback
+  }
+});
+
+// Configuration handlers
+ipcMain.handle('config:getPath', () => {
+  try {
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
+    return config.envPath;
+  } catch (error) {
+    console.error('Error getting config path:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('config:reload', async () => {
+  try {
+    if (!dbManager) {
+      throw new Error('Database manager module not loaded');
+    }
+    return await dbManager.reloadConfiguration();
+  } catch (error) {
+    console.error('Error reloading configuration:', error);
+    throw error;
+  }
+});
+
+// Get regular backup settings
+ipcMain.handle('database:getBackupSettings', () => {
+  try {
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
+    return {
+      enabled: config.backup.enabled,
+      frequency: config.backup.frequency,
+      time: config.backup.time,
+      maxBackups: config.backup.maxBackups,
+      path: config.backup.path
+    };
+  } catch (error) {
+    console.error('Error getting backup settings:', error);
+    throw error;
+  }
+});
+
+// Update backup settings
+ipcMain.handle('database:updateBackupSettings', async (_, settings) => {
+  try {
+    if (!config) {
+      throw new Error('Configuration module not loaded');
+    }
+    
+    // Convert settings to config format
+    const configUpdates = {};
+    if (settings.enabled !== undefined) configUpdates['backup.enabled'] = settings.enabled;
+    if (settings.frequency) configUpdates['backup.frequency'] = settings.frequency;
+    if (settings.time) configUpdates['backup.time'] = settings.time;
+    if (settings.maxBackups) configUpdates['backup.maxBackups'] = settings.maxBackups;
+    if (settings.path) configUpdates['backup.path'] = settings.path;
+    
+    // Update configuration
+    config.updateConfig(configUpdates);
+    
+    // Restart backup scheduling if needed
+    if (scheduleBackups) {
+      scheduleBackups();
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating backup settings:', error);
+    throw error;
+  }
+});
+
+// Language settings handlers
+ipcMain.handle('language:get', async () => {
+  try {
+    const SettingModule = safeRequire('./models/Setting');
+    if (!SettingModule) {
+      throw new Error('Failed to load Setting module');
+    }
+    
+    return await SettingModule.getLanguage();
+  } catch (error) {
+    console.error('Error getting language setting:', error);
+    return 'en'; // Default to English on error
+  }
+});
+
+ipcMain.handle('language:set', async (_, language) => {
+  try {
+    const SettingModule = safeRequire('./models/Setting');
+    if (!SettingModule) {
+      throw new Error('Failed to load Setting module');
+    }
+    
+    return await SettingModule.setLanguage(language);
+  } catch (error) {
+    console.error('Error setting language:', error);
+    throw error;
   }
 });

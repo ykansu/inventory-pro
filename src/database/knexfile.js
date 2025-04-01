@@ -1,8 +1,9 @@
 const path = require('path');
 const fs = require('fs');
+const config = require('./config');
 
-// Fixed database path as requested (no more AppData)
-const dbPath = path.join('D:', 'repos', 'inventory-pro', 'src', 'database', 'inventory-pro.db');
+// Get database path from environment configuration
+const dbPath = config.dbPath;
 
 // Ensure the database directory exists
 const dbDir = path.dirname(dbPath);

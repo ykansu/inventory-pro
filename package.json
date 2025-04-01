@@ -6,7 +6,10 @@
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
-    "package": "electron-forge package",
+    "prepackage": "node scripts/setup-env.js",
+    "package": "electron-builder build --win --publish never",
+    "package-portable": "cross-env NODE_ENV=production npm run build:prod && npm run rebuild && npm run package",
+    "premake": "node scripts/setup-env.js",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
@@ -23,7 +26,8 @@
     "seed": "knex seed:run --knexfile src/database/knexfile.js",
     "seed:make": "knex seed:make --knexfile src/database/knexfile.js",
     "stress-test": "node src/database/run-stress-test.js",
-    "perf-test": "node src/test/performance-test.js"
+    "perf-test": "node src/test/performance-test.js",
+    "postpackage": "node scripts/copy-env-to-dist.js"
   },
   "keywords": [
     "electron",
@@ -40,6 +44,7 @@
   "dependencies": {
     "chart.js": "^4.4.8",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^8.2.0",
     "i18next": "^24.2.3",
@@ -70,6 +75,7 @@
     "cross-env": "^7.0.3",
     "css-loader": "^6.8.1",
     "electron": "35.1.2",
+    "electron-builder": "^26.0.12",
     "electron-rebuild": "^3.2.9",
     "electron-reload": "^2.0.0-alpha.1",
     "html-webpack-plugin": "^5.5.3",

@@ -127,12 +127,15 @@ const Settings = () => {
 
   const handleLanguageChange = (e) => {
     const newLanguage = e.target.value;
-    changeLanguage(newLanguage);
+    
+    // Update local state
     setGeneralSettings(prev => ({ ...prev, language: newLanguage }));
     
-    // Save language setting
+    // Save language setting and change the UI language
     handleSaveSetting('language', newLanguage).then(success => {
       if (success) {
+        // Only change the language if saved successfully to DB
+        changeLanguage(newLanguage);
         updateLocalStatesFromSettings({
           ...settings,
           language: newLanguage

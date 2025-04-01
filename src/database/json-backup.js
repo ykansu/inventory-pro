@@ -34,7 +34,7 @@ async function getAllTables() {
 async function exportToJson(customPath = null) {
   try {
     // Get directory path where to save the file
-    const exportDir = customPath || config.backup.jsonPath || path.join(app.getPath('desktop'));
+    const exportDir = customPath || config.backup.jsonPath;
     
     if (!fs.existsSync(exportDir)) {
       fs.mkdirSync(exportDir, { recursive: true });
@@ -50,7 +50,7 @@ async function exportToJson(customPath = null) {
     const exportData = {
       metadata: {
         timestamp: new Date().toISOString(),
-        appVersion: app.getVersion ? app.getVersion() : 'unknown',
+        appVersion: process.env.npm_package_version || 'unknown',
         tables: tables.map(t => t.name)
       },
       data: {}
@@ -263,8 +263,8 @@ async function importFromJson(jsonFile) {
 // Create a backup before importing
 async function createPreImportBackup() {
   try {
-    const db = await dbConnection.getConnection();
-    const backupDir = path.join(config.db.path, 'backups', 'pre_import');
+    // Create a backup directory for pre-import backups
+    const backupDir = path.join(config.backup.path, 'pre_import');
     
     if (!fs.existsSync(backupDir)) {
       fs.mkdirSync(backupDir, { recursive: true });
@@ -274,17 +274,9 @@ async function createPreImportBackup() {
     const backupFile = path.join(backupDir, `backup_${timestamp}.db`);
     
     // Create a database backup
-    const backupDb = fs.createWriteStream(backupFile);
-    const dbFile = fs.createReadStream(config.db.path);
-    
-    return new Promise((resolve, reject) => {
-      dbFile.pipe(backupDb);
-      dbFile.on('end', () => {
-        console.log(`Pre-import backup created at: ${backupFile}`);
-        resolve(backupFile);
-      });
-      dbFile.on('error', reject);
-    });
+    fs.copyFileSync(config.dbPath, backupFile);
+    console.log(`Pre-import backup created at: ${backupFile}`);
+    return backupFile;
   } catch (error) {
     console.error('Pre-import backup failed:', error);
     throw error;
@@ -303,7 +295,7 @@ async function scheduleJsonBackups() {
     // Validate backup time format
     if (!config.backup.jsonBackupTime || !/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(config.backup.jsonBackupTime)) {
       console.log('Invalid backup time format. Using default 23:00');
-      config.setBackupSettings({ jsonBackupTime: '23:00' });
+      config.updateConfig({ 'backup.jsonBackupTime': '23:00' });
     }
     
     console.log('Setting up scheduled JSON backups');

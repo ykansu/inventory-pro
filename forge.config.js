@@ -6,37 +6,39 @@ const fs = require('fs');
 module.exports = {
   packagerConfig: {
     asar: true,
-    extraResource: ['./dist'],
+    extraResource: ['./dist', '.env'],
     executableName: 'Inventory Pro',
     appCopyright: `Copyright ${new Date().getFullYear()}`,
     // Ensure all the necessary files are included
     ignore: [
-      // Don't ignore database directory and keep specific module files
-      (file) => {
-        // Always include these specific modules/paths
+      (filePath) => {
+        // Always include these critical paths for the app to work
         if (
-          file.includes('src/database') ||
-          file.includes('src/models') ||
-          file === 'src/index.js' ||
-          file === 'src/preload.js'
+          filePath.includes('/src/database/') ||
+          filePath.includes('/src/models/') ||
+          filePath === '/src/index.js' ||
+          filePath === '/src/preload.js' ||
+          filePath.includes('/node_modules/electron-squirrel-startup/') ||
+          filePath.includes('/node_modules/sqlite3/') ||
+          filePath.includes('/node_modules/knex/') ||
+          filePath === '/.env'
         ) {
-          return false; // Don't ignore these files
+          return false; // Don't ignore these paths
         }
         
         // Standard ignore patterns
-        if (/^\/node_modules/.test(file) && !file.includes('electron-squirrel-startup')) {
-          return true; // Ignore node_modules except electron-squirrel-startup
+        if (
+          (filePath.startsWith('/node_modules/') && !filePath.includes('electron-squirrel-startup')) ||
+          filePath.startsWith('/.git/') ||
+          filePath.startsWith('/.vscode/') ||
+          filePath.startsWith('/.webpack/') ||
+          filePath.startsWith('/out/')
+        ) {
+          return true; // Ignore these paths
         }
         
-        if (/^\/\.git/.test(file) || 
-            /^\/\.vscode/.test(file) || 
-            /^\/\.webpack/.test(file) || 
-            /^\/out/.test(file)) {
-          return true; // Ignore these directories
-        }
-        
-        // Don't ignore anything else in src
-        if (file.startsWith('/src/')) {
+        // Include everything else in src
+        if (filePath.startsWith('/src/')) {
           return false;
         }
         
@@ -56,7 +58,7 @@ module.exports = {
     },
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      platforms: ['darwin', 'win32'],
     },
     {
       name: '@electron-forge/maker-deb',
@@ -97,7 +99,60 @@ module.exports = {
   hooks: {
     // This hook runs before packaging
     packageAfterCopy: async (config, buildPath, electronVersion, platform, arch) => {
-      // You can perform additional tasks here if needed
+      // Copy database schema files to ensure they're available in the packaged app
+      const srcDbDir = path.join(__dirname, 'src', 'database');
+      const destDbDir = path.join(buildPath, 'src', 'database');
+      
+      // Ensure the destination directory exists
+      if (!fs.existsSync(destDbDir)) {
+        fs.mkdirSync(destDbDir, { recursive: true });
+      }
+      
+      // Copy migration files
+      const migrationsDir = path.join(srcDbDir, 'migrations');
+      const destMigrationsDir = path.join(destDbDir, 'migrations');
+      if (fs.existsSync(migrationsDir)) {
+        if (!fs.existsSync(destMigrationsDir)) {
+          fs.mkdirSync(destMigrationsDir, { recursive: true });
+        }
+        
+        const migrationFiles = fs.readdirSync(migrationsDir);
+        migrationFiles.forEach(file => {
+          fs.copyFileSync(
+            path.join(migrationsDir, file),
+            path.join(destMigrationsDir, file)
+          );
+        });
+      }
+      
+      // Copy seed files
+      const seedsDir = path.join(srcDbDir, 'seeds');
+      const destSeedsDir = path.join(destDbDir, 'seeds');
+      if (fs.existsSync(seedsDir)) {
+        if (!fs.existsSync(destSeedsDir)) {
+          fs.mkdirSync(destSeedsDir, { recursive: true });
+        }
+        
+        const seedFiles = fs.readdirSync(seedsDir);
+        seedFiles.forEach(file => {
+          fs.copyFileSync(
+            path.join(seedsDir, file),
+            path.join(destSeedsDir, file)
+          );
+        });
+      }
+
+      // Copy .env file
+      const envSource = path.join(__dirname, '.env');
+      const envDest = path.join(buildPath, '.env');
+      
+      if (fs.existsSync(envSource)) {
+        fs.copyFileSync(envSource, envDest);
+        console.log(`Copied .env file to ${envDest}`);
+      } else {
+        console.log('No .env file found to copy');
+      }
+      
       console.log('Packaging for production...');
     },
   },

@@ -70,6 +70,8 @@ contextBridge.exposeInMainWorld('database', {
   restoreFromBackup: (backupPath) => ipcRenderer.invoke('database:restoreFromBackup', backupPath),
   getBackupList: () => ipcRenderer.invoke('database:getBackupList'),
   resetDatabase: () => ipcRenderer.invoke('database:resetDatabase'),
+  getBackupSettings: () => ipcRenderer.invoke('database:getBackupSettings'),
+  updateBackupSettings: (settings) => ipcRenderer.invoke('database:updateBackupSettings', settings),
   
   // JSON import/export
   exportToJson: (customPath) => ipcRenderer.invoke('database:exportToJson', customPath),
@@ -82,4 +84,14 @@ contextBridge.exposeInMainWorld('database', {
   // JSON backup scheduler
   getJsonBackupSettings: () => ipcRenderer.invoke('database:getJsonBackupSettings'),
   updateJsonBackupSettings: (settings) => ipcRenderer.invoke('database:updateJsonBackupSettings', settings),
+  
+  // Configuration
+  getConfigPath: () => ipcRenderer.invoke('config:getPath'),
+  reloadConfig: () => ipcRenderer.invoke('config:reload'),
+  onConfigChanged: (callback) => ipcRenderer.on('config-changed', callback),
+  removeConfigChangedListener: () => ipcRenderer.removeAllListeners('config-changed'),
+  
+  // Language settings
+  getLanguage: () => ipcRenderer.invoke('language:get'),
+  setLanguage: (language) => ipcRenderer.invoke('language:set', language),
 });

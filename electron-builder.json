@@ -1,0 +1,30 @@
+{
+  "appId": "com.yasinkansu.inventory-pro",
+  "productName": "Inventory Pro",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "dist/**/*",
+    "node_modules/**/*",
+    "src/**/*",
+    "package.json"
+  ],
+  "extraFiles": [
+    {
+      "from": ".env",
+      "to": ".env"
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ]
+  },
+  "asar": true,
+  "forceCodeSigning": false,
+  "publish": null
+} 
