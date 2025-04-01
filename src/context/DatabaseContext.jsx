@@ -24,7 +24,6 @@ export const DatabaseProvider = ({ children }) => {
       try {
         setIsLoading(true);
         const appSettings = await SettingService.getAllSettings();
-        console.log('Loaded settings:', appSettings);
         
         // If no settings were loaded, initialize with defaults
         if (!appSettings || Object.keys(appSettings).length === 0) {

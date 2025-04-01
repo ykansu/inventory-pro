@@ -167,7 +167,6 @@ class Product extends BaseModel {
   // Get total inventory value
   async getTotalInventoryValue() {
     try {
-      console.log('Current inventory value:', await this.getCurrentInventoryValue());
       return await this.getCurrentInventoryValue();
     } catch (error) {
       console.error('Error in getTotalInventoryValue:', error);

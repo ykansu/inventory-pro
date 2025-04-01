@@ -457,32 +457,72 @@ const POS = () => {
       // Create the sale
       const sale = await SaleService.createSale(saleData, saleItems);
       
-      // Keep track of items that went below threshold after sale
-      const lowStockItems = [];
-      
-      // Check for low stock items if notifications are enabled
-      if (settings.enableNotifications) {
-        for (const item of cartItems) {
-          const product = item.product;
-          // Calculate the new stock level after this sale
-          const newStockLevel = product.stock_quantity - item.quantity;
-          
-          console.log(`Stock check - ${product.name}: Current: ${product.stock_quantity}, After sale: ${newStockLevel}, Threshold: ${product.min_stock_threshold}`);
-          
-          // Show notification if stock will be at or below threshold
-          if (newStockLevel <= product.min_stock_threshold) {
-            console.log(`Adding low stock notification for ${product.name}`);
-            lowStockItems.push({
-              name: product.name,
-              currentStock: newStockLevel,
-              threshold: product.min_stock_threshold
-            });
-          }
+      // Refresh the products list to update stock quantities
+      try {
+        const updatedProducts = await ProductService.getAllProducts();
+        setProducts(updatedProducts);
+        
+        // Update filtered products as well
+        let filtered = updatedProducts;
+        if (searchQuery) {
+          filtered = filtered.filter(product => 
+            product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (product.barcode && product.barcode.includes(searchQuery))
+          );
         }
+        if (selectedCategory) {
+          filtered = filtered.filter(product => product.category_id === selectedCategory);
+        }
+        setFilteredProducts(filtered);
+      } catch (error) {
+        console.error('Error refreshing products after sale:', error);
       }
       
-      // Log notification status
-      console.log(`Low stock items detected: ${lowStockItems.length}`);
+      // Check for low stock items if notifications are enabled - moved outside of try/catch so it runs even if product refresh fails
+      const lowStockItems = [];
+      if (settings.enableNotifications) {
+        console.log('Checking for low stock items, notifications enabled:', settings.enableNotifications);
+        // Get fresh product data for each cart item to check stock
+        for (const item of cartItems) {
+          try {
+            // Get the latest product data directly from the database
+            const freshProduct = await ProductService.getProductById(item.id);
+            if (!freshProduct) {
+              console.log(`No product found for ID ${item.id}`);
+              continue;
+            }
+            
+            // Add diagnostic logging
+            console.log('Fresh product details:', {
+              name: freshProduct.name,
+              currentStock: freshProduct.stock_quantity,
+              minThreshold: freshProduct.min_stock_threshold,
+              thresholdType: typeof freshProduct.min_stock_threshold
+            });
+            
+            // Show notification if stock is at or below threshold
+            const minThreshold = parseInt(freshProduct.min_stock_threshold) || 0;
+            
+            // Debug the condition
+            console.log(`Stock check: ${freshProduct.stock_quantity} <= ${minThreshold} = ${freshProduct.stock_quantity <= minThreshold}`);
+            
+            if (freshProduct.stock_quantity <= minThreshold) {
+              console.log(`Adding low stock notification for ${freshProduct.name} - Current Stock: ${freshProduct.stock_quantity}, Threshold: ${minThreshold}`);
+              
+              // Add to notification list
+              lowStockItems.push({
+                name: freshProduct.name,
+                currentStock: freshProduct.stock_quantity,
+                threshold: minThreshold
+              });
+            }
+          } catch (error) {
+            console.error(`Error checking stock for product ${item.id}:`, error);
+          }
+        }
+        
+        console.log(`Final low stock items count: ${lowStockItems.length}`);
+      }
       
       // Show receipt
       setCurrentReceipt({
@@ -521,8 +561,7 @@ const POS = () => {
       
       // Show low stock notifications if any
       if (lowStockItems.length > 0) {
-        
-        // Then show individual notifications
+        // Show individual notifications
         setTimeout(() => {
           lowStockItems.forEach((item, index) => {
             setTimeout(() => {

@@ -373,9 +373,7 @@ export const DashboardService = {
   // Get inventory trend data for the past months
   getInventoryTrend: async (months = 6) => {
     try {
-      console.log("DashboardService.getInventoryTrend called with months:", months);
       const result = await window.database.getInventoryTrend(months);
-      console.log("DashboardService.getInventoryTrend result:", result);
       return result;
     } catch (error) {
       console.error('Error fetching inventory trend:', error);

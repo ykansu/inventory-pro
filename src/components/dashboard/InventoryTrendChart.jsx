@@ -59,7 +59,6 @@ const InventoryTrendChart = () => {
       try {
         // Get real data from database
         const data = await dashboard.getInventoryTrend(6);
-        console.log(data);
         setInventoryTrend(data || defaultArray);
       } catch (error) {
         console.error('Error fetching inventory trend:', error);
