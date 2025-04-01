@@ -33,6 +33,8 @@
     "title": "Apply Discount",
     "percentage": "Percentage (%)",
     "fixed": "Fixed Amount",
+    "total": "Set Total",
+    "desiredTotal": "Desired total amount",
     "apply": "Apply",
     "clear": "Clear",
     "invalid": "Invalid discount value"

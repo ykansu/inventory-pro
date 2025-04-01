@@ -34,6 +34,8 @@
     "title": "İndirim Uygula",
     "percentage": "Yüzde (%)",
     "fixed": "Sabit Tutar",
+    "total": "Toplam Belirle",
+    "desiredTotal": "İstenen toplam tutarı",
     "apply": "Uygula",
     "clear": "Temizle",
     "invalid": "Geçersiz indirim değeri"

@@ -34,7 +34,7 @@ const POS = () => {
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0); // Discount amount
-  const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed'
+  const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed' or 'total'
   const [discountValue, setDiscountValue] = useState(''); // User input value
   
   // State for payment modal
@@ -268,6 +268,16 @@ const POS = () => {
         setDiscount(subtotal);
       } else {
         setDiscount((subtotal * value) / 100);
+      }
+    } else if (discountType === 'total') {
+      // Calculate discount based on desired total
+      // Ensure desired total doesn't exceed subtotal
+      if (value > subtotal) {
+        // If desired total is higher than subtotal, no discount
+        setDiscount(0);
+      } else {
+        // Calculate the discount as the difference between subtotal and desired total
+        setDiscount(subtotal - value);
       }
     } else { // fixed amount
       // Ensure fixed discount doesn't exceed subtotal
@@ -733,6 +743,7 @@ const POS = () => {
                 >
                   <option value="percentage">{t('pos:discount.percentage')}</option>
                   <option value="fixed">{t('pos:discount.fixed')}</option>
+                  <option value="total">{t('pos:discount.total')}</option>
                 </select>
                 <input
                   type="number"
@@ -741,7 +752,10 @@ const POS = () => {
                   step="0.01"
                   value={discountValue}
                   onChange={(e) => setDiscountValue(e.target.value)}
-                  placeholder={discountType === 'percentage' ? '0%' : '0.00'}
+                  placeholder={
+                    discountType === 'percentage' ? '0%' : 
+                    discountType === 'total' ? t('pos:discount.desiredTotal') : '0.00'
+                  }
                   className="discount-input"
                 />
                 <button 
