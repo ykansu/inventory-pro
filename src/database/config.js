@@ -50,14 +50,14 @@ JSON_BACKUP_ENABLED=false
 JSON_BACKUP_FREQUENCY=daily
 JSON_BACKUP_TIME=23:00
 MAX_JSON_BACKUPS=5
-JSON_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
+JSON_BACKUP_PATH=C:/inventoryPro/backups/json
 
 # Excel Export Configuration
 EXCEL_BACKUP_ENABLED=false
 EXCEL_BACKUP_FREQUENCY=daily
 EXCEL_BACKUP_TIME=23:00
 MAX_EXCEL_BACKUPS=5
-EXCEL_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
+EXCEL_BACKUP_PATH=C:/inventoryPro/backups/excel
 `;
 
   try {
@@ -113,7 +113,7 @@ const config = {
     time: process.env.BACKUP_TIME || '23:00', // Time for scheduled backups
     maxBackups: getNumberEnv('MAX_BACKUPS', 7), // Number of backups to keep
     path: process.env.BACKUP_PATH || 'C:/inventoryPro/backups',
-    jsonPath: process.env.JSON_BACKUP_PATH || path.join(os.homedir(), 'Desktop'), // Default to desktop for JSON exports
+    jsonPath: process.env.JSON_BACKUP_PATH || 'C:/inventoryPro/backups/json', // Default to specified JSON export path
     
     // JSON backup schedule settings
     jsonBackupEnabled: getBooleanEnv('JSON_BACKUP_ENABLED', false),
@@ -122,7 +122,7 @@ const config = {
     maxJsonBackups: getNumberEnv('MAX_JSON_BACKUPS', 5), // Number of JSON backups to keep
     
     // Excel backup schedule settings
-    excelPath: process.env.EXCEL_BACKUP_PATH || path.join(os.homedir(), 'Desktop'), // Default to desktop for Excel exports
+    excelPath: process.env.EXCEL_BACKUP_PATH || 'C:/inventoryPro/backups/excel', // Default to specified Excel export path
     excelBackupEnabled: getBooleanEnv('EXCEL_BACKUP_ENABLED', false),
     excelBackupFrequency: process.env.EXCEL_BACKUP_FREQUENCY || 'daily', // daily, weekly, monthly
     excelBackupTime: process.env.EXCEL_BACKUP_TIME || '23:00', // Time for scheduled Excel backups
@@ -185,12 +185,12 @@ const config = {
       time: process.env.BACKUP_TIME || '23:00',
       maxBackups: getNumberEnv('MAX_BACKUPS', 7),
       path: process.env.BACKUP_PATH || 'C:/inventoryPro/backups',
-      jsonPath: process.env.JSON_BACKUP_PATH || path.join(os.homedir(), 'Desktop'),
+      jsonPath: process.env.JSON_BACKUP_PATH || 'C:/inventoryPro/backups/json',
       jsonBackupEnabled: getBooleanEnv('JSON_BACKUP_ENABLED', false),
       jsonBackupFrequency: process.env.JSON_BACKUP_FREQUENCY || 'daily',
       jsonBackupTime: process.env.JSON_BACKUP_TIME || '23:00',
       maxJsonBackups: getNumberEnv('MAX_JSON_BACKUPS', 5),
-      excelPath: process.env.EXCEL_BACKUP_PATH || path.join(os.homedir(), 'Desktop'),
+      excelPath: process.env.EXCEL_BACKUP_PATH || 'C:/inventoryPro/backups/excel',
       excelBackupEnabled: getBooleanEnv('EXCEL_BACKUP_ENABLED', false),
       excelBackupFrequency: process.env.EXCEL_BACKUP_FREQUENCY || 'daily',
       excelBackupTime: process.env.EXCEL_BACKUP_TIME || '23:00',

@@ -32,14 +32,14 @@ JSON_BACKUP_ENABLED=false
 JSON_BACKUP_FREQUENCY=daily
 JSON_BACKUP_TIME=23:00
 MAX_JSON_BACKUPS=5
-JSON_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
+JSON_BACKUP_PATH=C:/inventoryPro/backups/json
 
 # Excel Export Configuration
 EXCEL_BACKUP_ENABLED=false
 EXCEL_BACKUP_FREQUENCY=daily
 EXCEL_BACKUP_TIME=23:00
 MAX_EXCEL_BACKUPS=5
-EXCEL_BACKUP_PATH=${path.join(os.homedir(), 'Desktop')}
+EXCEL_BACKUP_PATH=C:/inventoryPro/backups/excel
 `;
 
   fs.writeFileSync(envExample, defaultConfig, 'utf8');
