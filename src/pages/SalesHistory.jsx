@@ -3,6 +3,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import useSalesHistory from '../hooks/useSalesHistory';
 import { SaleService, SettingService } from '../services/DatabaseService';
 import { calculateReturnTotal, formatCurrency } from '../utils/calculations';
+import { printReceipt } from '../utils/receiptPrinter';
 import { toast } from 'react-hot-toast';
 import '../styles/pages/sales-history.css';
 import '../styles/components/modal.css';
@@ -266,6 +267,39 @@ const SalesHistory = () => {
   // For display in the UI
   const returnAmounts = calculateReturnAmount(returnItems);
 
+  // Print receipt 
+  const handlePrintReceipt = () => {
+    if (selectedSale && selectedSaleDetails) {
+      // Format receipt data in the structure expected by the receipt printer
+      const receiptData = {
+        receipt_number: selectedSale.receipt_number,
+        businessName: settings.businessName,
+        businessAddress: settings.businessAddress,
+        businessPhone: settings.businessPhone,
+        businessEmail: settings.businessEmail,
+        date: formatDate(selectedSale.created_at),
+        items: selectedSaleDetails.items.map(item => ({
+          name: item.product_name,
+          quantity: item.quantity,
+          price: item.unit_price,
+          totalPrice: item.total_price
+        })),
+        subtotal: selectedSale.subtotal,
+        discount: selectedSale.discount_amount,
+        tax: selectedSale.tax_amount,
+        total: selectedSale.total_amount,
+        payment_method: selectedSale.payment_method,
+        amountPaid: selectedSale.amount_paid,
+        changeAmount: selectedSale.change_amount,
+        cashAmount: selectedSale.cash_amount,
+        cardAmount: selectedSale.card_amount
+      };
+      
+      // Use the receipt printer utility
+      printReceipt(receiptData, t, formatWithCurrency);
+    }
+  };
+
   return (
     <div className="sales-history-page">
       <div className="page-header">
@@ -487,7 +521,7 @@ const SalesHistory = () => {
               <div className="receipt-actions">
                 <button 
                   className="button secondary" 
-                  onClick={() => window.print()} 
+                  onClick={handlePrintReceipt} 
                   disabled={!selectedSale}
                 >
                   {t('sales:actions.printReceipt')}

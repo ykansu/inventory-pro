@@ -4,6 +4,7 @@ import { ProductService, CategoryService, SaleService, SettingService } from '..
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/calculations';
+import { printReceipt } from '../utils/receiptPrinter';
 
 const POS = () => {
   const { t } = useTranslation(['pos', 'common']);
@@ -371,36 +372,13 @@ const POS = () => {
   };
   
   // Print receipt
-  const printReceipt = () => {
-    if (receiptRef.current) {
-      const printWindow = window.open('', '_blank');
-      
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Receipt</title>
-            <style>
-              body { font-family: monospace; width: 300px; margin: 0 auto; }
-              .receipt { padding: 10px; }
-              .receipt-header { text-align: center; margin-bottom: 10px; }
-              .receipt-custom-header { font-style: italic; margin: 8px 0; }
-              .receipt-items { width: 100%; border-collapse: collapse; margin: 10px 0; }
-              .receipt-items th, .receipt-items td { text-align: left; padding: 3px; }
-              .summary-row { display: flex; justify-content: space-between; margin: 5px 0; }
-              .total { font-weight: bold; border-top: 1px dashed #000; padding-top: 5px; }
-              .thank-you { text-align: center; margin-top: 20px; }
-            </style>
-          </head>
-          <body>
-            ${receiptRef.current.innerHTML}
-          </body>
-        </html>
-      `);
-      
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+  const printReceiptHandler = () => {
+    if (currentReceipt) {
+      printReceipt(
+        currentReceipt, 
+        t, 
+        (amount) => formatCurrency(amount, settings.currency)
+      );
     }
   };
   
@@ -1038,7 +1016,7 @@ const POS = () => {
               </button>
               <button 
                 className="button primary"
-                onClick={printReceipt}
+                onClick={printReceiptHandler}
               >
                 {t('pos:receipt.print')}
               </button>
