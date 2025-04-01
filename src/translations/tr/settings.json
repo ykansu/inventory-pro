@@ -94,6 +94,21 @@
       "success": "Veriler başarıyla içe aktarıldı",
       "error": "Veriler içe aktarılamadı"
     },
+    "exportToExcel": {
+      "title": "Excel'e Dışa Aktar",
+      "description": "Tüm envanter verilerinizi yedekleme veya analiz için bir Excel dosyasına aktarın.",
+      "action": "Excel'e Aktar",
+      "success": "Veriler Excel'e başarıyla aktarıldı",
+      "error": "Veriler Excel'e aktarılamadı"
+    },
+    "importFromExcel": {
+      "title": "Excel'den İçe Aktar",
+      "description": "Bir Excel dosyasından envanter verilerini içe aktarın. Uyarı: Bu, mevcut verilerinizin yerini alacaktır.",
+      "action": "Excel'den İçe Aktar",
+      "confirmMessage": "Excel'den veri içe aktarmak istediğinizden emin misiniz? Mevcut verilerinizin yerini alacaktır!",
+      "success": "Veriler Excel'den başarıyla içe aktarıldı",
+      "error": "Veriler Excel'den içe aktarılamadı"
+    },
     "jsonExportSettings": {
       "title": "JSON Dışa Aktarma Ayarları",
       "description": "JSON yedeklemelerin varsayılan olarak nereye kaydedileceğini yapılandırın.",

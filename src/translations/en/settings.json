@@ -94,6 +94,21 @@
       "success": "Data imported successfully",
       "error": "Failed to import data"
     },
+    "exportToExcel": {
+      "title": "Export to Excel",
+      "description": "Export all your inventory data to an Excel file for backup or analysis.",
+      "action": "Export Excel",
+      "success": "Data exported to Excel successfully",
+      "error": "Failed to export data to Excel"
+    },
+    "importFromExcel": {
+      "title": "Import from Excel",
+      "description": "Import inventory data from an Excel file. Warning: This will replace your current data.",
+      "action": "Import Excel",
+      "confirmMessage": "Are you sure you want to import data from Excel? Your existing data will be replaced!",
+      "success": "Data imported from Excel successfully",
+      "error": "Failed to import data from Excel"
+    },
     "jsonExportSettings": {
       "title": "JSON Export Settings",
       "description": "Configure where JSON backups are saved by default.",

@@ -396,15 +396,15 @@ const Settings = () => {
   const handleExportToExcel = async () => {
     try {
       const exportPath = await database.exportToExcel();
-      toast.success(t('settings:database.exportToExcel.success', 'Excel export successful'));
+      toast.success(t('settings:database.exportToExcel.success'));
     } catch (error) {
-      toast.error(t('settings:database.exportToExcel.error', 'Excel export failed'));
+      toast.error(t('settings:database.exportToExcel.error'));
       console.error('Excel export failed:', error);
     }
   };
 
   const handleImportFromExcel = async () => {
-    if (window.confirm(t('settings:database.importFromExcel.confirmMessage', 'This will replace all your current data with the data from the Excel file. Are you sure?'))) {
+    if (window.confirm(t('settings:database.importFromExcel.confirmMessage'))) {
       try {
         // First, select the Excel file
         const excelFilePath = await database.selectExcelFile();
@@ -423,7 +423,7 @@ const Settings = () => {
         toast.dismiss('importExcel');
         
         // Show success message
-        toast.success(t('settings:database.importFromExcel.success', 'Excel import successful'));
+        toast.success(t('settings:database.importFromExcel.success'));
         
         // Wait a moment to ensure database connection is fully reestablished
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -433,7 +433,7 @@ const Settings = () => {
         // Clear loading toast
         toast.dismiss('importExcel');
         
-        toast.error(t('settings:database.importFromExcel.error', 'Excel import failed'));
+        toast.error(t('settings:database.importFromExcel.error'));
         console.error('Excel import failed:', error);
         
         // If import fails, suggest the user reload the application
@@ -782,24 +782,24 @@ const Settings = () => {
                 </div>
                 
                 <div className="action-card">
-                  <h4>{t('settings:database.exportToExcel.title', 'Export to Excel')}</h4>
-                  <p>{t('settings:database.exportToExcel.description', 'Export all your inventory data to an Excel file for backup or analysis.')}</p>
+                  <h4>{t('settings:database.exportToExcel.title')}</h4>
+                  <p>{t('settings:database.exportToExcel.description')}</p>
                   <button 
                     className="button secondary"
                     onClick={handleExportToExcel}
                   >
-                    {t('settings:database.exportToExcel.action', 'Export Excel')}
+                    {t('settings:database.exportToExcel.action')}
                   </button>
                 </div>
                 
                 <div className="action-card">
-                  <h4>{t('settings:database.importFromExcel.title', 'Import from Excel')}</h4>
-                  <p>{t('settings:database.importFromExcel.description', 'Import inventory data from an Excel file. This will replace your current data.')}</p>
+                  <h4>{t('settings:database.importFromExcel.title')}</h4>
+                  <p>{t('settings:database.importFromExcel.description')}</p>
                   <button 
                     className="button secondary"
                     onClick={handleImportFromExcel}
                   >
-                    {t('settings:database.importFromExcel.action', 'Import Excel')}
+                    {t('settings:database.importFromExcel.action')}
                   </button>
                 </div>
                 
