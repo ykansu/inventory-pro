@@ -24,6 +24,7 @@ async function getAllTables() {
     { name: 'categories', data: await db('categories').select('*') },
     { name: 'suppliers', data: await db('suppliers').select('*') },
     { name: 'products', data: await db('products').select('*') },
+    { name: 'product_price_history', data: await db('product_price_history').select('*') },
     { name: 'sales', data: await db('sales').select('*') },
     { name: 'sale_items', data: await db('sale_items').select('*') },
     { name: 'stock_adjustments', data: await db('stock_adjustments').select('*') },

@@ -23,6 +23,7 @@ async function getAllTables() {
     { name: 'categories', data: await db('categories').select('*') },
     { name: 'suppliers', data: await db('suppliers').select('*') },
     { name: 'products', data: await db('products').select('*') },
+    { name: 'product_price_history', data: await db('product_price_history').select('*') },
     { name: 'sales', data: await db('sales').select('*') },
     { name: 'sale_items', data: await db('sale_items').select('*') },
     { name: 'stock_adjustments', data: await db('stock_adjustments').select('*') },
@@ -108,6 +109,9 @@ async function importFromJson(jsonFile) {
         await trx.raw('DELETE FROM stock_adjustments');
         console.log('  - Cleared stock_adjustments table');
         
+        await trx.raw('DELETE FROM product_price_history');
+        console.log('  - Cleared product_price_history table');
+        
         await trx.raw('DELETE FROM products');
         console.log('  - Cleared products table');
         
@@ -130,7 +134,7 @@ async function importFromJson(jsonFile) {
         };
         
         // Reset SQLite sequence counters to ensure proper ID assignment
-        await trx.raw("DELETE FROM sqlite_sequence WHERE name IN ('categories', 'suppliers', 'products', 'sales', 'sale_items', 'stock_adjustments')");
+        await trx.raw("DELETE FROM sqlite_sequence WHERE name IN ('categories', 'suppliers', 'products', 'sales', 'sale_items', 'stock_adjustments', 'product_price_history')");
         console.log('Sequence counters reset');
         
         // Insert data in dependency order
@@ -193,6 +197,24 @@ async function importFromJson(jsonFile) {
             
             const [newId] = await trx('sales').insert(data);
             idMappings.sales[oldId] = newId;
+          }
+        }
+        
+        if (importData.data.product_price_history && importData.data.product_price_history.length) {
+          console.log(`Importing ${importData.data.product_price_history.length} price history records`);
+          for (const item of importData.data.product_price_history) {
+            const { id, ...data } = item;
+            
+            // Update the product_id foreign key reference
+            if (data.product_id && idMappings.products[data.product_id]) {
+              data.product_id = idMappings.products[data.product_id];
+            } else if (data.product_id) {
+              // If product doesn't exist in the mapping, skip this record
+              console.log(`Skipping price history record - product ID ${data.product_id} not found`);
+              continue;
+            }
+            
+            await trx('product_price_history').insert(data);
           }
         }
         

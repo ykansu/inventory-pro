@@ -82,6 +82,9 @@ async function forceSeedDatabase(options = { skipSeeding: false }) {
       await db('stock_adjustments').truncate();
       console.log('  - Truncated stock_adjustments table');
       
+      await db('product_price_history').truncate();
+      console.log('  - Truncated product_price_history table');
+      
       await db('products').truncate();
       console.log('  - Truncated products table');
       
