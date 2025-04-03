@@ -1,4 +1,6 @@
 const dbConnection = require('../database/connection');
+const { subMonths, startOfMonth, format } = require('date-fns');
+
 
 // Helper functions for formatting
 const formatDateHelper = (date, options = {}, defaultValue = '') => {
@@ -246,26 +248,39 @@ class Product extends BaseModel {
   async getInventoryTrend(months = 6) {
     try {
       const db = await this.getDb();
-
-      // return trendData as an array of length months, containing the sum of stock_quantity for each month
-      // stock_quantity is a calculated as the sum of the product's stock_quantity times the product's cost_price
-      // the date should be the first day of the month
-      // the data should be in descending order
-      // Get the date from X months ago
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - months);
-      const startDateStr = startDate.toISOString();
+            
+      // Calculate the start date by subtracting the specified number of months
+      const startDate = subMonths(new Date(), months);
       
-      // For SQLite, we need to use strftime instead of MONTH function
+      // Ensure we get the start of the month for consistent data
+      const startOfMonthDate = startOfMonth(startDate);
+      
+      // Convert to ISO string for database query
+      const startDateStr = startOfMonthDate.toISOString();
+      
+      // Get current inventory values for each month
       const trendData = await db('products')
         .select(
-          db.raw("strftime('%Y-%m', created_at) as month"),
+          db.raw("strftime('%Y-%m', date('now')) as month"),
           db.raw('SUM(stock_quantity * cost_price) as value')
         )
-        .where('created_at', '>=', startDateStr)
-        .groupBy(db.raw("strftime('%Y-%m', created_at)"))
-        .orderBy(db.raw("strftime('%Y-%m', created_at)"), 'desc')
+        .where('stock_quantity', '>', 0)
+        .groupBy(db.raw("strftime('%Y-%m', date('now'))"));
+      
+      // Get historical inventory values from stock adjustments
+      const historicalData = await db('stock_adjustments')
+        .join('products', 'stock_adjustments.product_id', 'products.id')
+        .select(
+          db.raw("strftime('%Y-%m', stock_adjustments.created_at) as month"),
+          db.raw('SUM(stock_adjustments.quantity_change * products.cost_price) as value')
+        )
+        .where('stock_adjustments.created_at', '>=', startDateStr)
+        .groupBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at)"))
+        .orderBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at)"), 'desc')
         .limit(months);
+      
+      // Combine current and historical data
+      const allData = [...trendData, ...historicalData];
       
       // Fill in missing months with zero values
       const result = [];
@@ -277,7 +292,7 @@ class Product extends BaseModel {
         const monthStr = date.toISOString().substring(0, 7);
         
         // Find if we have data for this month
-        const existingData = trendData.find(item => item.month === monthStr);
+        const existingData = allData.find(item => item.month === monthStr);
         
         result.push({
           month: monthStr,
@@ -286,9 +301,6 @@ class Product extends BaseModel {
       }
       
       return result.reverse();
-
-      
-        
     } catch (error) {
       console.error("Error in getInventoryTrend:", error);
       // Return empty array on error
