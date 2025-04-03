@@ -159,9 +159,7 @@ const ProductManagement = () => {
           );
           break;
         case 'in-stock':
-          results = results.filter(product => 
-            product.stock_quantity > product.min_stock_threshold
-          );
+          results = results.filter(product => product.stock_quantity > 0);
           break;
         default:
           break;
@@ -243,7 +241,8 @@ const ProductManagement = () => {
         stock_quantity: parseInt(formData.stock_quantity, 10),
         min_stock_threshold: parseInt(formData.min_stock_threshold, 10),
         category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
-        supplier_id: formData.supplier_id ? parseInt(formData.supplier_id, 10) : null
+        supplier_id: formData.supplier_id ? parseInt(formData.supplier_id, 10) : null,
+        barcode: formData.barcode.trim() || null // Set to null if empty
       };
       
       if (formData.id) {

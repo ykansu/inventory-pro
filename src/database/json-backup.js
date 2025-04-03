@@ -184,6 +184,11 @@ async function importFromJson(jsonFile) {
               data.supplier_id = null;
             }
             
+            // Handle empty barcode
+            if (data.barcode === '' || data.barcode === null || data.barcode === undefined) {
+              data.barcode = null;
+            }
+            
             const [newId] = await trx('products').insert(data);
             idMappings.products[oldId] = newId;
           }

@@ -13,8 +13,8 @@ const LowStockItemsCard = () => {
     const fetchLowStockItems = async () => {
       try {
         setLoading(true);
-        const lowStockProducts = await products.getLowStockProducts();
-        setLowStockCount(lowStockProducts?.length || 0);
+        const count = await products.getLowStockCount();
+        setLowStockCount(count);
       } catch (error) {
         console.error('Error fetching low stock items:', error);
       } finally {

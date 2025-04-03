@@ -340,6 +340,11 @@ async function importFromExcel(excelFile) {
               item.supplier_id = null;
             }
             
+            // Handle empty barcode
+            if (item.barcode === '' || item.barcode === null || item.barcode === undefined) {
+              item.barcode = null;
+            }
+            
             const [newId] = await trx('products').insert(item);
             idMappings.products[oldId] = newId;
           }
