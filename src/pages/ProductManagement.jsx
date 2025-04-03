@@ -131,12 +131,43 @@ const ProductManagement = () => {
     
     // Apply search query
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      results = results.filter(product => 
-        product.name.toLowerCase().includes(query) || 
-        (product.barcode && product.barcode.toLowerCase().includes(query)) ||
-        (product.description && product.description.toLowerCase().includes(query))
-      );
+      results = results.filter(product => {
+        // Turkish search comparison function that handles all character variations
+        const makeTurkishSearchable = (str) => {
+          if (!str) return '';
+          return str
+            .toLowerCase()
+            // Standardize Turkish characters to Latin equivalents
+            .replace(/ı/g, 'i')
+            .replace(/i̇/g, 'i')
+            .replace(/İ/g, 'i')
+            .replace(/I/g, 'i')
+            .replace(/ğ/g, 'g')
+            .replace(/Ğ/g, 'g')
+            .replace(/ü/g, 'u')
+            .replace(/Ü/g, 'u')
+            .replace(/ö/g, 'o')
+            .replace(/Ö/g, 'o')
+            .replace(/ş/g, 's')
+            .replace(/Ş/g, 's')
+            .replace(/ç/g, 'c')
+            .replace(/Ç/g, 'c');
+        };
+        
+        // Convert product data and search query to searchable format
+        const searchableProductName = makeTurkishSearchable(product.name);
+        const searchableQuery = makeTurkishSearchable(searchQuery);
+        const searchableDescription = makeTurkishSearchable(product.description);
+        
+        // Check if the searchable product name/description contains the searchable query
+        const nameMatch = searchableProductName.includes(searchableQuery);
+        const descriptionMatch = searchableDescription.includes(searchableQuery);
+        
+        // For barcode, just do a simple case-insensitive search (it's usually numeric)
+        const barcodeMatch = product.barcode && product.barcode.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        return nameMatch || barcodeMatch || descriptionMatch;
+      });
     }
     
     // Apply category filter
