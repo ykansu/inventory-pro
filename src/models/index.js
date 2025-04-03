@@ -1,5 +1,5 @@
 const dbConnection = require('../database/connection');
-const { subMonths, startOfMonth, format } = require('date-fns');
+const { subMonths, startOfMonth, format, startOfDay, endOfDay } = require('date-fns');
 
 
 // Helper functions for formatting
@@ -538,6 +538,45 @@ class Sale extends BaseModel {
     } catch (error) {
       console.error('Error in getByDateRange:', error);
       throw error;
+    }
+  }
+  
+  // Get today's sales total
+  async getTodaySalesTotal() {
+    try {
+      // Get database connection
+      const db = await this.getDb();
+      
+      // Check if the sales table exists
+      const hasSalesTable = await db.schema.hasTable(this.tableName);
+      
+      if (!hasSalesTable) {
+        return 0;
+      }
+      
+      // Use date-fns to get today's date range
+      const now = new Date();
+      const todayStart = startOfDay(now);
+      const todayEnd = endOfDay(now);
+      
+      // Convert to ISO strings for the query
+      const startDateISO = todayStart.toISOString();
+      const endDateISO = todayEnd.toISOString();
+      
+      // Get sales for today in the database
+      const sales = await db(this.tableName)
+        .where('created_at', '>=', startDateISO)
+        .where('created_at', '<=', endDateISO)
+        .where('is_returned', false)
+        .select('total_amount');
+      
+      // Calculate total sales amount
+      const todaySalesTotal = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
+      
+      return todaySalesTotal;
+    } catch (error) {
+      console.error('Error in getTodaySalesTotal:', error);
+      return 0; // Return 0 instead of throwing to prevent dashboard crashes
     }
   }
   

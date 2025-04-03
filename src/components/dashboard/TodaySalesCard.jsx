@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { SaleService } from '../../services/DatabaseService';
+import { SaleService, DashboardService } from '../../services/DatabaseService';
 import StatCard from './StatCard';
 import { useDatabase } from '../../context/DatabaseContext';
 import { formatCurrency } from '../../utils/formatters';
@@ -29,15 +29,13 @@ const TodaySalesCard = () => {
     const fetchTodaySales = async () => {
       try {
         setLoading(true);
-        // Get today's date and format it for API
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
         
-        const sales = await SaleService.getSalesByDateRange(formattedDate, formattedDate);
-        
-        // Calculate total amount from all sales
-        const total = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
+        // Use the dedicated dashboard service method that calls the backend function
+        const total = await DashboardService.getTodaySalesTotal();
         setTodaySales(total);
+        
+        // Log for debugging
+        console.log('Today sales retrieved from backend:', total);
       } catch (error) {
         console.error('Error fetching today sales:', error);
         setTodaySales(0);
