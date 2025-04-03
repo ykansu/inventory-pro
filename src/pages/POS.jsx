@@ -157,7 +157,10 @@ const POS = () => {
         // For barcode, just do a simple case-insensitive search (it's usually numeric)
         const barcodeMatch = product.barcode && product.barcode.toLowerCase().includes(searchQuery.toLowerCase());
         
-        return nameMatch || barcodeMatch;
+        // For price matching, check if the selling price as a string includes the search query
+        const priceMatch = product.selling_price.toString().includes(searchQuery);
+        
+        return nameMatch || barcodeMatch || priceMatch;
       });
     }
     
