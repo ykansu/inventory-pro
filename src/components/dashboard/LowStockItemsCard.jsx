@@ -7,13 +7,13 @@ const LowStockItemsCard = () => {
   const { t } = useTranslation(['dashboard']);
   const [loading, setLoading] = useState(true);
   const [lowStockCount, setLowStockCount] = useState(0);
-  const { products } = useDatabase();
+  const { dashboard } = useDatabase();
 
   useEffect(() => {
     const fetchLowStockItems = async () => {
       try {
         setLoading(true);
-        const count = await products.getLowStockCount();
+        const count = await dashboard.getLowStockItemCount();
         setLowStockCount(count);
       } catch (error) {
         console.error('Error fetching low stock items:', error);
@@ -23,7 +23,7 @@ const LowStockItemsCard = () => {
     };
 
     fetchLowStockItems();
-  }, [products]);
+  }, [dashboard]);
 
   return (
     <StatCard
