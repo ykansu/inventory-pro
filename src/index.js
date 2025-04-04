@@ -853,6 +853,24 @@ ipcMain.handle('dashboard:getInventoryValue', async () => {
   }
 });
 
+ipcMain.handle('dashboard:getInventoryValueByCategory', async () => {
+  try {
+    return await Product.getInventoryValueByCategory();
+  } catch (error) {
+    console.error('Error getting inventory value by category:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('dashboard:getInventoryValueBySupplier', async () => {
+  try {
+    return await Product.getInventoryValueBySupplier();
+  } catch (error) {
+    console.error('Error getting inventory value by supplier:', error);
+    throw error;
+  }
+});
+
 ipcMain.handle('dashboard:getTopSellingProducts', async (_, limit = 5) => {
   try {
     return await Sale.getTopSellingProducts(limit);

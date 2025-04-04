@@ -176,6 +176,60 @@ class Product extends BaseModel {
     }
   }
   
+  // Get inventory value by category
+  async getInventoryValueByCategory() {
+    try {
+      const db = await this.getDb();
+      const results = await db(this.tableName)
+        .leftJoin('categories', 'products.category_id', 'categories.id')
+        .select(
+          'categories.id as category_id',
+          'categories.name as name',
+          db.raw('SUM(products.stock_quantity * products.cost_price) as value'),
+          db.raw('COUNT(products.id) as product_count')
+        )
+        .where('products.stock_quantity', '>', 0)
+        .groupBy('categories.id', 'categories.name');
+      
+      return results.map(category => ({
+        id: category.category_id,
+        name: category.name || 'Uncategorized',
+        value: parseFloat(category.value) || 0,
+        productCount: parseInt(category.product_count) || 0
+      })).sort((a, b) => b.value - a.value); // Sort by value (highest first)
+    } catch (error) {
+      console.error('Error in getInventoryValueByCategory:', error);
+      return [];
+    }
+  }
+  
+  // Get inventory value by supplier
+  async getInventoryValueBySupplier() {
+    try {
+      const db = await this.getDb();
+      const results = await db(this.tableName)
+        .leftJoin('suppliers', 'products.supplier_id', 'suppliers.id')
+        .select(
+          'suppliers.id as supplier_id',
+          'suppliers.company_name as name',
+          db.raw('SUM(products.stock_quantity * products.cost_price) as value'),
+          db.raw('COUNT(products.id) as product_count')
+        )
+        .where('products.stock_quantity', '>', 0)
+        .groupBy('suppliers.id', 'suppliers.company_name');
+      
+      return results.map(supplier => ({
+        id: supplier.supplier_id,
+        name: supplier.name || 'Unknown Supplier',
+        value: parseFloat(supplier.value) || 0,
+        productCount: parseInt(supplier.product_count) || 0
+      })).sort((a, b) => b.value - a.value); // Sort by value (highest first)
+    } catch (error) {
+      console.error('Error in getInventoryValueBySupplier:', error);
+      return [];
+    }
+  }
+  
   // Get current inventory value
   async getCurrentInventoryValue() {
     try {

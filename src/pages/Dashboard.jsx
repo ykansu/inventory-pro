@@ -12,6 +12,8 @@ import TopProductsChart from '../components/dashboard/TopProductsChart';
 import RevenueByPaymentChart from '../components/dashboard/RevenueByPaymentChart';
 import RevenueBySupplierChart from '../components/dashboard/RevenueBySupplierChart';
 import InventoryTrendChart from '../components/dashboard/InventoryTrendChart';
+import InventoryValueByCategoryChart from '../components/dashboard/InventoryValueByCategoryChart';
+import InventoryValueBySupplierChart from '../components/dashboard/InventoryValueBySupplierChart';
 
 const Dashboard = () => {
   const { t } = useTranslation(['dashboard', 'common']);
@@ -57,6 +59,8 @@ const Dashboard = () => {
         <TopProductsChart />
         <RevenueBySupplierChart />
         <RevenueByPaymentChart />
+        <InventoryValueByCategoryChart />
+        <InventoryValueBySupplierChart />
         <InventoryTrendChart />
         <ProfitTrendChart />
       </div>

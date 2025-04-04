@@ -330,6 +330,26 @@ export const DashboardService = {
     }
   },
   
+  // Get inventory value by category
+  getInventoryValueByCategory: async () => {
+    try {
+      return await window.database.getInventoryValueByCategory();
+    } catch (error) {
+      console.error('Error fetching inventory value by category:', error);
+      throw error;
+    }
+  },
+  
+  // Get inventory value by supplier
+  getInventoryValueBySupplier: async () => {
+    try {
+      return await window.database.getInventoryValueBySupplier();
+    } catch (error) {
+      console.error('Error fetching inventory value by supplier:', error);
+      throw error;
+    }
+  },
+  
   // Get top selling products
   getTopSellingProducts: async (limit = 5) => {
     try {
