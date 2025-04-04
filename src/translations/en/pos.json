@@ -5,6 +5,7 @@
     "button": "Search"
   },
   "categories": {
+    "title": "Categories",
     "all": "All",
     "electronics": "Electronics",
     "clothing": "Clothing",

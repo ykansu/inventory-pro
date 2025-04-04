@@ -13,6 +13,7 @@ const POS = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isCategoryFilterCollapsed, setIsCategoryFilterCollapsed] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -663,22 +664,32 @@ const POS = () => {
             </form>
           </div>
 
-          <div className="product-categories">
-            <button 
-              className={`category-button ${selectedCategory === null ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(null)}
-            >
-              {t('pos:categories.all')}
-            </button>
-            {categories.map(category => (
-              <button 
-                key={category.id}
-                className={`category-button ${selectedCategory === category.id ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                {category.name}
+          <div className="category-filter-container">
+            <div className="category-filter-header" onClick={() => setIsCategoryFilterCollapsed(!isCategoryFilterCollapsed)}>
+              <span>{t('pos:categories.title')}</span>
+              <button className="toggle-filter-button">
+                {isCategoryFilterCollapsed ? '▼' : '▲'}
               </button>
-            ))}
+            </div>
+            {!isCategoryFilterCollapsed && (
+              <div className="product-categories">
+                <button 
+                  className={`category-button ${selectedCategory === null ? 'active' : ''}`}
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  {t('pos:categories.all')}
+                </button>
+                {categories.map(category => (
+                  <button 
+                    key={category.id}
+                    className={`category-button ${selectedCategory === category.id ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="product-grid">
