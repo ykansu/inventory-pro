@@ -444,10 +444,10 @@ const POS = () => {
   const getUnitName = (product) => {
     if (!product || !product.unit) return t('pos:units.default');
     
-    // Try to get the proper translation for this specific unit
+    // Get the unit key in lowercase
     const unitKey = product.unit.toLowerCase();
     
-    // Try direct translation first (this will catch all abbreviations we added directly to the translation files)
+    // Try direct translation first - this will get abbreviations like "ad", "kg", etc.
     return t(`pos:units.${unitKey}`, { defaultValue: unitKey });
   };
   

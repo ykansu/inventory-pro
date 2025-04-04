@@ -106,13 +106,26 @@ const StockUpdate = () => {
   const getUnitName = (product) => {
     if (!product || !product.unit) return t('products:stockUpdate.units');
     
-    // Try to get the proper translation for this specific unit
+    // Get the unit key in lowercase
     const unitKey = product.unit.toLowerCase();
+    
+    // For all unit types, first try to get the abbreviation directly from the pos translations
+    // This will return abbreviations like "ad" for pcs, "kg" for kilograms, etc.
+    const unitAbbreviation = t(`pos:units.${unitKey}`, { defaultValue: null });
+    if (unitAbbreviation) {
+      return unitAbbreviation;
+    }
+    
+    // If direct abbreviation not found, try to get the full name with abbreviation in parentheses
     const unitTranslation = t(`products:units.${unitKey}`, { returnObjects: true });
     
-    // If we have a proper translation that contains the unit name and symbol, extract just the name
-    if (typeof unitTranslation === 'string' && unitTranslation.includes('(')) {
-      return unitTranslation.split('(')[0].trim();
+    // If we have a proper translation that contains the unit name and symbol, extract just the symbol in parentheses
+    if (typeof unitTranslation === 'string' && unitTranslation.includes('(') && unitTranslation.includes(')')) {
+      // Extract the abbreviation between parentheses
+      const match = unitTranslation.match(/\(([^)]+)\)/);
+      if (match && match[1]) {
+        return match[1]; // Return just the abbreviation
+      }
     }
     
     // Otherwise return the unit as is or fall back to the generic "units" translation
