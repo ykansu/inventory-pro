@@ -95,6 +95,7 @@
   "units": {
     "pieces": "Adet (ad)",
     "kilograms": "Kilogram (kg)",
+    "grams": "Gram (gr)",
     "liters": "Litre (l)",
     "meters": "Metre (m)",
     "boxes": "Kutu (kt)"
@@ -106,6 +107,28 @@
     "removePrompt": "Çıkarılacak miktarı girin:",
     "reasonPrompt": "Stok ayarlama nedeni girin:"
   },
+  "stockUpdate": {
+    "title": "Stok Güncelleme",
+    "selectProductPrompt": "Stokunu güncellemek için listeden bir ürün seçin",
+    "costCalculation": "Maliyet Fiyatı Hesaplaması",
+    "currentInventory": "Mevcut Envanter",
+    "newInventory": "Yeni Envanter",
+    "totalInventory": "Toplam Envanter",
+    "newAverageCost": "Yeni Ortalama Maliyet",
+    "units": "birim"
+  },
+  "stock": "Stok",
+  "costPrice": "Maliyet Fiyatı",
+  "currentStock": "Mevcut Stok",
+  "currentCostPrice": "Mevcut Maliyet Fiyatı",
+  "currentSellingPrice": "Mevcut Satış Fiyatı",
+  "adjustmentType": "Ayarlama Türü",
+  "quantity": "Miktar",
+  "newCostPrice": "Yeni Maliyet Fiyatı",
+  "newSellingPrice": "Yeni Satış Fiyatı",
+  "reason": "Neden",
+  "add": "Ekle",
+  "remove": "Çıkar",
   "notifications": {
     "createSuccess": "Ürün başarıyla oluşturuldu",
     "updateSuccess": "Ürün başarıyla güncellendi",

@@ -2,6 +2,7 @@
   "app_title": "Envanter Pro",
   "dashboard": "Gösterge Paneli",
   "products": "Ürünler",
+  "stockUpdate": "Stok Güncelleme",
   "pointOfSale": "Satış Noktası",
   "salesHistory": "Satış Geçmişi",
   "reports": "Raporlar",
@@ -21,5 +22,16 @@
   "pagination": "Sayfa {{current}} / {{total}}",
   "saving": "Kaydediliyor...",
   "processing": "İşleniyor...",
-  "refresh": "Yenile"
+  "refresh": "Yenile",
+  "update": "Güncelle",
+  "notAvailable": "Mevcut Değil",
+  "errors": {
+    "loadFailed": "Veri yüklenemedi",
+    "updateFailed": "Güncelleme başarısız oldu",
+    "selectProduct": "Lütfen önce bir ürün seçin",
+    "invalidQuantity": "Lütfen geçerli bir miktar girin"
+  },
+  "success": {
+    "stockUpdated": "Stok başarıyla güncellendi"
+  }
 }

@@ -59,6 +59,11 @@ const AppContent = () => {
               </NavLink>
             </li>
             <li>
+              <NavLink to="/pos" className={({ isActive }) => isActive ? 'active' : ''}>
+                <i className="fas fa-cash-register"></i> {t('pointOfSale')}
+              </NavLink>
+            </li>
+            <li>
               <NavLink to="/products" className={({ isActive }) => isActive ? 'active' : ''}>
                 <i className="fas fa-box"></i> {t('products')}
               </NavLink>
@@ -66,11 +71,6 @@ const AppContent = () => {
             <li>
               <NavLink to="/stock-update" className={({ isActive }) => isActive ? 'active' : ''}>
                 <i className="fas fa-cubes"></i> {t('stockUpdate')}
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/pos" className={({ isActive }) => isActive ? 'active' : ''}>
-                <i className="fas fa-cash-register"></i> {t('pointOfSale')}
               </NavLink>
             </li>
             <li>

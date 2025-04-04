@@ -95,6 +95,7 @@
   "units": {
     "pieces": "Pieces (pcs)",
     "kilograms": "Kilograms (kg)",
+    "grams": "Grams (gr)",
     "liters": "Liters (l)",
     "meters": "Meters (m)",
     "boxes": "Boxes (box)"
@@ -113,7 +114,8 @@
     "currentInventory": "Current Inventory",
     "newInventory": "New Inventory",
     "totalInventory": "Total Inventory",
-    "newAverageCost": "New Average Cost"
+    "newAverageCost": "New Average Cost",
+    "units": "units"
   },
   "stock": "Stock",
   "costPrice": "Cost Price",

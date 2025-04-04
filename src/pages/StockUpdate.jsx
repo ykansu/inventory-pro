@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { ProductService } from '../services/DatabaseService';
+import { ProductService, SettingService } from '../services/DatabaseService';
+import { useDatabase } from '../context/DatabaseContext';
 import { toast } from 'react-hot-toast';
+import { formatCurrency } from '../utils/formatters';
 import '../styles/pages/stock-update.css';
 
 const StockUpdate = () => {
@@ -11,6 +13,15 @@ const StockUpdate = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const { settings } = useDatabase();
+  
+  // App settings state
+  const [appSettings, setAppSettings] = useState({
+    currency: 'usd',
+    dateFormat: 'mm/dd/yyyy',
+    enableTax: false,
+    taxRate: 0
+  });
   
   // Stock update form state
   const [formData, setFormData] = useState({
@@ -29,6 +40,27 @@ const StockUpdate = () => {
     averageCostPrice: 0,
     totalCost: 0
   });
+  
+  // Load application settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        if (settings) {
+          const settingsObj = await settings.getAllSettings();
+          setAppSettings({
+            currency: settingsObj.currency?.toLowerCase() || 'usd',
+            dateFormat: settingsObj.date_format || 'mm/dd/yyyy',
+            enableTax: settingsObj.enable_tax || false,
+            taxRate: parseFloat(settingsObj.tax_rate) || 0
+          });
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+    
+    loadSettings();
+  }, [settings]);
   
   // Load all products
   useEffect(() => {
@@ -49,6 +81,66 @@ const StockUpdate = () => {
     loadProducts();
   }, [t]);
   
+  // Helper function to format currency values consistently
+  const formatPrice = (amount) => {
+    return formatCurrency(amount, appSettings.currency);
+  };
+  
+  // Format date according to settings
+  const formatDate = (date) => {
+    if (!date) return '';
+    const dateObj = new Date(date);
+    
+    switch (appSettings.dateFormat) {
+      case 'dd/mm/yyyy':
+        return `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+      case 'yyyy-mm-dd':
+        return `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
+      case 'mm/dd/yyyy':
+      default:
+        return `${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getDate().toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
+    }
+  };
+  
+  // Get the translated unit name for a product
+  const getUnitName = (product) => {
+    if (!product || !product.unit) return t('products:stockUpdate.units');
+    
+    // Try to get the proper translation for this specific unit
+    const unitKey = product.unit.toLowerCase();
+    const unitTranslation = t(`products:units.${unitKey}`, { returnObjects: true });
+    
+    // If we have a proper translation that contains the unit name and symbol, extract just the name
+    if (typeof unitTranslation === 'string' && unitTranslation.includes('(')) {
+      return unitTranslation.split('(')[0].trim();
+    }
+    
+    // Otherwise return the unit as is or fall back to the generic "units" translation
+    return product.unit || t('products:stockUpdate.units');
+  };
+  
+  // Turkish search comparison function that handles all character variations
+  const makeTurkishSearchable = (str) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      // Standardize Turkish characters to Latin equivalents
+      .replace(/ı/g, 'i')
+      .replace(/i̇/g, 'i')
+      .replace(/İ/g, 'i')
+      .replace(/I/g, 'i')
+      .replace(/ğ/g, 'g')
+      .replace(/Ğ/g, 'g')
+      .replace(/ü/g, 'u')
+      .replace(/Ü/g, 'u')
+      .replace(/ö/g, 'o')
+      .replace(/Ö/g, 'o')
+      .replace(/ş/g, 's')
+      .replace(/Ş/g, 's')
+      .replace(/ç/g, 'c')
+      .replace(/Ç/g, 'c');
+  };
+  
   // Filter products when search query changes
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -56,10 +148,23 @@ const StockUpdate = () => {
       return;
     }
     
-    const filtered = products.filter(product => 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.barcode?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const searchableQuery = makeTurkishSearchable(searchQuery);
+    
+    const filtered = products.filter(product => {
+      // Check by name
+      const searchableName = makeTurkishSearchable(product.name);
+      const nameMatch = searchableName.includes(searchableQuery);
+      
+      // Check by barcode (if exists)
+      const barcodeMatch = product.barcode && 
+        makeTurkishSearchable(product.barcode).includes(searchableQuery);
+      
+      // Check by SKU (if exists)
+      const skuMatch = product.sku && 
+        makeTurkishSearchable(product.sku).includes(searchableQuery);
+        
+      return nameMatch || barcodeMatch || skuMatch;
+    });
     
     setFilteredProducts(filtered);
   }, [searchQuery, products]);
@@ -81,9 +186,9 @@ const StockUpdate = () => {
   
   // Update cost calculation when form values change
   const updateCostCalculation = (newQuantity, newCostPrice, currentStock, currentCostPrice) => {
-    const quantity = parseInt(newQuantity) || 0;
+    const quantity = parseFloat(newQuantity) || 0;
     const costPrice = parseFloat(newCostPrice) || 0;
-    const stock = parseInt(currentStock) || 0;
+    const stock = parseFloat(currentStock) || 0;
     const currentCost = parseFloat(currentCostPrice) || 0;
     
     let newStock, averageCostPrice, totalCost;
@@ -170,7 +275,7 @@ const StockUpdate = () => {
       return;
     }
     
-    if (parseInt(formData.quantity) <= 0) {
+    if (parseFloat(formData.quantity) <= 0) {
       toast.error(t('common:errors.invalidQuantity'));
       return;
     }
@@ -179,12 +284,13 @@ const StockUpdate = () => {
       setLoading(true);
       
       // Prepare data for stock update
-      const quantity = parseInt(formData.quantity);
+      const quantity = parseFloat(formData.quantity);
       const adjustmentType = formData.adjustmentType;
       const reason = formData.reason || 'Stock adjustment';
       
-      // Reference for the adjustment
-      const reference = `Stock-${adjustmentType}-${new Date().toISOString()}`;
+      // Reference for the adjustment - use formatted date based on settings
+      const formattedDate = formatDate(new Date());
+      const reference = `Stock-${adjustmentType}-${formattedDate}`;
       
       // Update stock quantity first
       await ProductService.updateStock(
@@ -256,7 +362,7 @@ const StockUpdate = () => {
             ) : (
               <>
                 {filteredProducts.length === 0 ? (
-                  <div className="no-products">{t('products:noProducts')}</div>
+                  <div className="no-products">{t('products:noSearchResults')}</div>
                 ) : (
                   filteredProducts.map(product => (
                     <div 
@@ -266,8 +372,8 @@ const StockUpdate = () => {
                     >
                       <div className="product-name">{product.name}</div>
                       <div className="product-barcode">{product.barcode || t('common:notAvailable')}</div>
-                      <div className="product-stock">{t('products:stock')}: {product.stock_quantity}</div>
-                      <div className="product-cost">{t('products:costPrice')}: ${parseFloat(product.cost_price).toFixed(2)}</div>
+                      <div className="product-stock">{t('products:stock')}: {product.stock_quantity} {getUnitName(product)}</div>
+                      <div className="product-cost">{t('products:costPrice')}: {formatPrice(product.cost_price)}</div>
                     </div>
                   ))
                 )}
@@ -287,7 +393,7 @@ const StockUpdate = () => {
                   <input 
                     type="text" 
                     readOnly 
-                    value={selectedProduct.stock_quantity || 0} 
+                    value={`${selectedProduct.stock_quantity || 0} ${getUnitName(selectedProduct)}`} 
                   />
                 </div>
                 
@@ -296,7 +402,7 @@ const StockUpdate = () => {
                   <input 
                     type="text" 
                     readOnly 
-                    value={`$${parseFloat(selectedProduct.cost_price).toFixed(2)}`} 
+                    value={formatPrice(selectedProduct.cost_price)} 
                   />
                 </div>
                 
@@ -305,7 +411,7 @@ const StockUpdate = () => {
                   <input 
                     type="text" 
                     readOnly 
-                    value={`$${parseFloat(selectedProduct.selling_price).toFixed(2)}`} 
+                    value={formatPrice(selectedProduct.selling_price)} 
                   />
                 </div>
               </div>
@@ -313,8 +419,8 @@ const StockUpdate = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>{t('products:adjustmentType')}</label>
-                  <select 
-                    name="adjustmentType" 
+                  <select
+                    name="adjustmentType"
                     value={formData.adjustmentType}
                     onChange={handleAdjustmentTypeChange}
                   >
@@ -324,55 +430,54 @@ const StockUpdate = () => {
                 </div>
                 
                 <div className="form-group">
-                  <label>{t('products:quantity')} *</label>
-                  <input 
+                  <label>{t('products:quantity')} ({getUnitName(selectedProduct)})</label>
+                  <input
                     type="number"
                     name="quantity"
-                    min="1"
                     value={formData.quantity}
                     onChange={handleInputChange}
-                    required
+                    min="0.01"
+                    step={selectedProduct.unit === 'pieces' || selectedProduct.unit === 'boxes' ? "1" : "0.01"}
                   />
                 </div>
               </div>
               
-              {formData.adjustmentType === 'add' && (
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>{t('products:newCostPrice')} *</label>
-                    <input 
-                      type="number"
-                      name="newCostPrice"
-                      min="0.01"
-                      step="0.01"
-                      value={formData.newCostPrice}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>{t('products:newSellingPrice')}</label>
-                    <input 
-                      type="number"
-                      name="newSellingPrice"
-                      min="0.01"
-                      step="0.01"
-                      value={formData.newSellingPrice}
-                      onChange={handleInputChange}
-                    />
-                  </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t('products:newCostPrice')}</label>
+                  <input
+                    type="number"
+                    name="newCostPrice"
+                    value={formData.newCostPrice}
+                    onChange={handleInputChange}
+                    min="0"
+                    step="0.01"
+                  />
                 </div>
-              )}
+                
+                <div className="form-group">
+                  <label>{t('products:newSellingPrice')}</label>
+                  <input
+                    type="number"
+                    name="newSellingPrice"
+                    value={formData.newSellingPrice}
+                    onChange={handleInputChange}
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+              </div>
               
-              <div className="form-group">
-                <label>{t('products:reason')}</label>
-                <textarea 
-                  name="reason"
-                  value={formData.reason}
-                  onChange={handleInputChange}
-                  rows="2"
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t('products:reason')}</label>
+                  <textarea
+                    name="reason"
+                    value={formData.reason}
+                    onChange={handleInputChange}
+                    rows="2"
+                  ></textarea>
+                </div>
               </div>
               
               {formData.adjustmentType === 'add' && costCalculation.currentStock > 0 && (
@@ -381,38 +486,38 @@ const StockUpdate = () => {
                   <div className="calculation-details">
                     <div className="calc-row">
                       <span>{t('products:stockUpdate.currentInventory')}:</span>
-                      <span>{costCalculation.currentStock} units × ${parseFloat(costCalculation.currentCostPrice).toFixed(2)} = ${(costCalculation.currentStock * costCalculation.currentCostPrice).toFixed(2)}</span>
+                      <span>{costCalculation.currentStock} {getUnitName(selectedProduct)} × {formatPrice(costCalculation.currentCostPrice)} = {formatPrice(costCalculation.currentStock * costCalculation.currentCostPrice)}</span>
                     </div>
                     <div className="calc-row">
                       <span>{t('products:stockUpdate.newInventory')}:</span>
-                      <span>{formData.quantity} units × ${parseFloat(formData.newCostPrice).toFixed(2)} = ${(formData.quantity * formData.newCostPrice).toFixed(2)}</span>
+                      <span>{formData.quantity} {getUnitName(selectedProduct)} × {formatPrice(formData.newCostPrice)} = {formatPrice(formData.quantity * formData.newCostPrice)}</span>
                     </div>
                     <div className="calc-row total">
                       <span>{t('products:stockUpdate.totalInventory')}:</span>
-                      <span>{costCalculation.newStock} units, ${costCalculation.totalCost.toFixed(2)}</span>
+                      <span>{costCalculation.newStock} {getUnitName(selectedProduct)}, {formatPrice(costCalculation.totalCost)}</span>
                     </div>
                     <div className="calc-row result">
                       <span>{t('products:stockUpdate.newAverageCost')}:</span>
-                      <span>${costCalculation.averageCostPrice.toFixed(2)}</span>
+                      <span>{formatPrice(costCalculation.averageCostPrice)}</span>
                     </div>
                   </div>
                 </div>
               )}
               
               <div className="form-actions">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="cancel-button"
                   onClick={() => setSelectedProduct(null)}
                 >
                   {t('common:cancel')}
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="submit-button"
-                  disabled={loading}
+                  disabled={loading || formData.quantity <= 0}
                 >
-                  {loading ? t('common:processing') : t('common:update')}
+                  {t('common:update')}
                 </button>
               </div>
             </form>

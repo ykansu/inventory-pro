@@ -269,8 +269,8 @@ const ProductManagement = () => {
         ...formData,
         selling_price: parseFloat(formData.selling_price),
         cost_price: parseFloat(formData.cost_price),
-        stock_quantity: parseInt(formData.stock_quantity, 10),
-        min_stock_threshold: parseInt(formData.min_stock_threshold, 10),
+        stock_quantity: parseFloat(formData.stock_quantity),
+        min_stock_threshold: parseFloat(formData.min_stock_threshold),
         category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
         supplier_id: formData.supplier_id ? parseInt(formData.supplier_id, 10) : null,
         barcode: formData.barcode.trim() || null // Set to null if empty
@@ -1030,6 +1030,7 @@ const ProductManagement = () => {
                   <option value="">{t('products:form.selectUnit')}</option>
                   <option value="pcs">{t('products:units.pieces')}</option>
                   <option value="kg">{t('products:units.kilograms')}</option>
+                  <option value="gr">{t('products:units.grams')}</option>
                   <option value="l">{t('products:units.liters')}</option>
                   <option value="m">{t('products:units.meters')}</option>
                   <option value="box">{t('products:units.boxes')}</option>
@@ -1079,6 +1080,7 @@ const ProductManagement = () => {
                   onChange={handleInputChange}
                   placeholder="0"
                   min="0"
+                  step={formData.unit === 'pcs' || formData.unit === 'box' ? "1" : "0.01"}
                   required
                 />
               </div>
@@ -1092,6 +1094,7 @@ const ProductManagement = () => {
                   onChange={handleInputChange}
                   placeholder="5"
                   min="0"
+                  step={formData.unit === 'pcs' || formData.unit === 'box' ? "1" : "0.01"}
                   required
                 />
               </div>
