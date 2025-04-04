@@ -106,6 +106,27 @@
     "removePrompt": "Enter quantity to remove:",
     "reasonPrompt": "Enter reason for stock adjustment:"
   },
+  "stockUpdate": {
+    "title": "Stock Update",
+    "selectProductPrompt": "Select a product from the list to update its stock",
+    "costCalculation": "Cost Price Calculation",
+    "currentInventory": "Current Inventory",
+    "newInventory": "New Inventory",
+    "totalInventory": "Total Inventory",
+    "newAverageCost": "New Average Cost"
+  },
+  "stock": "Stock",
+  "costPrice": "Cost Price",
+  "currentStock": "Current Stock",
+  "currentCostPrice": "Current Cost Price",
+  "currentSellingPrice": "Current Selling Price",
+  "adjustmentType": "Adjustment Type",
+  "quantity": "Quantity",
+  "newCostPrice": "New Cost Price",
+  "newSellingPrice": "New Selling Price",
+  "reason": "Reason",
+  "add": "Add",
+  "remove": "Remove",
   "notifications": {
     "createSuccess": "Product created successfully",
     "updateSuccess": "Product updated successfully",

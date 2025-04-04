@@ -2,6 +2,7 @@
   "app_title": "Inventory Pro",
   "dashboard": "Dashboard",
   "products": "Products",
+  "stockUpdate": "Stock Update",
   "pointOfSale": "Point of Sale",
   "salesHistory": "Sales History",
   "reports": "Reports",
@@ -21,5 +22,16 @@
   "pagination": "Page {{current}} of {{total}}",
   "saving": "Saving...",
   "processing": "Processing...",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "update": "Update",
+  "notAvailable": "N/A",
+  "errors": {
+    "loadFailed": "Failed to load data",
+    "updateFailed": "Failed to update",
+    "selectProduct": "Please select a product first",
+    "invalidQuantity": "Please enter a valid quantity"
+  },
+  "success": {
+    "stockUpdated": "Stock updated successfully"
+  }
 }
