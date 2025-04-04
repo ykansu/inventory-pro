@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import useSalesHistory from '../hooks/useSalesHistory';
-import { SaleService, SettingService } from '../services/DatabaseService';
+import { SaleService, SettingService, ProductService } from '../services/DatabaseService';
 import { calculateReturnTotal, formatCurrency } from '../utils/calculations';
 import { printReceipt } from '../utils/receiptPrinter';
 import { toast } from 'react-hot-toast';
@@ -9,8 +9,18 @@ import '../styles/pages/sales-history.css';
 import '../styles/components/modal.css';
 import { format } from 'date-fns';
 
+// Inline styles for unit display
+const styles = {
+  unitName: {
+    fontSize: '0.75rem',
+    color: '#4b5563',
+    marginLeft: '0.25rem',
+    whiteSpace: 'nowrap'
+  }
+};
+
 const SalesHistory = () => {
-  const { t } = useTranslation(['sales', 'common', 'pos']);
+  const { t } = useTranslation(['sales', 'common', 'pos', 'products']);
   const {
     sales,
     loading,
@@ -144,8 +154,34 @@ const SalesHistory = () => {
         return;
       }
       
-      setSelectedSaleDetails(saleDetails);
-      setSelectedSale(saleDetails);
+      // For each sale item, try to fetch the product details to get the unit
+      const enhancedItems = await Promise.all(
+        saleDetails.items.map(async (item) => {
+          try {
+            // Try to get the product data for the unit
+            const product = await ProductService.getProductById(item.product_id);
+            return {
+              ...item,
+              product: product || { unit: 'units' } // Add product info with fallback unit
+            };
+          } catch (error) {
+            console.error(`Error loading product details for item ${item.id}:`, error);
+            return {
+              ...item,
+              product: { unit: 'units' } // Fallback unit if product can't be loaded
+            };
+          }
+        })
+      );
+      
+      // Update the sale details with enhanced items
+      const enhancedSaleDetails = {
+        ...saleDetails,
+        items: enhancedItems
+      };
+      
+      setSelectedSaleDetails(enhancedSaleDetails);
+      setSelectedSale(enhancedSaleDetails);
     } catch (err) {
       console.error('Error loading sale details:', err);
     }
@@ -241,7 +277,7 @@ const SalesHistory = () => {
     return items.map(item => (
       <tr key={item.id}>
         <td>{item.product_name}</td>
-        <td>{item.quantity}</td>
+        <td>{item.quantity} {item.product && getUnitName(item.product)}</td>
         <td>{formatWithCurrency(item.unit_price)}</td>
         <td>{formatWithCurrency(item.total_price)}</td>
       </tr>
@@ -282,7 +318,8 @@ const SalesHistory = () => {
           name: item.product_name,
           quantity: item.quantity,
           price: item.unit_price,
-          totalPrice: item.total_price
+          totalPrice: item.total_price,
+          product: item.product // Include product info for unit display
         })),
         subtotal: selectedSale.subtotal,
         discount: selectedSale.discount_amount,
@@ -298,6 +335,17 @@ const SalesHistory = () => {
       // Use the receipt printer utility
       printReceipt(receiptData, t, formatWithCurrency);
     }
+  };
+
+  // Get the translated unit name for a product
+  const getUnitName = (product) => {
+    if (!product || !product.unit) return t('pos:units.default');
+    
+    // Try to get the proper translation for this specific unit
+    const unitKey = product.unit.toLowerCase();
+    
+    // Try direct translation first (this will catch all abbreviations we added directly to the translation files)
+    return t(`pos:units.${unitKey}`, { defaultValue: unitKey });
   };
 
   return (
@@ -573,7 +621,7 @@ const SalesHistory = () => {
                       {returnItems.map(item => (
                         <tr key={item.id}>
                           <td>{item.product_name}</td>
-                          <td>{item.quantity}</td>
+                          <td>{item.quantity} {item.product && getUnitName(item.product)}</td>
                           <td>{formatWithCurrency(item.unit_price || item.price || 0)}</td>
                           <td>
                             <input
@@ -584,6 +632,7 @@ const SalesHistory = () => {
                               onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
                               className="return-quantity-input"
                             />
+                            {item.product && <span style={styles.unitName}>{getUnitName(item.product)}</span>}
                           </td>
                         </tr>
                       ))}

@@ -14,7 +14,7 @@
   "productGrid": {
     "empty": "Ürün bulunmamaktadır. Önce envanterinize ürün ekleyin.",
     "outOfStock": "Stokta Yok",
-    "inStock": "Stok: {{count}}"
+    "inStock": "Stok: {{count}} {{unit}}"
   },
   "cart": {
     "title": "Mevcut Satış",
@@ -29,6 +29,26 @@
     "tax": "Vergi ({{rate}})",
     "total": "Toplam",
     "discount": "İndirim"
+  },
+  "units": {
+    "default": "birim",
+    "pieces": "Adet (ad)",
+    "kilograms": "Kilogram (kg)",
+    "grams": "Gram (gr)",
+    "liters": "Litre (lt)",
+    "meters": "Metre (m)",
+    "boxes": "Kutu (kt)",
+    "pcs": "ad",
+    "kg": "kg",
+    "g": "gr",
+    "gr": "gr",
+    "l": "lt",
+    "lt": "lt",
+    "m": "m",
+    "box": "kt",
+    "kt": "kt",
+    "unit": "birim",
+    "units": "birim"
   },
   "discount": {
     "title": "İndirim Uygula",

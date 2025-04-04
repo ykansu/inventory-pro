@@ -128,6 +128,9 @@
   font-size: 0.75rem;
   color: #6b7280;
   margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .product-grid-empty {
@@ -225,6 +228,13 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.unit-name {
+  color: #4b5563;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+  white-space: nowrap;
 }
 
 .quantity-input {

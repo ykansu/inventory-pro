@@ -96,9 +96,17 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
       displayName = displayName.substring(0, 17) + '...';
     }
     
+    // Get unit name if product has a unit
+    let unitDisplay = '';
+    if (item.product && item.product.unit) {
+      const unitKey = item.product.unit.toLowerCase();
+      // Direct translation from the translation files (all abbreviations are now directly in the translations)
+      unitDisplay = t(`pos:units.${unitKey}`, { defaultValue: unitKey });
+    }
+    
     lines.push(`<div style="display:flex;">
       <div style="flex:3;">${displayName}</div>
-      <div style="flex:1; text-align:center;">${item.quantity}</div>
+      <div style="flex:1; text-align:center;">${item.quantity}${unitDisplay ? ' ' + unitDisplay : ''}</div>
       <div style="flex:2; text-align:right;">${formatCurrency(item.totalPrice)}</div>
     </div>`);
   });

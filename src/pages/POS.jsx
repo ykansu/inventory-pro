@@ -7,7 +7,7 @@ import { formatCurrency } from '../utils/calculations';
 import { printReceipt } from '../utils/receiptPrinter';
 
 const POS = () => {
-  const { t } = useTranslation(['pos', 'common']);
+  const { t } = useTranslation(['pos', 'common', 'products']);
   
   // State for products, categories, cart, and search
   const [products, setProducts] = useState([]);
@@ -439,6 +439,17 @@ const POS = () => {
     }
   };
   
+  // Get the translated unit name for a product
+  const getUnitName = (product) => {
+    if (!product || !product.unit) return t('pos:units.default');
+    
+    // Try to get the proper translation for this specific unit
+    const unitKey = product.unit.toLowerCase();
+    
+    // Try direct translation first (this will catch all abbreviations we added directly to the translation files)
+    return t(`pos:units.${unitKey}`, { defaultValue: unitKey });
+  };
+  
   // Complete sale function
   const completeSale = async (paymentMethod, amountReceived = 0, change = 0, cashPortion = 0, cardPortion = 0) => {
     if (cartItems.length === 0) {
@@ -687,7 +698,7 @@ const POS = () => {
                   <div className="product-stock">
                     {product.stock_quantity <= 0 
                       ? t('pos:productGrid.outOfStock') 
-                      : t('pos:productGrid.inStock', { count: product.stock_quantity })}
+                      : t('pos:productGrid.inStock', { count: product.stock_quantity, unit: getUnitName(product) })}
                   </div>
                 </div>
               ))
@@ -722,6 +733,7 @@ const POS = () => {
                           onChange={(e) => updateCartItemQuantity(item.id, parseInt(e.target.value))}
                           className="quantity-input"
                         />
+                        <span className="unit-name">{getUnitName(item.product)}</span>
                       </div>
                     </div>
                     <div className="item-actions">
@@ -972,7 +984,7 @@ const POS = () => {
                       {currentReceipt.items.map((item, index) => (
                         <tr key={index}>
                           <td>{item.name}</td>
-                          <td>{item.quantity}</td>
+                          <td>{item.quantity} {getUnitName(item.product)}</td>
                           <td>{formatPriceWithCurrency(item.price)}</td>
                           <td>{formatPriceWithCurrency(item.totalPrice)}</td>
                         </tr>

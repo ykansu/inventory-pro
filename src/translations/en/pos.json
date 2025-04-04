@@ -13,7 +13,7 @@
   "productGrid": {
     "empty": "No products available. Add products to your inventory first.",
     "outOfStock": "Out of Stock",
-    "inStock": "In Stock: {{count}}"
+    "inStock": "In Stock: {{count}} {{unit}}"
   },
   "cart": {
     "title": "Current Sale",
@@ -28,6 +28,23 @@
     "tax": "Tax ({{rate}})",
     "total": "Total",
     "discount": "Discount"
+  },
+  "units": {
+    "default": "units",
+    "pieces": "Pieces (pcs)",
+    "kilograms": "Kilograms (kg)",
+    "grams": "Grams (g)",
+    "liters": "Liters (l)",
+    "meters": "Meters (m)",
+    "boxes": "Boxes (box)",
+    "pcs": "pcs",
+    "kg": "kg",
+    "g": "g",
+    "l": "l",
+    "m": "m",
+    "box": "box",
+    "unit": "unit",
+    "units": "units"
   },
   "discount": {
     "title": "Apply Discount",
