@@ -535,6 +535,72 @@ class Sale extends BaseModel {
     }
   }
   
+  // Cancel a sale completely
+  async cancelSale(id) {
+    const db = await this.getDb();
+    return db.transaction(async trx => {
+      try {
+        // Get the sale with items
+        const sale = await trx(this.tableName).where({ id }).first();
+        if (!sale) {
+          throw new Error(`Sale with id ${id} not found`);
+        }
+
+        // Check if already returned/canceled
+        if (sale.is_returned) {
+          throw new Error('This sale has already been returned or canceled');
+        }
+
+        // Get the sale items
+        const saleItems = await trx('sale_items').where({ sale_id: id }).select('*');
+        
+        // Get current real date for proper storage
+        const now = new Date();
+        const nowISOString = now.toISOString();
+
+        // Mark the sale as returned
+        await trx(this.tableName)
+          .where({ id })
+          .update({
+            is_returned: true,
+            notes: sale.notes ? `${sale.notes} | CANCELED: ${nowISOString}` : `CANCELED: ${nowISOString}`,
+            updated_at: nowISOString
+          });
+
+        // Return items to inventory
+        for (const item of saleItems) {
+          // Increment product stock
+          await trx('products')
+            .where({ id: item.product_id })
+            .increment('stock_quantity', item.quantity);
+            
+          // Record stock adjustment
+          await trx('stock_adjustments').insert({
+            product_id: item.product_id,
+            quantity_change: item.quantity,
+            adjustment_type: 'sale_cancel',
+            reference: `CANCEL-${sale.receipt_number}`,
+            reason: 'Sale canceled',
+            created_at: nowISOString,
+            updated_at: nowISOString
+          });
+        }
+        
+        // Get the updated sale
+        const updatedSale = await trx(this.tableName).where({ id }).first();
+        
+        // Return the complete updated sale with items
+        return {
+          ...updatedSale,
+          items: saleItems
+        };
+      } catch (error) {
+        console.error(`Error in cancelSale for id ${id}:`, error);
+        throw error;
+      }
+    });
+  }
+  
   // Get sales by date range
   async getByDateRange(startDate, endDate) {
     try {

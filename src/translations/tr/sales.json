@@ -28,6 +28,9 @@
   "details": {
     "title": "Satış Detayları"
   },
+  "status": {
+    "canceled": "İptal Edildi"
+  },
   "receipt": {
     "number": "Fiş #{{number}}",
     "item": "Ürün",
@@ -46,7 +49,8 @@
   "actions": {
     "printReceipt": "Fişi Yazdır",
     "processReturn": "İade İşlemi",
-    "viewDetails": "Detayları Görüntüle"
+    "viewDetails": "Detayları Görüntüle",
+    "cancelSale": "Satışı İptal Et"
   },
   "loading": "Satış verileri yükleniyor...",
   "error": "Satış verileri yüklenirken bir hata oluştu.",
@@ -68,5 +72,14 @@
     "error": "İade işlemi sırasında bir hata oluştu",
     "success": "İade işlemi başarıyla tamamlandı",
     "notImplemented": "İade işlemi için veritabanı entegrasyonu henüz tamamlanmadı"
+  },
+  "cancel": {
+    "title": "Satışı İptal Et",
+    "warning": "Uyarı: Bu işlem satışı tamamen iptal edecek ve tüm ürünleri envantere iade edecektir!",
+    "receiptInfo": "Fiş: #{{number}} ({{date}})",
+    "detail": "Bu işlem geri alınamaz. Tüm ürünler envantere iade edilecek ve satış iptal olarak işaretlenecektir.",
+    "confirm": "İptali Onayla",
+    "success": "Satış başarıyla iptal edildi",
+    "error": "Satış iptal edilirken bir hata oluştu"
   }
 }

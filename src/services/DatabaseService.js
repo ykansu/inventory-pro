@@ -237,6 +237,16 @@ export const SaleService = {
     }
   },
   
+  // Cancel a sale
+  cancelSale: async (id) => {
+    try {
+      return await window.database.cancelSale(id);
+    } catch (error) {
+      console.error(`Error canceling sale ${id}:`, error);
+      throw error;
+    }
+  },
+  
   // Get monthly profit metrics
   getMonthlyProfitMetrics: async () => {
     try {

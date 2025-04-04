@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('database', {
   getSaleById: (id) => ipcRenderer.invoke('sales:getById', id),
   getSalesByDateRange: (startDate, endDate) => ipcRenderer.invoke('sales:getByDateRange', startDate, endDate),
   processSaleReturn: (id, returnData, items) => ipcRenderer.invoke('sales:processReturn', id, returnData, items),
+  cancelSale: (id) => ipcRenderer.invoke('sales:cancelSale', id),
   
   // Profit metrics
   getMonthlyProfitMetrics: () => ipcRenderer.invoke('profits:getMonthlyMetrics'),

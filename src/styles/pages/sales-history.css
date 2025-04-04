@@ -350,11 +350,8 @@
 
 .receipt-actions {
   display: flex;
-  gap: 0.5rem;
   justify-content: space-between;
-  padding-top: 0.5rem;
-  border-top: 1px solid #f3f4f6;
-  background-color: white;
+  gap: 0.5rem;
 }
 
 /* Button styles */
@@ -388,6 +385,40 @@
 
 .button.secondary:hover:not(:disabled) {
   background-color: #d1d5db;
+}
+
+/* Danger button for cancel action */
+.button.danger {
+  background-color: #dc3545;
+  color: white;
+  border: 1px solid #bd2130;
+}
+
+.button.danger:hover {
+  background-color: #bd2130;
+}
+
+.button.danger:disabled {
+  background-color: #e48a91;
+  border-color: #dc3545;
+  cursor: not-allowed;
+}
+
+/* Cancel modal styles */
+.cancel-modal {
+  max-width: 500px;
+}
+
+.cancel-warning {
+  color: #dc3545;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.cancel-detail {
+  margin-top: 1rem;
+  font-style: italic;
+  color: #6c757d;
 }
 
 /* Return Modal Content Styles (just the internal content) */
@@ -516,4 +547,40 @@
   .form-group input[type="date"] {
     width: 100%;
   }
+  
+  .receipt-actions {
+    flex-direction: column;
+  }
+}
+
+/* Add this CSS for canceled sales styling */
+.canceled-sale {
+  opacity: 0.7;
+  background-color: #fff3f3;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: 5px;
+  text-transform: uppercase;
+}
+
+.status-badge.canceled {
+  background-color: #ffcccc;
+  color: #cc0000;
+}
+
+.canceled-status {
+  color: #cc0000;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-top: 4px;
+  border: 1px solid #cc0000;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
 } 

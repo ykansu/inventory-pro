@@ -413,6 +413,15 @@ ipcMain.handle('sales:processReturn', async (_, id, returnData, items) => {
   }
 });
 
+ipcMain.handle('sales:cancelSale', async (_, id) => {
+  try {
+    return await Sale.cancelSale(id);
+  } catch (error) {
+    console.error(`Error canceling sale ${id}:`, error);
+    throw error;
+  }
+});
+
 // Profit metrics handlers
 ipcMain.handle('profits:getMonthlyMetrics', async () => {
   try {

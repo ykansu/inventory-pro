@@ -38,6 +38,7 @@ const SalesHistory = () => {
   const [selectedSale, setSelectedSale] = useState(null);
   const [selectedSaleDetails, setSelectedSaleDetails] = useState(null);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [isCancelConfirmModalOpen, setIsCancelConfirmModalOpen] = useState(false);
   // Settings state for currency
   const [currency, setCurrency] = useState('usd');
   // Add more settings
@@ -348,6 +349,40 @@ const SalesHistory = () => {
     return t(`pos:units.${unitKey}`, { defaultValue: unitKey });
   };
 
+  // Open the cancel confirmation modal
+  const openCancelConfirmModal = () => {
+    setIsCancelConfirmModalOpen(true);
+    document.body.classList.add('modal-open');
+  };
+
+  // Close the cancel confirmation modal
+  const closeCancelConfirmModal = () => {
+    setIsCancelConfirmModalOpen(false);
+    document.body.classList.remove('modal-open');
+  };
+
+  // Handle sale cancellation
+  const handleCancelSale = async () => {
+    if (!selectedSale) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Call the API to cancel the sale
+      await SaleService.cancelSale(selectedSale.id);
+      
+      closeCancelConfirmModal();
+      refresh();
+      handleCloseDetails();
+      toast.success(t('sales:cancel.success'));
+    } catch (error) {
+      console.error('Sale cancellation error:', error);
+      toast.error(t('sales:cancel.error'));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="sales-history-page">
       <div className="page-header">
@@ -442,8 +477,11 @@ const SalesHistory = () => {
                   </tr>
                 ) : (
                   sales.map(sale => (
-                    <tr key={sale.id} onClick={() => handleSelectSale(sale)}>
-                      <td>{sale.receipt_number || '-'}</td>
+                    <tr key={sale.id} onClick={() => handleSelectSale(sale)} className={sale.is_returned ? 'canceled-sale' : ''}>
+                      <td>
+                        {sale.receipt_number || '-'}
+                        {sale.is_returned && <span className="status-badge canceled">{t('sales:status.canceled')}</span>}
+                      </td>
                       <td>{formatDate(sale.created_at)}</td>
                       <td>{sale.total_items || 0}</td>
                       <td>{formatWithCurrency(sale.subtotal || 0)}</td>
@@ -494,6 +532,7 @@ const SalesHistory = () => {
                 {settings.businessEmail && <p>{t('pos:receipt.email')}: {settings.businessEmail}</p>}
                 <p>{t('sales:receipt.number', { number: selectedSale.receipt_number })}</p>
                 <p>{formatDate(selectedSale.created_at)}</p>
+                {selectedSale.is_returned && <p className="canceled-status">{t('sales:status.canceled')}</p>}
               </div>
               <div className="receipt-items">
                 <table>
@@ -577,9 +616,16 @@ const SalesHistory = () => {
                 <button 
                   className="button primary" 
                   onClick={openReturnModal} 
-                  disabled={!selectedSale}
+                  disabled={!selectedSale || selectedSale.is_returned}
                 >
                   {t('sales:actions.processReturn')}
+                </button>
+                <button 
+                  className="button danger" 
+                  onClick={openCancelConfirmModal} 
+                  disabled={!selectedSale || selectedSale.is_returned}
+                >
+                  {t('sales:actions.cancelSale')}
                 </button>
               </div>
             </div>
@@ -688,6 +734,52 @@ const SalesHistory = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Cancel Sale Confirmation Modal */}
+      {isCancelConfirmModalOpen && selectedSale && (
+        <div className="modal-overlay">
+          <div className="modal cancel-modal">
+            <div className="modal-header">
+              <h3>{t('sales:cancel.title')}</h3>
+              <button className="close-button" onClick={closeCancelConfirmModal}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <p className="cancel-warning">
+                {t('sales:cancel.warning')}
+              </p>
+              <p>
+                {t('sales:cancel.receiptInfo', { 
+                  number: selectedSale.receipt_number, 
+                  date: formatDate(selectedSale.created_at) 
+                })}
+              </p>
+              <p className="cancel-detail">
+                {t('sales:cancel.detail')}
+              </p>
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                className="button secondary" 
+                onClick={closeCancelConfirmModal}
+                disabled={isProcessing}
+              >
+                {t('common:cancel')}
+              </button>
+              <button 
+                type="button" 
+                className="button danger" 
+                onClick={handleCancelSale}
+                disabled={isProcessing}
+              >
+                {isProcessing ? t('common:processing') : t('sales:cancel.confirm')}
+              </button>
+            </div>
           </div>
         </div>
       )}
