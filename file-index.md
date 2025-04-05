@@ -10,297 +10,317 @@ Inventory Pro is a comprehensive stock management application built with Electro
 
 ```
 inventory-pro/
-├── .env                    # Environment variables (not version controlled)
-├── .env.example            # Example environment variables
-├── .git/                   # Git repository data
-├── .gitignore              # Git ignore patterns
-├── README.md               # Project documentation
-├── PRODUCTION-BUILD.md     # Production build guide
-├── USING-AS-COMPONENT.md   # Guide for using components
-├── dist/                   # Distribution output
-├── electron-builder.json   # Electron Builder configuration
-├── features.md             # Feature documentation
-├── file-index.md           # This file - project structure overview
-├── forge.config.js         # Electron Forge configuration for building
-├── node_modules/           # Dependencies
-├── out/                    # Build output directory
-├── package-lock.json       # Lock file for package versions
-├── package.json            # Project metadata, dependencies, and scripts
-├── scripts/                # Build and utility scripts
-└── src/                    # Source code
-    ├── components/         # React components
-    │   ├── App.jsx         # Main React application component
-    │   ├── LanguageInitializer.jsx # Initializes i18n
-    │   ├── common/         # Shared/reusable UI components
-    │   └── dashboard/      # Dashboard-specific components
-    ├── context/            # React context providers
-    │   └── DatabaseContext.jsx # Database context provider
-    ├── database/           # Database-related code
-    │   ├── STRESS-TEST.md              # Stress testing documentation
-    │   ├── backup.js                   # Database backup functionality
-    │   ├── backups/                    # Backup storage location
-    │   ├── config.js                   # Database configuration
-    │   ├── connection.js               # Database connection
-    │   ├── dbManager.js                # Database management utilities
-    │   ├── excel-backup-scheduler.js   # Scheduled backup service
-    │   ├── excel-backup.js             # Excel export functionality
-    │   ├── fix-migration.js            # Migration fixing utility
-    │   ├── force-seed.js               # Database seeding utility
-    │   ├── inventory-pro.db            # SQLite database file
-    │   ├── json-backup.js              # JSON export functionality
-    │   ├── knexfile.js                 # Knex.js ORM configuration
-    │   ├── migrations/                 # Database schema migrations
-    │   ├── run-stress-test.js          # Stress test runner
-    │   ├── seeds/                      # Seed data for the database
-    │   └── stress-test-generator.js    # Stress testing utility
-    ├── hooks/              # Custom React hooks
-    │   ├── useSalesHistory.js          # Sales history data hook
-    │   └── useTranslation.js           # Translation hook
-    ├── i18n.js             # i18n configuration
-    ├── index.css           # Global styles
-    ├── index.html          # Main HTML entry
-    ├── index.js            # App initialization
-    ├── main.js             # Electron main process
-    ├── models/             # Data models
-    │   ├── Setting.js      # Settings model
-    │   └── index.js        # Models exports
-    ├── pages/              # Application pages/screens
-    │   ├── Dashboard.jsx             # Main dashboard screen
-    │   ├── POS.jsx                   # Point of Sale system
-    │   ├── ProductManagement.jsx     # Product management interface
-    │   ├── Reports.jsx               # Reporting and analytics
-    │   ├── SalesHistory.jsx          # Sales history and records
-    │   ├── Settings.jsx              # Application settings
-    │   └── StockUpdate.jsx           # Stock update management
-    ├── preload.js          # Electron preload script
-    ├── renderer.js         # Electron renderer process
-    ├── services/           # Business logic services
-    │   └── DatabaseService.js        # Database service
-    ├── styles/             # CSS styles
-    │   ├── components/     # Component-specific styles
-    │   │   ├── buttons.css           # Button styles
-    │   │   ├── chart.css             # Chart component styles
-    │   │   ├── charts.css            # Charts collection styles
-    │   │   ├── forms.css             # Form styles
-    │   │   ├── index.css             # Components index styles
-    │   │   ├── loading-spinner.css   # Loading spinner styles
-    │   │   ├── modal.css             # Modal dialog styles
-    │   │   ├── stat-card.css         # Statistics card styles
-    │   │   └── table.css             # Table styles
-    │   ├── main.css        # Main application styles
-    │   └── pages/          # Page-specific styles
-    │       ├── dashboard.css         # Dashboard page styles
-    │       ├── pos.css               # POS page styles
-    │       ├── product-management.css# Product management page styles
-    │       ├── reports.css           # Reports page styles
-    │       ├── sales-history.css     # Sales history page styles
-    │       ├── settings.css          # Settings page styles
-    │       └── stock-update.css      # Stock update page styles
-    ├── test/               # Testing utilities
-    │   ├── performance-test.js       # Performance testing
-    │   └── profit-metrics-test.js    # Profit metrics testing
-    ├── test-metrics.js     # Test metrics utility
-    ├── translations/       # Translation files
-    │   ├── en/             # English translations
-    │   │   ├── common.json           # Common English translations
-    │   │   ├── dashboard.json        # Dashboard English translations
-    │   │   ├── pos.json              # POS English translations
-    │   │   ├── products.json         # Products English translations
-    │   │   ├── reports.json          # Reports English translations
-    │   │   ├── sales.json            # Sales English translations
-    │   │   └── settings.json         # Settings English translations
-    │   └── tr/             # Turkish translations
-    │       ├── common.json           # Common Turkish translations
-    │       ├── dashboard.json        # Dashboard Turkish translations
-    │       ├── pos.json              # POS Turkish translations
-    │       ├── products.json         # Products Turkish translations
-    │       ├── reports.json          # Reports Turkish translations
-    │       ├── sales.json            # Sales Turkish translations
-    │       └── settings.json         # Settings Turkish translations
-    └── utils/              # Utility functions
-        ├── calculations.js           # Business calculations 
-        ├── formatters.js             # Data formatters
-        └── receiptPrinter.js         # Receipt printing functionality
+├── .cursor/ # Cursor IDE settings
+├── .env # Environment variables (not version controlled)
+├── .env.example # Example environment variables
+├── .git/ # Git repository data
+├── .gitignore # Git ignore patterns
+├── README.md # Project documentation
+├── PRODUCTION-BUILD.md # Production build guide
+├── USING-AS-COMPONENT.md # Guide for using components
+├── dist/ # Distribution output (generated by build process)
+├── features.md # Feature documentation
+├── file-index.md # This file - project structure overview
+├── forge.config.js # Electron Forge configuration for building
+├── node_modules/ # Dependencies
+├── out/ # Build output directory (generated by Electron Forge)
+├── package-lock.json # Lock file for package versions
+├── package.json # Project metadata, dependencies, and scripts
+├── scripts/ # Build and utility scripts
+│ ├── copy-env-to-dist.js # Script to copy .env file during build
+│ └── setup-env.js # Script to set up environment variables
+├── src/ # Source code
+│ ├── components/ # React components
+│ │ ├── App.jsx # Main React application component
+│ │ ├── LanguageInitializer.jsx # Initializes i18n
+│ │ ├── common/ # Shared/reusable UI components
+│ │ │ └── LoadingSpinner.jsx # Loading indicator component
+│ │ ├── dashboard/ # Dashboard-specific components
+│ │ │ ├── CategoryProfitsChart.jsx
+│ │ │ ├── InventoryMetricsCards.jsx
+│ │ │ ├── InventoryTrendChart.jsx
+│ │ │ ├── InventoryValueByCategoryChart.jsx
+│ │ │ ├── InventoryValueBySupplierChart.jsx
+│ │ │ ├── LowStockItemsCard.jsx
+│ │ │ ├── MonthlyProfitMetricsCards.jsx
+│ │ │ ├── ProfitTrendChart.jsx
+│ │ │ ├── RevenueByPaymentChart.jsx
+│ │ │ ├── RevenueBySupplierChart.jsx
+│ │ │ ├── StatCard.jsx
+│ │ │ ├── TodaySalesCard.jsx
+│ │ │ ├── TopProductsChart.jsx
+│ │ │ └── TotalProductsCard.jsx
+│ │ └── product/ # Product-related components (Currently empty)
+│ ├── context/ # React context providers
+│ │ └── DatabaseContext.jsx # Database context provider
+│ ├── database/ # Database-related code
+│ │ ├── backups/ # Backup storage location (contains subdirs like pre_reset/, pre_import/)
+│ │ ├── config.js # Database configuration and utility functions
+│ │ ├── dbManager.js # Database management utilities (init, backup, export)
+│ │ ├── excel-backup-scheduler.js # Scheduled backup service (Excel)
+│ │ ├── excel-backup.js # Excel export/import functionality
+│ │ ├── inventory-pro.db # SQLite database file (not version controlled)
+│ │ ├── json-backup.js # JSON export/import functionality
+│ │ ├── knexfile.js # Knex.js ORM configuration
+│ │ ├── migrations/ # Database schema migrations
+│ │ │ ├── 20250330_initial_schema.js
+│ │ │ ├── 20250331_add_split_payment.js
+│ │ │ ├── 20250401_add_payment_amount_fields.js
+│ │ │ └── 20250402_add_price_history.js
+│ │ └── seeds/ # Seed data for the database (Currently empty)
+│ ├── hooks/ # Custom React hooks
+│ │ ├── useSalesHistory.js # Sales history data hook
+│ │ └── useTranslation.js # Translation hook (wraps react-i18next)
+│ ├── i18n.js # i18n configuration (using i18next)
+│ ├── index.css # Global styles entry point
+│ ├── index.html # Main HTML entry point for the renderer process
+│ ├── index.js # Main application initialization (renderer process)
+│ ├── ipcHandlers/ # Handlers for Inter-Process Communication (IPC) events
+│ │ ├── categoryHandlers.js
+│ │ ├── configHandlers.js
+│ │ ├── dashboardHandlers.js
+│ │ ├── databaseHandlers.js # Handles DB operations like backup/export
+│ │ ├── languageHandlers.js
+│ │ ├── productHandlers.js
+│ │ ├── saleHandlers.js
+│ │ ├── settingsHandlers.js
+│ │ └── supplierHandlers.js
+│ ├── main.js # Electron main process entry point
+│ ├── models/ # Data models (using Objection.js built on Knex)
+│ │ ├── BaseModel.js # Base model for common functionality
+│ │ ├── Category.js
+│ │ ├── Product.js
+│ │ ├── Sale.js
+│ │ ├── Setting.js
+│ │ ├── Supplier.js
+│ │ └── index.js # Exports all models
+│ ├── pages/ # Application pages/screens (React components)
+│ │ ├── Dashboard.jsx
+│ │ ├── POS.jsx # Point of Sale system
+│ │ ├── ProductManagement.jsx
+│ │ ├── Reports.jsx
+│ │ ├── SalesHistory.jsx
+│ │ ├── Settings.jsx
+│ │ └── StockUpdate.jsx
+│ ├── preload.js # Electron preload script (bridges main and renderer processes)
+│ ├── renderer.js # Electron renderer process setup (obsolete/minimal content?)
+│ ├── services/ # Business logic services
+│ │ └── DatabaseService.js # Service layer for database interactions
+│ ├── styles/ # CSS styles
+│ │ ├── components/ # Component-specific styles
+│ │ │ ├── buttons.css
+│ │ │ ├── chart.css
+│ │ │ ├── charts.css
+│ │ │ ├── forms.css
+│ │ │ ├── index.css
+│ │ │ ├── loading-spinner.css
+│ │ │ ├── modal.css
+│ │ │ ├── stat-card.css
+│ │ │ └── table.css
+│ │ ├── main.css # Main application styles (imported by index.css)
+│ │ └── pages/ # Page-specific styles
+│ │ ├── dashboard.css
+│ │ ├── pos.css
+│ │ ├── product-management.css
+│ │ ├── reports.css
+│ │ ├── sales-history.css
+│ │ ├── settings.css
+│ │ └── stock-update.css
+│ ├── translations/ # Translation files (JSON format for i18next)
+│ │ ├── en/ # English translations
+│ │ │ ├── common.json
+│ │ │ ├── dashboard.json
+│ │ │ ├── pos.json
+│ │ │ ├── products.json
+│ │ │ ├── reports.json
+│ │ │ ├── sales.json
+│ │ │ └── settings.json
+│ │ └── tr/ # Turkish translations
+│ │ ├── common.json
+│ │ ├── dashboard.json
+│ │ ├── pos.json
+│ │ ├── products.json
+│ │ ├── reports.json
+│ │ ├── sales.json
+│ │ └── settings.json
+│ └── utils/ # Utility functions
+│ ├── calculations.js # Business calculation functions
+│ ├── formatters.js # Data formatting utilities
+│ └── receiptPrinter.js # Receipt printing functionality
+└── webpack.config.js # Webpack bundler configuration (likely used by Electron Forge)
+33 hidden lines
+33 hidden lines
+Let me know if you'd like me to try breaking the edit into smaller pieces or if you prefer to update the file manually.
 ```
 
 ## File Descriptions
 
 ### Root Directory Files
 
-| File | Description |
-|---------------|-------------|
-| package.json | Project metadata, dependencies, and scripts |
-| package-lock.json | Lock file for package versions |
-| webpack.config.js | Webpack bundler configuration |
-| forge.config.js | Electron Forge configuration for building |
-| electron-builder.json | Electron Builder configuration |
-| .env.example | Example environment variables |
-| .env | Environment variables (not version controlled) |
-| .gitignore | Git ignore patterns |
-| README.md | Project documentation |
-| features.md | Feature documentation |
-| PRODUCTION-BUILD.md | Production build guide |
-| USING-AS-COMPONENT.md | Guide for using components |
-| file-index.md | This file - project structure overview |
+| File                  | Description                                                 |
+|-----------------------|-------------------------------------------------------------|
+| `package.json`          | Project metadata, dependencies, and scripts                 |
+| `package-lock.json`   | Lock file for exact package versions                        |
+| `webpack.config.js`   | Webpack bundler configuration                               |
+| `forge.config.js`     | Electron Forge configuration for building                   |
+| `.env.example`        | Example environment variables                               |
+| `.env`                | Environment variables (not version controlled)              |
+| `.gitignore`          | Git ignore patterns                                         |
+| `README.md`           | Project documentation                                       |
+| `features.md`         | Feature documentation                                       |
+| `PRODUCTION-BUILD.md` | Production build guide                                      |
+| `USING-AS-COMPONENT.md` | Guide for using components                                  |
+| `file-index.md`       | This file - project structure overview                      |
+| `scripts/`            | Directory containing build and utility scripts              |
+| `dist/`               | Distribution output directory (generated by build process)  |
+| `out/`                | Build output directory (generated by Electron Forge)        |
 
-### Core Files
+### Scripts Directory Files (`scripts/`)
 
-| File | Description |
-|---------------|-------------|
-| src/main.js | Electron main process entry point |
-| src/preload.js | Electron preload script for secure IPC |
-| src/renderer.js | Electron renderer process entry point |
-| src/index.js | Main application initialization |
-| src/index.html | Main HTML entry point |
-| src/index.css | Global application styles |
-| src/i18n.js | Internationalization configuration |
+| File                  | Description                                     |
+|-----------------------|-------------------------------------------------|\n| `copy-env-to-dist.js` | Copies the `.env` file to the build directory   |
+| `setup-env.js`        | Sets up environment variables for the application |
 
-### Components
+### Core Electron & Application Files (`src/`)
 
-| Directory/File | Description |
-|---------------|-------------|
-| src/components/common/ | Shared/reusable UI components |
-| src/components/dashboard/ | Dashboard-specific components |
-| src/components/App.jsx | Main React application component |
-| src/components/LanguageInitializer.jsx | Initializes i18n for the application |
+| File             | Description                                                          |
+|------------------|----------------------------------------------------------------------|
+| `main.js`        | Electron main process entry point, handles window creation & IPC setup |
+| `preload.js`     | Electron preload script for secure IPC between main and renderer     |
+| `index.html`     | Main HTML entry point loaded into the browser window                 |
+| `index.js`       | Entry point for the React application (renderer process)             |
+| `index.css`      | Main CSS entry point, imports other style files                      |
+| `i18n.js`        | Internationalization (i18next) configuration                         |
+| `renderer.js`    | Renderer process setup (may contain minimal setup code)              |
 
-### Pages
+### Components (`src/components/`)
 
-| File | Description |
-|---------------|-------------|
-| src/pages/Dashboard.jsx | Main dashboard screen |
-| src/pages/ProductManagement.jsx | Product management interface |
-| src/pages/POS.jsx | Point of Sale system |
-| src/pages/Reports.jsx | Reporting and analytics |
-| src/pages/SalesHistory.jsx | Sales history and records |
-| src/pages/Settings.jsx | Application settings |
-| src/pages/StockUpdate.jsx | Stock update management |
+| Directory/File                  | Description                                                  |
+|---------------------------------|--------------------------------------------------------------|
+| `App.jsx`                       | Root React component, sets up routing and context providers  |
+| `LanguageInitializer.jsx`       | Initializes i18n for the React application                   |
+| `common/`                       | Shared/reusable UI components (e.g., `LoadingSpinner.jsx`)   |
+| `dashboard/`                    | Components specifically used on the Dashboard page           |
+| `product/`                      | Components related to product management (currently empty)   |
 
-### CSS Styles
+### Pages (`src/pages/`)
 
-| File | Description |
-|---------------|-------------|
-| src/index.css | Global application styles |
-| src/styles/main.css | Main application styles |
-| src/styles/components/buttons.css | Button styles |
-| src/styles/components/chart.css | Chart component styles |
-| src/styles/components/charts.css | Charts collection styles |
-| src/styles/components/forms.css | Form styles |
-| src/styles/components/index.css | Components index styles |
-| src/styles/components/loading-spinner.css | Loading spinner styles |
-| src/styles/components/modal.css | Modal dialog styles |
-| src/styles/components/stat-card.css | Statistics card styles |
-| src/styles/components/table.css | Table styles |
-| src/styles/pages/dashboard.css | Dashboard page styles |
-| src/styles/pages/pos.css | POS page styles |
-| src/styles/pages/product-management.css | Product management page styles |
-| src/styles/pages/reports.css | Reports page styles |
-| src/styles/pages/sales-history.css | Sales history page styles |
-| src/styles/pages/settings.css | Settings page styles |
-| src/styles/pages/stock-update.css | Stock update page styles |
+| File                    | Description                        |
+|-------------------------|------------------------------------|
+| `Dashboard.jsx`         | Main dashboard screen              |
+| `ProductManagement.jsx` | Product listing and management     |
+| `POS.jsx`               | Point of Sale interface            |
+| `Reports.jsx`           | Reporting and analytics screen     |
+| `SalesHistory.jsx`      | View past sales records            |
+| `Settings.jsx`          | Application settings configuration |
+| `StockUpdate.jsx`       | Interface for updating stock levels|
 
-### Database
+### Styles (`src/styles/`)
 
-| File/Directory | Description |
-|---------------|-------------|
-| src/database/connection.js | Database connection management |
-| src/database/config.js | Database configuration settings |
-| src/database/knexfile.js | Knex.js ORM configuration |
-| src/database/dbManager.js | Database management utilities |
-| src/database/backup.js | Database backup functionality |
-| src/database/excel-backup.js | Excel export functionality |
-| src/database/json-backup.js | JSON export functionality |
-| src/database/excel-backup-scheduler.js | Scheduled backup services |
-| src/database/migrations/ | Database schema migrations |
-| src/database/backups/ | Database backup storage location |
-| src/database/seeds/ | Seed data for the database |
-| src/database/stress-test-generator.js | Stress testing utility |
-| src/database/run-stress-test.js | Stress test runner |
-| src/database/force-seed.js | Forced database seeding |
-| src/database/fix-migration.js | Migration repair utility |
-| src/database/STRESS-TEST.md | Stress testing documentation |
-| src/database/inventory-pro.db | SQLite database file |
+| File/Directory           | Description                                       |
+|--------------------------|---------------------------------------------------|\n| `main.css`               | Core application-wide styles                      |
+| `components/`            | Styles for specific shared or dashboard components|
+| `pages/`                 | Styles specific to each application page          |
 
-### Models
+### Database (`src/database/`)
 
-| File | Description |
-|---------------|-------------|
-| src/models/index.js | Exports all models |
-| src/models/Setting.js | Settings model for application configuration |
+| File/Directory              | Description                                                           |
+|-----------------------------|-----------------------------------------------------------------------|
+| `config.js`                 | Database configuration, connection setup, utility functions           |
+| `knexfile.js`               | Knex.js ORM configuration for migrations and seeds                    |
+| `dbManager.js`              | Manages database initialization, backups, and data export/import      |
+| `excel-backup.js`           | Handles exporting/importing data to/from Excel format                 |
+| `json-backup.js`            | Handles exporting/importing data to/from JSON format                  |
+| `excel-backup-scheduler.js` | Service for scheduling automatic Excel backups                      |
+| `migrations/`               | Knex database schema migrations                                       |
+| `seeds/`                    | Knex seed data files for populating the database (currently empty)    |
+| `backups/`                  | Default location for database backups (contains subdirectories)       |
+| `inventory-pro.db`          | SQLite database file (usually not version controlled)                 |
 
-### Context
+### Models (`src/models/`)
 
-| File | Description |
-|---------------|-------------|
-| src/context/DatabaseContext.jsx | Database context provider |
+| File          | Description                                                               |
+|---------------|---------------------------------------------------------------------------|
+| `index.js`    | Exports all Objection.js models                                           |
+| `BaseModel.js`| Base model providing common functionality or configuration for other models |
+| `Setting.js`  | Model for application settings                                            |
+| `Product.js`  | Model for products                                                        |
+| `Category.js` | Model for product categories                                              |
+| `Supplier.js` | Model for suppliers                                                       |
+| `Sale.js`     | Model for sales transactions and associated details                     |
 
-### Hooks
+### Context (`src/context/`)
 
-| File | Description |
-|---------------|-------------|
-| src/hooks/useTranslation.js | Translation hook |
-| src/hooks/useSalesHistory.js | Sales history data hook |
+| File                  | Description                                                            |
+|-----------------------|------------------------------------------------------------------------|
+| `DatabaseContext.jsx` | React Context provider for managing and accessing database information |
 
-### Utils
+### Hooks (`src/hooks/`)
 
-| File | Description |
-|---------------|-------------|
-| src/utils/calculations.js | Business calculations |
-| src/utils/formatters.js | Data formatters |
-| src/utils/receiptPrinter.js | Receipt printing functionality |
+| File                 | Description                                                |
+|----------------------|------------------------------------------------------------|\n| `useTranslation.js`  | Custom hook simplifying the use of `react-i18next`         |
+| `useSalesHistory.js` | Custom hook for fetching and managing sales history data   |
 
-### Translations
+### IPC Handlers (`src/ipcHandlers/`)
 
-| File | Description |
-|---------------|-------------|
-| src/translations/en/common.json | Common English translations |
-| src/translations/en/dashboard.json | Dashboard English translations |
-| src/translations/en/pos.json | POS English translations |
-| src/translations/en/products.json | Products English translations |
-| src/translations/en/reports.json | Reports English translations |
-| src/translations/en/sales.json | Sales English translations |
-| src/translations/en/settings.json | Settings English translations |
-| src/translations/tr/common.json | Common Turkish translations |
-| src/translations/tr/dashboard.json | Dashboard Turkish translations |
-| src/translations/tr/pos.json | POS Turkish translations |
-| src/translations/tr/products.json | Products Turkish translations |
-| src/translations/tr/reports.json | Reports Turkish translations |
-| src/translations/tr/sales.json | Sales Turkish translations |
-| src/translations/tr/settings.json | Settings Turkish translations |
+| File                  | Description                                          |
+|-----------------------|------------------------------------------------------|
+| `categoryHandlers.js` | Handles IPC calls related to categories              |
+| `configHandlers.js`   | Handles IPC calls for application configuration      |
+| `dashboardHandlers.js`| Handles IPC calls for dashboard data retrieval       |
+| `databaseHandlers.js` | Handles IPC calls for database operations (backup etc) |
+| `languageHandlers.js` | Handles IPC calls for language settings              |
+| `productHandlers.js`  | Handles IPC calls related to products                |
+| `saleHandlers.js`     | Handles IPC calls related to sales                   |
+| `settingsHandlers.js` | Handles IPC calls for application settings           |
+| `supplierHandlers.js` | Handles IPC calls related to suppliers               |
+
+### Utils (`src/utils/`)
+
+| File                | Description                                         |
+|---------------------|-----------------------------------------------------|
+| `calculations.js`   | Utility functions for business logic calculations |
+| `formatters.js`     | Utility functions for formatting data (dates, etc.) |
+| `receiptPrinter.js` | Functionality for generating and printing receipts  |
+
+### Translations (`src/translations/`)
+
+| Directory | Description                              |
+|-----------|------------------------------------------|
+| `en/`     | English translation files (JSON format)  |
+| `tr/`     | Turkish translation files (JSON format)  |
 
 ## Tech Stack
 
-- **Frontend**: 
+- **Framework**: Electron
+- **Frontend**:
   - React
   - React Router
   - Chart.js
   - React Hot Toast
   - CSS
-
-- **Backend**: 
-  - Electron
-  - Node.js
-
-- **Database**: 
+- **Backend/Main Process**: Node.js
+- **Database**:
   - SQLite
-  - Knex.js ORM
-
-- **Build Tools**: 
+  - Knex.js (Query Builder)
+  - Objection.js (ORM built on Knex)
+- **Build Tools**:
   - Webpack
   - Babel
   - Electron Forge
-  - Electron Builder
-
-- **Internationalization**: 
+- **Internationalization**:
   - i18next
   - react-i18next
 
 ## Other Important Information
 
-- The application uses SQLite as its database through Knex.js ORM
-- Electron is used to create a cross-platform desktop application
-- React is used for the UI components and state management
-- i18next provides internationalization support
-- Chart.js is used for data visualization and reporting
-- The app supports data backup/export to Excel and JSON formats
-- Testing includes stress-testing for database performance 
+- The application uses SQLite as its database, managed via Knex.js and Objection.js ORM.
+- Electron enables the creation of a cross-platform desktop application.
+- Inter-Process Communication (IPC) is used between the Electron main process (`main.js`) and the renderer process (React app), facilitated by `preload.js` and handled by files in `src/ipcHandlers/`.
+- React handles the UI components and state management within the renderer process.
+- `i18next` provides internationalization support, with translations stored in `src/translations/`.
+- Chart.js is used for data visualization in dashboards and reports.
+- The app supports data backup/export/import for both Excel and JSON formats.
+- Database migrations are managed using Knex.js.
+- `DatabaseService.js` acts as a service layer abstracting direct database calls.
+- Environment variables are managed via `.env` files and the `dotenv` package.
