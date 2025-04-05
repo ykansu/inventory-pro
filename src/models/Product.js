@@ -1,6 +1,12 @@
 const BaseModel = require('./BaseModel');
 const dbManager = require('../database/dbManager');
-const { subMonths, startOfMonth, format, startOfDay, endOfDay } = require('date-fns');
+const { 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  format, 
+  subYears 
+} = require('date-fns');
 
 // Product model
 class Product extends BaseModel {
@@ -61,7 +67,7 @@ class Product extends BaseModel {
         .where({ id })
         .update({ 
           stock_quantity: newQuantity,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         });
       
       // Record the stock adjustment
@@ -71,8 +77,8 @@ class Product extends BaseModel {
         adjustment_type: adjustmentType,
         reason,
         reference,
-        created_at: new Date(),
-        updated_at: new Date()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       });
       
       return this.getById(id);
@@ -198,7 +204,7 @@ class Product extends BaseModel {
       
       // Get all sales for the past year to calculate cost of goods sold (COGS)
       const now = new Date();
-      const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString();
+      const oneYearAgo = subYears(now, 1).toISOString();
       
       // Get all sale items for the past year
       const saleItems = await db('sale_items')
@@ -235,13 +241,13 @@ class Product extends BaseModel {
             
       // Calculate the start date by subtracting the specified number of months
       const startDate = subMonths(new Date(), months);
-      
+        
       // Ensure we get the start of the month for consistent data
       const startOfMonthDate = startOfMonth(startDate);
       
       // Convert to ISO string for database query
       const startDateStr = startOfMonthDate.toISOString();
-      
+        
       // Get current inventory values for each month
       const trendData = await db('products')
         .select(
@@ -250,7 +256,7 @@ class Product extends BaseModel {
         )
         .where('stock_quantity', '>', 0)
         .groupBy(db.raw("strftime('%Y-%m', date('now'))"));
-      
+
       // Get historical inventory values from stock adjustments
       const historicalData = await db('stock_adjustments')
         .join('products', 'stock_adjustments.product_id', 'products.id')
@@ -269,7 +275,7 @@ class Product extends BaseModel {
       // Fill in missing months with zero values
       const result = [];
       const now = new Date();
-      
+
       for (let i = 0; i < months; i++) {
         const date = new Date();
         date.setMonth(now.getMonth() - i);

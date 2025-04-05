@@ -1,6 +1,22 @@
 const BaseModel = require('./BaseModel');
 const dbManager = require('../database/dbManager');
-const { subMonths, startOfMonth, format, startOfDay, endOfDay } = require('date-fns');
+const { 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfDay, 
+  endOfDay, 
+  startOfWeek, 
+  endOfWeek, 
+  startOfYear, 
+  endOfYear, 
+  format, 
+  parseISO, 
+  setYear, 
+  getYear, 
+  getMonth, 
+  getDay 
+} = require('date-fns');
 
 // Helper functions for formatting
 const formatDateHelper = (date, options = {}, defaultValue = '') => {
@@ -46,7 +62,7 @@ class Sale extends BaseModel {
       try {
         // Get current real date for proper storage
         const now = new Date();
-        const nowISOString = now.toISOString();
+        const nowISOString = now.toISOString(); // Use native method
         
         // Make a copy to avoid modifying the original object
         const formattedSaleData = {
@@ -55,27 +71,48 @@ class Sale extends BaseModel {
         
         // Use ISO string format for dates if they exist, ensuring we use the current real year
         if (formattedSaleData.created_at) {
-          // Extract the current year from the real date
-          const realYear = now.getFullYear();
-          
-          // Convert to ISO string and replace the year with the real year
-          let dateISOString = formattedSaleData.created_at.toISOString();
-          dateISOString = dateISOString.replace(/^\d{4}/, realYear.toString());
-          
-          formattedSaleData.created_at = dateISOString;
+          const realYear = getYear(now);
+          let createdAtDate = formattedSaleData.created_at;
+          // Ensure it's a Date object before using setYear
+          if (!(createdAtDate instanceof Date)) {
+            try {
+              createdAtDate = parseISO(createdAtDate); // Attempt to parse if string
+            } catch (e) {
+              console.warn('Could not parse created_at date:', formattedSaleData.created_at);
+              createdAtDate = now; // Fallback to now if parsing fails
+            }
+          }
+          // Check for valid date after potential parse
+          if (!isNaN(createdAtDate.getTime())) {
+            // Ensure setYear returns a Date object before calling toISOString
+            formattedSaleData.created_at = setYear(createdAtDate, realYear).toISOString(); 
+          } else {
+             formattedSaleData.created_at = nowISOString; // Fallback if date is invalid
+          }
+
         } else {
           formattedSaleData.created_at = nowISOString;
         }
         
         if (formattedSaleData.updated_at) {
-          // Extract the current year from the real date
-          const realYear = now.getFullYear();
-          
-          // Convert to ISO string and replace the year with the real year
-          let dateISOString = formattedSaleData.updated_at.toISOString();
-          dateISOString = dateISOString.replace(/^\d{4}/, realYear.toString());
-          
-          formattedSaleData.updated_at = dateISOString;
+          const realYear = getYear(now);
+           let updatedAtDate = formattedSaleData.updated_at;
+          // Ensure it's a Date object before using setYear
+          if (!(updatedAtDate instanceof Date)) {
+            try {
+              updatedAtDate = parseISO(updatedAtDate); // Attempt to parse if string
+            } catch (e) {
+               console.warn('Could not parse updated_at date:', formattedSaleData.updated_at);
+               updatedAtDate = now; // Fallback to now if parsing fails
+            }
+          }
+           // Check for valid date after potential parse
+          if (!isNaN(updatedAtDate.getTime())) {
+             // Ensure setYear returns a Date object before calling toISOString
+            formattedSaleData.updated_at = setYear(updatedAtDate, realYear).toISOString(); 
+          } else {
+             formattedSaleData.updated_at = nowISOString; // Fallback if date is invalid
+          }
         } else {
           formattedSaleData.updated_at = nowISOString;
         }
@@ -120,7 +157,7 @@ class Sale extends BaseModel {
             quantity_change: -item.quantity,
             adjustment_type: 'sale',
             reference: formattedSaleData.receipt_number,
-            created_at: nowISOString,
+            created_at: nowISOString, 
             updated_at: nowISOString
           });
         }
@@ -188,7 +225,7 @@ class Sale extends BaseModel {
         
         // Get current real date for proper storage
         const now = new Date();
-        const nowISOString = now.toISOString();
+        const nowISOString = now.toISOString(); // Use native method
 
         // Mark the sale as returned
         await trx(this.tableName)
@@ -196,7 +233,7 @@ class Sale extends BaseModel {
           .update({
             is_returned: true,
             notes: sale.notes ? `${sale.notes} | CANCELED: ${nowISOString}` : `CANCELED: ${nowISOString}`,
-            updated_at: nowISOString
+            updated_at: nowISOString 
           });
 
         // Return items to inventory
@@ -213,7 +250,7 @@ class Sale extends BaseModel {
             adjustment_type: 'sale_cancel',
             reference: `CANCEL-${sale.receipt_number}`,
             reason: 'Sale canceled',
-            created_at: nowISOString,
+            created_at: nowISOString, 
             updated_at: nowISOString
           });
         }
@@ -236,21 +273,25 @@ class Sale extends BaseModel {
   // Get sales by date range
   async getByDateRange(startDate, endDate) {
     try {
-      // Format dates to ensure proper string format for SQLite
-      let formattedStartDate = startDate;
-      let formattedEndDate = endDate;
+      // Use date-fns for robust parsing and formatting
+      let parsedStartDate, parsedEndDate;
+      try {
+          // Assume input might be YYYY-MM-DD or full ISO string
+          parsedStartDate = startDate ? startOfDay(parseISO(startDate)) : null;
+      } catch (e) {
+          console.warn("Invalid start date provided:", startDate);
+          parsedStartDate = null; // Handle invalid start date gracefully
+      }
+       try {
+          parsedEndDate = endDate ? endOfDay(parseISO(endDate)) : null;
+       } catch(e) {
+           console.warn("Invalid end date provided:", endDate);
+           parsedEndDate = null; // Handle invalid end date gracefully
+       }
 
-      // Add time component if not present for start date
-      if (startDate && !formattedStartDate.includes('T')) {
-        formattedStartDate = `${formattedStartDate}T00:00:00.000`;
-      }
-      
-      // Add time component for end of day if not present
-      if (endDate && !formattedEndDate.includes('T')) {
-        formattedEndDate = `${formattedEndDate}T23:59:59.999`;
-      }
-      formattedStartDate = new Date(formattedStartDate).toISOString();
-      formattedEndDate = new Date(formattedEndDate).toISOString();
+      // Format for SQLite query
+      const formattedStartDate = parsedStartDate && !isNaN(parsedStartDate.getTime()) ? parsedStartDate.toISOString() : null;
+      const formattedEndDate = parsedEndDate && !isNaN(parsedEndDate.getTime()) ? parsedEndDate.toISOString() : null;
 
       // Get database connection
       const db = await this.getDb();
@@ -311,7 +352,7 @@ class Sale extends BaseModel {
       const todayStart = startOfDay(now);
       const todayEnd = endOfDay(now);
       
-      // Convert to ISO strings for the query
+      // Convert to ISO strings using date-fns
       const startDateISO = todayStart.toISOString();
       const endDateISO = todayEnd.toISOString();
       
@@ -337,14 +378,12 @@ class Sale extends BaseModel {
     try {
       // Get the current date
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+
+      // Use date-fns for start and end of the current month
+      const startDate = startOfMonth(now);
+      const endDate = endOfMonth(now);
       
-      // Format start and end dates for the current month
-      const startDate = new Date(currentYear, now.getMonth(), 1);
-      const endDate = new Date(currentYear, now.getMonth() + 1, 0, 23, 59, 59, 999);
-      
-      // Format dates for SQLite query
+      // Format dates for SQLite query using date-fns
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
@@ -436,34 +475,29 @@ class Sale extends BaseModel {
         return [];
       }
       
-      // Calculate date range based on period
+      // Calculate date range based on period using date-fns
       const now = new Date();
       let startDate, endDate;
       
+      // Assume week starts on Sunday (0)
+      const weekStartsOn = 0; 
+      
       if (period === 'week') {
-        // Set to beginning of current week (Sunday)
-        const day = now.getDay(); // 0 = Sunday
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - day);
-        startDate.setHours(0, 0, 0, 0);
-        
-        endDate = new Date(now);
-        endDate.setHours(23, 59, 59, 999);
+        startDate = startOfWeek(now, { weekStartsOn });
+        endDate = endOfWeek(now, { weekStartsOn });
       } else if (period === 'year') {
-        // Set to beginning of current year
-        startDate = new Date(now.getFullYear(), 0, 1);
-        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
-      } else {
-        // Default to month
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+      } else { // Default to month
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
       }
       
-      // Format dates for SQLite query
+      // Format dates for SQLite query using date-fns
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
-      // Get all sales for current month
+      // Get all sales for the period
       const salesIds = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
@@ -528,34 +562,29 @@ class Sale extends BaseModel {
         return [];
       }
       
-      // Calculate date range based on period
+      // Calculate date range based on period using date-fns
       const now = new Date();
       let startDate, endDate;
-      
+
+      // Assume week starts on Sunday (0)
+      const weekStartsOn = 0; 
+            
       if (period === 'week') {
-        // Set to beginning of current week (Sunday)
-        const day = now.getDay(); // 0 = Sunday
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - day);
-        startDate.setHours(0, 0, 0, 0);
-        
-        endDate = new Date(now);
-        endDate.setHours(23, 59, 59, 999);
+        startDate = startOfWeek(now, { weekStartsOn });
+        endDate = endOfWeek(now, { weekStartsOn });
       } else if (period === 'year') {
-        // Set to beginning of current year
-        startDate = new Date(now.getFullYear(), 0, 1);
-        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
-      } else {
-        // Default to month
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+      } else { // Default to month
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
       }
       
-      // Format dates for SQLite query
+      // Format dates for SQLite query using date-fns
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
-      // Get all sales for current month
+      // Get all sales for the period
       const salesIds = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
@@ -632,34 +661,29 @@ class Sale extends BaseModel {
         return [];
       }
       
-      // Calculate date range based on period
+      // Calculate date range based on period using date-fns
       const now = new Date();
       let startDate, endDate;
-      
+
+      // Assume week starts on Sunday (0)
+      const weekStartsOn = 0; 
+            
       if (period === 'week') {
-        // Set to beginning of current week (Sunday)
-        const day = now.getDay(); // 0 = Sunday
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - day);
-        startDate.setHours(0, 0, 0, 0);
-        
-        endDate = new Date(now);
-        endDate.setHours(23, 59, 59, 999);
+        startDate = startOfWeek(now, { weekStartsOn });
+        endDate = endOfWeek(now, { weekStartsOn });
       } else if (period === 'year') {
-        // Set to beginning of current year
-        startDate = new Date(now.getFullYear(), 0, 1);
-        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
-      } else {
-        // Default to month
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+      } else { // Default to month
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
       }
       
-      // Format dates for SQLite query
+      // Format dates for SQLite query using date-fns
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
-      // Get all sales for current month
+      // Get all sales for the period
       const salesIds = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
@@ -727,34 +751,29 @@ class Sale extends BaseModel {
         ];
       }
       
-      // Calculate date range based on period
+      // Calculate date range based on period using date-fns
       const now = new Date();
       let startDate, endDate;
-      
+
+      // Assume week starts on Sunday (0)
+      const weekStartsOn = 0; 
+            
       if (period === 'week') {
-        // Set to beginning of current week (Sunday)
-        const day = now.getDay(); // 0 = Sunday
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - day);
-        startDate.setHours(0, 0, 0, 0);
-        
-        endDate = new Date(now);
-        endDate.setHours(23, 59, 59, 999);
+        startDate = startOfWeek(now, { weekStartsOn });
+        endDate = endOfWeek(now, { weekStartsOn });
       } else if (period === 'year') {
-        // Set to beginning of current year
-        startDate = new Date(now.getFullYear(), 0, 1);
-        endDate = new Date(now.getFullYear() + 1, 0, 0, 23, 59, 59, 999);
-      } else {
-        // Default to month
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+      } else { // Default to month
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
       }
       
-      // Format dates for SQLite query
+      // Format dates for SQLite query using date-fns
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
-      // Get all sales for current month grouped by payment method
+      // Get all sales for the period
       const paymentData = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
@@ -824,22 +843,23 @@ class Sale extends BaseModel {
       
       for (let i = months - 1; i >= 0; i--) {
         try {
-          // Calculate month start and end dates
-          const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
+          // Calculate month start and end dates using date-fns
+          const targetMonthDate = subMonths(now, i);
+          const monthStart = startOfMonth(targetMonthDate);
+          const monthEnd = endOfMonth(targetMonthDate);
           
-          // Format dates for SQLite - with validation
+          // Format dates for SQLite using date-fns
           let formattedStartDate, formattedEndDate;
           try {
             formattedStartDate = monthStart.toISOString();
             formattedEndDate = monthEnd.toISOString();
           } catch (error) {
             console.error("Error converting dates to ISO format:", error);
-            continue;
+            continue; // Skip this month if formatting fails
           }
           
-          // Get month name (e.g., "Jan") using safe formatter
-          const monthName = formatDateHelper(monthStart, { month: 'short' }, `Month-${i}`);
+          // Get month name (e.g., "Jan") using date-fns format
+          const monthName = format(monthStart, 'MMM'); 
           
           // Get all sales for this month
           const sales = await db(this.tableName)
