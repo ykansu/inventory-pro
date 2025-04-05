@@ -19,8 +19,7 @@
     "dist": "electron-forge make",
     "migrate": "knex migrate:latest --knexfile src/database/knexfile.js",
     "migrate:make": "knex migrate:make --knexfile src/database/knexfile.js",
-    "migrate:run": "node src/database/run-migrations.js",
-    "seed": "knex seed:run --knexfile src/database/knexfile.js"
+    "migrate:run": "node src/database/run-migrations.js"
   },
   "keywords": [
     "electron",

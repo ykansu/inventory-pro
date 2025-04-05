@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const { app, dialog } = require('electron');
-const Excel = require('exceljs');
+const ExcelJS = require('exceljs');
 const config = require('./config');
-const dbConnection = require('./connection');
+const dbManager = require('./dbManager');
+const { format, parseISO } = require('date-fns');
 
 // Format date for backup filename
 function formatDate(date) {
@@ -19,7 +20,7 @@ function formatDate(date) {
 
 // Get all data tables
 async function getAllTables() {
-  const db = await dbConnection.getConnection();
+  const db = await dbManager.getConnection();
   return [
     { name: 'categories', data: await db('categories').select('*') },
     { name: 'suppliers', data: await db('suppliers').select('*') },
@@ -81,7 +82,7 @@ async function exportToExcel(customPath = null) {
     const exportFile = path.join(exportDir, `inventory_export_${timestamp}.xlsx`);
     
     // Create a new Excel workbook
-    const workbook = new Excel.Workbook();
+    const workbook = new ExcelJS.Workbook();
     
     // Add metadata worksheet
     const metadataSheet = workbook.addWorksheet('Metadata');
@@ -188,11 +189,11 @@ async function importFromExcel(excelFile) {
     await createPreImportBackup();
     
     // Load Excel file
-    const workbook = new Excel.Workbook();
+    const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(excelFile);
     
     // Get database connection
-    const db = await dbConnection.getConnection();
+    const db = await dbManager.getConnection();
     
     console.log('Starting Excel import process');
     
@@ -223,9 +224,11 @@ async function importFromExcel(excelFile) {
         await trx.raw('DELETE FROM categories');
         console.log('  - Cleared categories table');
         
-        console.log('All tables cleared successfully');
+        // Delete existing settings as well
+        await trx.raw('DELETE FROM settings');
+        console.log('  - Cleared settings table');
         
-        // Keep settings to avoid breaking application configuration
+        console.log('All tables cleared successfully');
         
         // Create mapping for old IDs to new IDs
         const idMappings = {
@@ -239,7 +242,29 @@ async function importFromExcel(excelFile) {
         await trx.raw("DELETE FROM sqlite_sequence WHERE name IN ('categories', 'suppliers', 'products', 'sales', 'sale_items', 'stock_adjustments')");
         console.log('Sequence counters reset');
         
-        // Process each sheet based on table name
+        // Process settings sheet (if exists)
+        const settingsSheet = workbook.getWorksheet('settings');
+        if (settingsSheet) {
+          console.log('Importing settings...');
+          const settingsRows = [];
+          settingsSheet.eachRow((row, rowNum) => {
+            if (rowNum > 1) { // Skip header
+              const rowData = {};
+              settingsSheet.getRow(1).values.forEach((header, index) => {
+                if (header) { // Only map if header exists
+                  rowData[header] = row.values[index];
+                }
+              });
+              settingsRows.push(rowData);
+            }
+          });
+
+          if (settingsRows.length > 0) {
+            await trx('settings').insert(settingsRows);
+            console.log(`Imported ${settingsRows.length} settings`);
+          }
+        }
+        
         // Import categories
         const categoriesSheet = workbook.getWorksheet('categories');
         if (categoriesSheet) {

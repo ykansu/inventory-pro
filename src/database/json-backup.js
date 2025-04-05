@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { app, dialog } = require('electron');
 const config = require('./config');
-const dbConnection = require('./connection');
+const dbManager = require('./dbManager');
 
 // Format date for backup filename
 function formatDate(date) {
@@ -18,7 +18,7 @@ function formatDate(date) {
 
 // Get all data tables
 async function getAllTables() {
-  const db = await dbConnection.getConnection();
+  const db = await dbManager.getConnection();
   return [
     { name: 'categories', data: await db('categories').select('*') },
     { name: 'suppliers', data: await db('suppliers').select('*') },
@@ -88,7 +88,7 @@ async function importFromJson(jsonFile) {
     console.log('Starting JSON import process');
     
     // Get database connection
-    const db = await dbConnection.getConnection();
+    const db = await dbManager.getConnection();
     
     // Begin transaction
     return await db.transaction(async trx => {
@@ -290,7 +290,6 @@ async function importFromJson(jsonFile) {
 // Create a backup before importing
 async function createPreImportBackup() {
   try {
-    // Create a backup directory for pre-import backups
     const backupDir = path.join(config.backup.path, 'pre_import');
     
     if (!fs.existsSync(backupDir)) {
@@ -298,7 +297,7 @@ async function createPreImportBackup() {
     }
     
     const timestamp = formatDate(new Date());
-    const backupFile = path.join(backupDir, `backup_${timestamp}.db`);
+    const backupFile = path.join(backupDir, `db_backup_pre_import_${timestamp}.db`);
     
     // Create a database backup
     fs.copyFileSync(config.dbPath, backupFile);
@@ -404,10 +403,12 @@ async function scheduleJsonBackups() {
 }
 
 // Clean up old JSON backups
-function cleanupOldJsonBackups() {
+async function cleanupOldJsonBackups() {
   try {
     const exportDir = config.backup.jsonPath;
-    const maxBackups = config.backup.maxJsonBackups || 5;
+    const maxBackups = config.backup.jsonMaxCount;
+    
+    if (!fs.existsSync(exportDir)) return; // Nothing to clean up
     
     // Get all JSON backup files
     const files = fs.readdirSync(exportDir)
