@@ -548,10 +548,14 @@ class Sale extends BaseModel {
   }
   
   // Get top selling products
-  async getTopSellingProducts(period = 'month', limit = 5) {
+  async getTopSellingProducts(period = 'month', limit = 5, sortBy = 'quantity') {
     try {
       // Get database connection
       const db = await this.getDb();
+      
+      // Ensure limit is a number
+      const numericLimit = parseInt(limit, 10) || 5;
+      console.log(`getTopSellingProducts called with period: ${period}, limit: ${limit}, sortBy: ${sortBy}, converted to numericLimit: ${numericLimit}`);
       
       // Check if required tables exist
       const hasSalesTable = await db.schema.hasTable(this.tableName);
@@ -611,21 +615,37 @@ class Sale extends BaseModel {
         )
         .groupBy('products.id', 'products.name', 'categories.name');
       
+      // Determine how to sort results based on sortBy parameter
+      let sortColumn = 'quantity_sold';
+      if (sortBy === 'revenue') {
+        sortColumn = 'revenue';
+      } else if (sortBy === 'profit') {
+        query = query.select(
+          db2.raw('(SUM(sale_items.total_price) - SUM(sale_items.historical_cost_price * sale_items.quantity)) as profit')
+        );
+        sortColumn = 'profit';
+      }
+      
+      console.log(`Sorting by ${sortColumn} before applying limit`);
+      
       // Add limit if specified
-      if (limit) {
-        query = query.orderBy('quantity_sold', 'desc').limit(limit);
+      if (numericLimit > 0) {
+        console.log(`Applying limit of ${numericLimit} to query`);
+        query = query.orderBy(sortColumn, 'desc').limit(numericLimit);
       } else {
-        query = query.orderBy('quantity_sold', 'desc');
+        console.log('No limit applied to query');
+        query = query.orderBy(sortColumn, 'desc');
       }
       
       // Execute the query
       const topProducts = await query;
+      console.log(`Query returned ${topProducts.length} products`);
       
       // Calculate profit and margin for each product
       return topProducts.map(product => {
         const revenue = parseFloat(product.revenue) || 0;
         const cost = parseFloat(product.cost) || 0;
-        const profit = revenue - cost;
+        const profit = product.profit ? parseFloat(product.profit) : (revenue - cost);
         const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
         
         return {

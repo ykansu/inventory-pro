@@ -123,9 +123,9 @@ function registerDashboardHandlers() {
     }
   });
 
-  ipcMain.handle('dashboard:getTopSellingProducts', async (_, limit = 5) => {
+  ipcMain.handle('dashboard:getTopSellingProducts', async (_, period = 'month', limit = 5, sortBy = 'quantity') => {
     try {
-      return await Sale.getTopSellingProducts(limit);
+      return await Sale.getTopSellingProducts(period, limit, sortBy);
     } catch (error) {
       console.error('Error getting top selling products:', error);
       return []; // Return empty array instead of throwing

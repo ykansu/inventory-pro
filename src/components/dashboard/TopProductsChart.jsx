@@ -33,6 +33,7 @@ const TopProductsChart = () => {
   const [currency, setCurrency] = useState('usd');
   const [sortBy, setSortBy] = useState('revenue'); // 'revenue', 'profit', or 'quantity'
   const [showCount, setShowCount] = useState(5);
+  const [period, setPeriod] = useState('month'); // 'month', 'week', or 'year'
   const { settings, dashboard } = useDatabase();
 
   useEffect(() => {
@@ -56,8 +57,12 @@ const TopProductsChart = () => {
       setLoading(true);
       setError(null);
       try {
-        // Get real data from database
-        const data = await dashboard.getTopSellingProducts(showCount);
+        console.log(`Fetching top products with period: ${period}, count: ${showCount}, sortBy: ${sortBy}`);
+        
+        // Get real data from database - passing all parameters to backend
+        const data = await dashboard.getTopSellingProducts(period, showCount, sortBy);
+        
+        console.log(`Received ${data?.length || 0} products from API`);
         
         if (data && data.length > 0) {
           // Process the data to ensure it has all required fields
@@ -68,16 +73,12 @@ const TopProductsChart = () => {
               Math.round((product.profit / product.revenue) * 100) || 0
           }));
           
-          // Sort the data based on the selected sort criteria
-          const sortedData = [...processedData].sort((a, b) => {
-            if (sortBy === 'revenue') return b.revenue - a.revenue;
-            if (sortBy === 'profit') return b.profit - a.profit;
-            return b.quantity - a.quantity;
-          });
-          
-          setTopProducts(sortedData);
+          // The data is already sorted by the backend based on the sortBy parameter
+          setTopProducts(processedData);
+          console.log(`Set ${processedData.length} products after processing`);
         } else {
           setTopProducts([]);
+          console.log('No products returned, setting empty array');
         }
       } catch (error) {
         console.error('Error fetching top products:', error);
@@ -89,7 +90,7 @@ const TopProductsChart = () => {
     };
 
     fetchTopProducts();
-  }, [dashboard, sortBy, showCount]);
+  }, [dashboard, sortBy, showCount, period]);
 
   const handleRetry = () => {
     fetchTopProducts();
@@ -101,6 +102,10 @@ const TopProductsChart = () => {
 
   const handleShowCountChange = (e) => {
     setShowCount(parseInt(e.target.value));
+  };
+  
+  const handlePeriodChange = (e) => {
+    setPeriod(e.target.value);
   };
 
   // Prepare chart data based on current sort criteria
@@ -215,6 +220,20 @@ const TopProductsChart = () => {
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="15">15</option>
+              </select>
+            </div>
+            
+            <div className="period-control">
+              <label htmlFor="period">{t('dashboard:labels.period')}:</label>
+              <select 
+                id="period" 
+                value={period} 
+                onChange={handlePeriodChange}
+                className="period-select"
+              >
+                <option value="month">{t('dashboard:periods.month')}</option>
+                <option value="week">{t('dashboard:periods.week')}</option>
+                <option value="year">{t('dashboard:periods.year')}</option>
               </select>
             </div>
           </div>

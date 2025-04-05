@@ -361,9 +361,9 @@ export const DashboardService = {
   },
   
   // Get top selling products
-  getTopSellingProducts: async (limit = 5) => {
+  getTopSellingProducts: async (period = 'month', limit = 5, sortBy = 'quantity') => {
     try {
-      return await window.database.getTopSellingProducts(limit);
+      return await window.database.getTopSellingProducts(period, limit, sortBy);
     } catch (error) {
       console.error('Error fetching top selling products:', error);
       throw error;

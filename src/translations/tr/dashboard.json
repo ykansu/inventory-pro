@@ -60,7 +60,13 @@
     "barChart": "Çubuk Grafik",
     "inventoryValue": "Stok Değeri",
     "paymentSummary": "Ödeme Özeti",
-    "percentage": "Yüzde"
+    "percentage": "Yüzde",
+    "period": "Zaman Dilimi"
+  },
+  "periods": {
+    "week": "Hafta",
+    "month": "Ay",
+    "year": "Yıl"
   },
   "tooltips": {
     "totalProducts": "Envanter sisteminde bulunan tüm kategorilerdeki aktif ürünlerin toplam sayısı. Bu, stokta olan ve olmayan ancak hala katalogda listelenen ürünleri içerir.",

@@ -60,7 +60,13 @@
     "barChart": "Bar Chart",
     "inventoryValue": "Inventory Value",
     "paymentSummary": "Payment Summary",
-    "percentage": "Percentage"
+    "percentage": "Percentage",
+    "period": "Time Period"
+  },
+  "periods": {
+    "week": "Week",
+    "month": "Month",
+    "year": "Year"
   },
   "tooltips": {
     "totalProducts": "Total count of all active products across all categories currently in the inventory system. This includes both in-stock and out-of-stock items that are still listed in the catalog.",
