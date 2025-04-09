@@ -52,12 +52,15 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    show: false, // Hide window initially
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true
     },
   });
+  mainWindow.maximize();
+  mainWindow.show();
 
   // Load the index.html of the app.
   // In development mode, load from webpack dev server
