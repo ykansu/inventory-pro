@@ -86,15 +86,15 @@ const createWindow = () => {
 
   // Add close event handler to ask about Excel backup
   mainWindow.on('close', async (event) => {
-    // Prevent the window from closing
-    event.preventDefault();
- 
     // Check if Excel backup on exit is enabled
     if (process.env.ENABLE_EXCEL_BACKUP_ON_EXIT?.toLowerCase() !== 'true') {
-        // If not enabled, allow normal closing without prompt
-        return;
+      // If not enabled, allow normal closing without prompt
+      return;
     }
-
+    
+    // Prevent the window from closing
+    event.preventDefault();
+    
     // Get the current language from settings/config
     let language = 'en'; // Default language
     try {
