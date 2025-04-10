@@ -520,6 +520,7 @@
   background-color: #f9fafb;
   padding: 0.75rem;
   border-radius: 4px;
+  width: unset !important;
 }
 
 .cash-payment-form {
@@ -533,6 +534,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 4px;
   font-size: 1rem;
+  width: unset !important;
 }
 
 .change-amount {
