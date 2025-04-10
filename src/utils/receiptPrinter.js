@@ -127,13 +127,6 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
     </div>`);
   }
   
-  if (receipt.tax > 0) {
-    lines.push(`<div style="display:flex; justify-content:space-between;">
-      <div>${t('pos:summary.tax')}:</div>
-      <div>${formatCurrency(receipt.tax)}</div>
-    </div>`);
-  }
-  
   // Total (with emphasis)
   lines.push(`<div style="display:flex; justify-content:space-between; font-weight:bold;">
     <div>${t('pos:summary.total')}:</div>

@@ -41,16 +41,6 @@ export const calculateSubtotal = (items) => {
 };
 
 /**
- * Calculate tax amount based on subtotal and tax rate
- * @param {number} subtotal - Subtotal amount
- * @param {number} taxRate - Tax rate as percentage (e.g., 8.5 for 8.5%)
- * @returns {number} - Tax amount
- */
-export const calculateTax = (subtotal, taxRate) => {
-  return subtotal * (taxRate / 100);
-};
-
-/**
  * Calculate change amount
  * @param {number} amountPaid - Amount paid by customer
  * @param {number} totalDue - Total amount due

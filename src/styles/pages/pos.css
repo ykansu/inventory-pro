@@ -454,6 +454,16 @@
   padding-top: 0.5rem;
 }
 
+/* Add back tax-related styling so it doesn't affect the layout */
+.summary-row.tax {
+  color: #6b7280;
+}
+
+.discount-row {
+  color: #059669;
+  font-weight: 500;
+}
+
 .payment-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

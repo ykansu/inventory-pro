@@ -47,9 +47,7 @@ const SalesHistory = () => {
     businessAddress: '',
     businessPhone: '',
     businessEmail: '',
-    dateFormat: 'mm/dd/yyyy',
-    enableTax: true,
-    taxRate: 18
+    dateFormat: 'mm/dd/yyyy'
   });
   
   // Return modal states
@@ -71,9 +69,7 @@ const SalesHistory = () => {
             businessAddress: allSettings.business_address || '',
             businessPhone: allSettings.business_phone || '',
             businessEmail: allSettings.business_email || '',
-            dateFormat: allSettings.date_format || 'mm/dd/yyyy',
-            enableTax: allSettings.enable_tax !== undefined ? allSettings.enable_tax : true,
-            taxRate: parseFloat(allSettings.tax_rate) || 18
+            dateFormat: allSettings.date_format || 'mm/dd/yyyy'
           });
         }
       } catch (error) {
@@ -560,12 +556,6 @@ const SalesHistory = () => {
                     <span>-{formatWithCurrency(selectedSale.discount_amount)}</span>
                   </div>
                 )}
-                {settings.enableTax && selectedSale.tax_amount > 0 && (
-                  <div className="summary-row">
-                    <span>{t('sales:receipt.tax')}:</span>
-                    <span>{formatWithCurrency(selectedSale.tax_amount)}</span>
-                  </div>
-                )}
                 <div className="summary-row total">
                   <span>{t('sales:receipt.total')}:</span>
                   <span>{formatWithCurrency(selectedSale.total_amount)}</span>
@@ -703,12 +693,6 @@ const SalesHistory = () => {
                     <span>{t('sales:return.subtotal')}:</span>
                     <span>{formatWithCurrency(returnAmounts.subtotal)}</span>
                   </div>
-                  {settings.enableTax && returnAmounts.tax > 0 && (
-                    <div className="return-total">
-                      <span>{t('sales:return.tax', { rate: settings.taxRate })}:</span>
-                      <span>{formatWithCurrency(returnAmounts.tax)}</span>
-                    </div>
-                  )}
                   <div className="return-total">
                     <span>{t('sales:return.totalRefund')}:</span>
                     <span>{formatWithCurrency(returnAmounts.total)}</span>

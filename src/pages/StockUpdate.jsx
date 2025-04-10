@@ -18,9 +18,7 @@ const StockUpdate = () => {
   // App settings state
   const [appSettings, setAppSettings] = useState({
     currency: 'usd',
-    dateFormat: 'mm/dd/yyyy',
-    enableTax: false,
-    taxRate: 0
+    dateFormat: 'mm/dd/yyyy'
   });
   
   // Stock update form state
@@ -49,9 +47,7 @@ const StockUpdate = () => {
           const settingsObj = await settings.getAllSettings();
           setAppSettings({
             currency: settingsObj.currency?.toLowerCase() || 'usd',
-            dateFormat: settingsObj.date_format || 'mm/dd/yyyy',
-            enableTax: settingsObj.enable_tax || false,
-            taxRate: parseFloat(settingsObj.tax_rate) || 0
+            dateFormat: settingsObj.date_format || 'mm/dd/yyyy'
           });
         }
       } catch (error) {

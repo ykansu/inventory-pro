@@ -32,17 +32,10 @@ const Settings = () => {
     taxId: ''
   });
   
-  const [taxSettings, setTaxSettings] = useState({
-    enableTax: false,
-    taxRate: 0,
-    taxName: 'Tax'
-  });
-  
   const [receiptSettings, setReceiptSettings] = useState({
     header: '',
     footer: '',
-    showLogo: false,
-    showTaxDetails: true
+    showLogo: false
   });
 
   // Load settings on mount
@@ -75,23 +68,11 @@ const Settings = () => {
       taxId: settingsObj.tax_id || settingsObj.taxId || ''
     });
     
-    // Tax settings
-    const taxRate = typeof settingsObj.tax_rate === 'number' 
-      ? settingsObj.tax_rate 
-      : (typeof settingsObj.taxRate === 'number' ? settingsObj.taxRate : 0);
-      
-    setTaxSettings({
-      enableTax: settingsObj.enable_tax,
-      taxRate: taxRate,
-      taxName: settingsObj.tax_name || settingsObj.taxName || 'Tax'
-    });
-    
     // Receipt settings
     setReceiptSettings({
       header: settingsObj.receipt_header || settingsObj.receiptHeader || '',
       footer: settingsObj.receipt_footer || '',
-      showLogo: settingsObj.show_logo,
-      showTaxDetails: settingsObj.show_tax_details
+      showLogo: settingsObj.show_logo
     });
   };
 
@@ -133,12 +114,6 @@ const Settings = () => {
   const handleBusinessChange = (e) => {
     const { name, value } = e.target;
     setBusinessSettings(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleTaxChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-    setTaxSettings(prev => ({ ...prev, [name]: newValue }));
   };
   
   const handleReceiptChange = (e) => {
@@ -243,34 +218,6 @@ const Settings = () => {
     }
   };
   
-  const handleTaxSubmit = async (e) => {
-    e.preventDefault();
-    let success = true;
-    
-    // Map to correct database field names
-    const mappedSettings = {
-      enable_tax: taxSettings.enableTax,
-      tax_rate: taxSettings.taxRate,
-      tax_name: taxSettings.taxName
-    };
-    
-    // Save all tax settings
-    for (const [key, value] of Object.entries(mappedSettings)) {
-      const result = await handleSaveSetting(key, value);
-      if (!result) success = false;
-    }
-    
-    // Refresh the settings from context to update the UI
-    updateLocalStatesFromSettings(settings);
-    
-    // Show a single toast based on the result
-    if (success) {
-      toast.success(t('settings:saveSuccess'));
-    } else {
-      toast.error(t('settings:saveError'));
-    }
-  };
-  
   const handleReceiptSubmit = async (e) => {
     e.preventDefault();
     let success = true;
@@ -281,9 +228,8 @@ const Settings = () => {
     
     // Save other receipt settings
     const result3 = await handleSaveSetting('show_logo', receiptSettings.showLogo);
-    const result4 = await handleSaveSetting('show_tax_details', receiptSettings.showTaxDetails);
     
-    if (!result1 || !result2 || !result3 || !result4) {
+    if (!result1 || !result2 || !result3) {
       success = false;
     }
     
@@ -473,14 +419,6 @@ const Settings = () => {
             </li>
             <li>
               <button 
-                className={`settings-tab-button ${activeTab === 'tax' ? 'active' : ''}`}
-                onClick={() => setActiveTab('tax')}
-              >
-                {t('settings:sections.taxSettings')}
-              </button>
-            </li>
-            <li>
-              <button 
                 className={`settings-tab-button ${activeTab === 'receipt' ? 'active' : ''}`}
                 onClick={() => setActiveTab('receipt')}
               >
@@ -643,57 +581,6 @@ const Settings = () => {
             </div>
           )}
 
-          {activeTab === 'tax' && (
-            <div className="tax-settings">
-              <h3>{t('settings:sections.taxSettings')}</h3>
-              
-              <form className="settings-form" onSubmit={handleTaxSubmit}>
-                <div className="form-group checkbox-group">
-                  <input 
-                    type="checkbox" 
-                    id="enableTax" 
-                    name="enableTax"
-                    checked={taxSettings.enableTax}
-                    onChange={handleTaxChange}
-                  />
-                  <label htmlFor="enableTax">{t('settings:tax.enableTaxCalculation')}</label>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="taxRate">{t('settings:tax.defaultTaxRate')}</label>
-                  <input 
-                    type="number" 
-                    id="taxRate" 
-                    name="taxRate" 
-                    value={taxSettings.taxRate}
-                    onChange={handleTaxChange}
-                    placeholder="0.0" 
-                    min="0" 
-                    step="0.1" 
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="taxName">{t('settings:tax.taxName')}</label>
-                  <input 
-                    type="text" 
-                    id="taxName" 
-                    name="taxName" 
-                    value={taxSettings.taxName}
-                    onChange={handleTaxChange}
-                    placeholder={t('settings:tax.taxNamePlaceholder')} 
-                  />
-                </div>
-
-                <div className="form-actions">
-                  <button type="submit" className="button primary">
-                    {t('common:saveChanges')}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
           {activeTab === 'receipt' && (
             <div className="receipt-settings">
               <h3>{t('settings:sections.receiptCustomization')}</h3>
@@ -732,17 +619,6 @@ const Settings = () => {
                     onChange={handleReceiptChange}
                   />
                   <label htmlFor="showLogo">{t('settings:receipt.showLogo')}</label>
-                </div>
-
-                <div className="form-group checkbox-group">
-                  <input 
-                    type="checkbox" 
-                    id="showTaxDetails" 
-                    name="showTaxDetails"
-                    checked={receiptSettings.showTaxDetails}
-                    onChange={handleReceiptChange}
-                  />
-                  <label htmlFor="showTaxDetails">{t('settings:receipt.showTaxDetails')}</label>
                 </div>
 
                 <div className="form-actions">

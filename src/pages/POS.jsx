@@ -18,8 +18,6 @@ const POS = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [settings, setSettings] = useState({
-    taxRate: 18,
-    enableTax: true,
     currency: 'usd',
     businessName: 'Inventory Pro',
     businessAddress: '',
@@ -33,7 +31,6 @@ const POS = () => {
   
   // State for totals calculation
   const [subtotal, setSubtotal] = useState(0);
-  const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0); // Discount amount
   const [discountType, setDiscountType] = useState('fixed'); // 'percentage' or 'fixed' or 'total'
@@ -81,8 +78,6 @@ const POS = () => {
             businessAddress: allSettings.business_address || '',
             businessPhone: allSettings.business_phone || '',
             businessEmail: allSettings.business_email || '',
-            taxRate: parseFloat(allSettings.tax_rate) || 18,
-            enableTax: allSettings.enable_tax === true,
             currency: allSettings.currency?.toLowerCase() || 'usd',
             dateFormat: allSettings.date_format || 'mm/dd/yyyy',
             receiptHeader: allSettings.receipt_header || '',
@@ -105,16 +100,9 @@ const POS = () => {
     // Apply discount to subtotal
     const discountedSubtotal = parseFloat(Math.max(0, newSubtotal - discount).toFixed(2));
     
-    // Only calculate tax if tax calculation is enabled and tax rate is greater than 0
-    const newTax = settings.enableTax && settings.taxRate > 0 
-      ? parseFloat((discountedSubtotal * (parseFloat(settings.taxRate) / 100)).toFixed(2)) 
-      : 0;
-    const newTotal = parseFloat((discountedSubtotal + newTax).toFixed(2));
-    
     setSubtotal(newSubtotal);
-    setTax(newTax);
-    setTotal(newTotal);
-  }, [cartItems, settings.taxRate, settings.enableTax, discount]);
+    setTotal(discountedSubtotal);
+  }, [cartItems, discount]);
   
   // Update discount when discount value or type changes
   useEffect(() => {
@@ -538,13 +526,10 @@ const POS = () => {
       
       // Use explicit discount if provided, otherwise use the current discount state
       const discountAmount = explicitDiscount !== null ? explicitDiscount : discount;
-      // Calculate the adjusted total if there's an explicit discount
+      // Calculate the adjusted total
       const finalSubtotal = subtotal;
-      const finalTax = explicitDiscount !== null 
-        ? parseFloat((Math.max(0, subtotal - explicitDiscount) * (settings.taxRate / 100)).toFixed(2)) 
-        : tax;
       const finalTotal = explicitDiscount !== null 
-        ? parseFloat((Math.max(0, subtotal - explicitDiscount) + finalTax).toFixed(2)) 
+        ? parseFloat(Math.max(0, subtotal - explicitDiscount).toFixed(2))
         : total;
     
       // Prepare sale data
@@ -552,7 +537,7 @@ const POS = () => {
         receipt_number: receiptNumber,
         subtotal: parseFloat(finalSubtotal),
         discount_amount: parseFloat(discountAmount),
-        tax_amount: parseFloat(finalTax),
+        tax_amount: 0,
         total_amount: parseFloat(finalTotal),
         payment_method: paymentMethod,
         amount_paid: parseFloat(amountReceived) || parseFloat(finalTotal),
@@ -656,7 +641,6 @@ const POS = () => {
         amountPaid: amountReceived,
         changeAmount: change,
         total: finalTotal,
-        tax: finalTax,
         discount: discountAmount,
         subtotal: finalSubtotal,
         date: formatDate(new Date()),
@@ -894,12 +878,6 @@ const POS = () => {
               )}
             </div>
             
-            {settings.enableTax && (
-              <div className="summary-row">
-                <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
-                <span>{formatPriceWithCurrency(tax)}</span>
-              </div>
-            )}
             <div className="summary-row total">
               <span>{t('pos:summary.total')}:</span>
               <span>{formatPriceWithCurrency(total)}</span>
@@ -1105,12 +1083,6 @@ const POS = () => {
                     <div className="summary-row discount">
                       <span>{t('pos:summary.discount')}:</span>
                       <span>-{formatPriceWithCurrency(currentReceipt.discount)}</span>
-                    </div>
-                  )}
-                  {currentReceipt.tax > 0 && (
-                    <div className="summary-row">
-                      <span>{t('pos:summary.tax', { rate: `${settings.taxRate}%` })}:</span>
-                      <span>{formatPriceWithCurrency(currentReceipt.tax)}</span>
                     </div>
                   )}
                   <div className="summary-row total">
