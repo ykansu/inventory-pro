@@ -165,13 +165,9 @@ class Setting extends BaseModel {
       'phone': 'business_phone', 'businessphone': 'business_phone', 'businessPhone': 'business_phone', 'business_phone': 'business_phone',
       'email': 'business_email', 'businessemail': 'business_email', 'businessEmail': 'business_email', 'business_email': 'business_email',
       'taxid': 'tax_id', 'taxId': 'tax_id', 'tax_id': 'tax_id',
-      'enabletax': 'enable_tax', 'enableTax': 'enable_tax', 'enable_tax': 'enable_tax',
-      'taxrate': 'tax_rate', 'taxRate': 'tax_rate', 'tax_rate': 'tax_rate',
-      'taxname': 'tax_name', 'taxName': 'tax_name', 'tax_name': 'tax_name',
       'receiptheader': 'receipt_header', 'receiptHeader': 'receipt_header', 'receipt_header': 'receipt_header',
       'receiptfooter': 'receipt_footer', 'receiptFooter': 'receipt_footer', 'receipt_footer': 'receipt_footer',
       'showlogo': 'show_logo', 'showLogo': 'show_logo', 'show_logo': 'show_logo',
-      'showtaxdetails': 'show_tax_details', 'showTaxDetails': 'show_tax_details', 'show_tax_details': 'show_tax_details',
       'dateformat': 'date_format', 'dateFormat': 'date_format', 'date_format': 'date_format',
       'enablenotifications': 'enable_notifications', 'enableNotifications': 'enable_notifications', 'enable_notifications': 'enable_notifications'
     };

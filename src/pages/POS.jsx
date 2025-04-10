@@ -537,7 +537,7 @@ const POS = () => {
         receipt_number: receiptNumber,
         subtotal: parseFloat(finalSubtotal),
         discount_amount: parseFloat(discountAmount),
-        tax_amount: 0,
+        tax_amount: 0, // Always set tax_amount to 0
         total_amount: parseFloat(finalTotal),
         payment_method: paymentMethod,
         amount_paid: parseFloat(amountReceived) || parseFloat(finalTotal),
