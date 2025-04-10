@@ -58,6 +58,9 @@ EXCEL_BACKUP_FREQUENCY=daily
 EXCEL_BACKUP_TIME=23:00
 MAX_EXCEL_BACKUPS=5
 EXCEL_BACKUP_PATH=C:/inventoryPro/backups/excel
+
+# Excel Backup on Exit
+ENABLE_EXCEL_BACKUP_ON_EXIT=false
 `;
 
   try {
@@ -127,6 +130,7 @@ const config = {
     excelBackupFrequency: process.env.EXCEL_BACKUP_FREQUENCY || 'daily', // daily, weekly, monthly
     excelBackupTime: process.env.EXCEL_BACKUP_TIME || '23:00', // Time for scheduled Excel backups
     maxExcelBackups: getNumberEnv('MAX_EXCEL_BACKUPS', 5), // Number of Excel backups to keep
+    enableExcelBackupOnExit: getBooleanEnv('ENABLE_EXCEL_BACKUP_ON_EXIT', false), // Whether to prompt for Excel backup on exit
   },
   
   // Update configuration in the .env file
@@ -195,6 +199,7 @@ const config = {
       excelBackupFrequency: process.env.EXCEL_BACKUP_FREQUENCY || 'daily',
       excelBackupTime: process.env.EXCEL_BACKUP_TIME || '23:00',
       maxExcelBackups: getNumberEnv('MAX_EXCEL_BACKUPS', 5),
+      enableExcelBackupOnExit: getBooleanEnv('ENABLE_EXCEL_BACKUP_ON_EXIT', false),
     };
     
     return this;

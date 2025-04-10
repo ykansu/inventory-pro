@@ -33,5 +33,16 @@
   },
   "success": {
     "stockUpdated": "Stok başarıyla güncellendi"
+  },
+  "closeDialog": {
+    "title": "Uygulamayı Kapat",
+    "exportPrompt": "Kapatmadan önce Excel yedeklemesi oluşturmak ister misiniz?",
+    "yes": "Evet",
+    "no": "Hayır",
+    "cancel": "İptal",
+    "backupComplete": "Yedekleme Tamamlandı",
+    "backupPath": "Excel yedeği şu konuma aktarıldı:",
+    "backupFailed": "Yedekleme Başarısız",
+    "backupError": "Excel yedeklemesi aktarılamadı:"
   }
 }

@@ -33,5 +33,16 @@
   },
   "success": {
     "stockUpdated": "Stock updated successfully"
+  },
+  "closeDialog": {
+    "title": "Close Application",
+    "exportPrompt": "Do you want to export an Excel backup before closing?",
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Cancel",
+    "backupComplete": "Backup Complete",
+    "backupPath": "Excel backup exported to:",
+    "backupFailed": "Backup Failed",
+    "backupError": "Failed to export Excel backup:"
   }
 }

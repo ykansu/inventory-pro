@@ -83,10 +83,118 @@ const createWindow = () => {
       );
     }
   });
+
+  // Add close event handler to ask about Excel backup
+  mainWindow.on('close', async (event) => {
+    // Prevent the window from closing
+    event.preventDefault();
+ 
+    // Check if Excel backup on exit is enabled
+    if (process.env.ENABLE_EXCEL_BACKUP_ON_EXIT?.toLowerCase() !== 'true') {
+        // If not enabled, allow normal closing without prompt
+        return;
+    }
+
+    // Get the current language from settings/config
+    let language = 'en'; // Default language
+    try {
+      // Try to get language from Setting model if available
+      if (Setting && Setting.getLanguage) {
+        language = await Setting.getLanguage();
+      } else {
+        // Fallback: try to get from database directly
+        const db = await dbManager.getConnection();
+        const languageSetting = await db('settings').where('key', 'language').first();
+        if (languageSetting) {
+          language = languageSetting.value;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to get language setting:', error);
+      // Continue with default language
+    }
+    
+    // Get translations from files
+    let translations = {};
+    
+    try {
+      // For main process, we need to require the translation files directly
+      const commonTranslations = language === 'en' 
+        ? require('./translations/en/common.json')
+        : require('./translations/tr/common.json');
+      
+      translations = commonTranslations;
+    } catch (error) {
+      console.error('Failed to load translations:', error);
+      // Use hardcoded English strings as fallback
+      translations = {
+        closeDialog: {
+          title: "Close Application",
+          exportPrompt: "Do you want to export an Excel backup before closing?",
+          yes: "Yes",
+          no: "No",
+          cancel: "Cancel",
+          backupComplete: "Backup Complete",
+          backupPath: "Excel backup exported to:",
+          backupFailed: "Backup Failed",
+          backupError: "Failed to export Excel backup:"
+        }
+      };
+    }
+    
+    // Ask if user wants to export Excel backup before closing
+    const { response } = await dialog.showMessageBox({
+      type: 'question',
+      buttons: [
+        translations.closeDialog?.yes || 'Yes', 
+        translations.closeDialog?.no || 'No', 
+        translations.closeDialog?.cancel || 'Cancel'
+      ],
+      defaultId: 1,
+      title: translations.closeDialog?.title || 'Close Application',
+      message: translations.closeDialog?.exportPrompt || 'Do you want to export an Excel backup before closing?'
+    });
+    
+    if (response === 0) { // Yes
+      try {
+        // Use the exportToExcel from the parent scope
+        if (typeof exportToExcel === 'function') {
+          const exportPath = await exportToExcel();
+          await dialog.showMessageBox({
+            type: 'info',
+            title: translations.closeDialog?.backupComplete || 'Backup Complete',
+            message: `${translations.closeDialog?.backupPath || 'Excel backup exported to:'}\n${exportPath}`
+          });
+          // Close the app after backup
+          mainWindow.destroy();
+        } else {
+          throw new Error('Excel export function not available');
+        }
+      } catch (error) {
+        console.error('Excel export error:', error);
+        await dialog.showMessageBox({
+          type: 'error',
+          title: translations.closeDialog?.backupFailed || 'Backup Failed',
+          message: `${translations.closeDialog?.backupError || 'Failed to export Excel backup:'} ${error.message}`
+        });
+        // Still close the app since backup failed
+        mainWindow.destroy();
+      }
+    } else if (response === 1) { // No
+      // Close the app without backup
+      mainWindow.destroy();
+    }
+    // For 'Cancel', do nothing (window stays open)
+  });
+  
+  return mainWindow;
 };
 
 // Track initialization errors
 let initializationError = null;
+
+// Keep a reference to the main window
+let mainWindow = null;
 
 // Initialize modules when app is ready
 let config = null;
@@ -110,7 +218,7 @@ let Setting = null;
 app.whenReady().then(async () => {
   try {
     // Initialize window
-    createWindow();
+    mainWindow = createWindow();
     
     // Load configuration
     console.log('Loading configuration...');
