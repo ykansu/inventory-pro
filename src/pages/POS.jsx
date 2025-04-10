@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { ProductService, CategoryService, SaleService, SettingService } from '../services/DatabaseService';
+import { ProductService, CategoryService, SaleService } from '../services/DatabaseService';
+import { useSettings } from '../context/SettingsContext';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/calculations';
@@ -8,6 +9,17 @@ import { printReceipt } from '../utils/receiptPrinter';
 
 const POS = () => {
   const { t } = useTranslation(['pos', 'common', 'products']);
+  const { 
+    getBusinessName, 
+    getBusinessAddress, 
+    getBusinessPhone, 
+    getBusinessEmail, 
+    getCurrency, 
+    getDateFormat, 
+    getReceiptHeader, 
+    getReceiptFooter,
+    getNotificationsEnabled
+  } = useSettings();
   
   // State for products, categories, cart, and search
   const [products, setProducts] = useState([]);
@@ -17,17 +29,6 @@ const POS = () => {
   const [cartItems, setCartItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [settings, setSettings] = useState({
-    currency: 'usd',
-    businessName: 'Inventory Pro',
-    businessAddress: '',
-    businessPhone: '',
-    businessEmail: '',
-    receiptHeader: '',
-    receiptFooter: '',
-    dateFormat: 'mm/dd/yyyy',
-    enableNotifications: true
-  });
   
   // State for totals calculation
   const [subtotal, setSubtotal] = useState(0);
@@ -61,7 +62,7 @@ const POS = () => {
   useEffect(() => {
     searchInputRef.current.focus();
     
-    // Load products, categories, and settings
+    // Load products and categories
     const loadData = async () => {
       try {
         const allProducts = await ProductService.getAllProducts();
@@ -70,21 +71,6 @@ const POS = () => {
         
         const allCategories = await CategoryService.getAllCategories();
         setCategories(allCategories);
-        
-        const allSettings = await SettingService.getAllSettings();
-        if (allSettings) {
-          setSettings({
-            businessName: allSettings.business_name || 'Inventory Pro',
-            businessAddress: allSettings.business_address || '',
-            businessPhone: allSettings.business_phone || '',
-            businessEmail: allSettings.business_email || '',
-            currency: allSettings.currency?.toLowerCase() || 'usd',
-            dateFormat: allSettings.date_format || 'mm/dd/yyyy',
-            receiptHeader: allSettings.receipt_header || '',
-            receiptFooter: allSettings.receipt_footer || 'Thank you for your purchase!',
-            enableNotifications: allSettings.enable_notifications === true
-          });
-        }
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -474,31 +460,38 @@ const POS = () => {
       printReceipt(
         currentReceipt, 
         t, 
-        (amount) => formatCurrency(amount, settings.currency)
+        (amount) => formatCurrency(amount, getCurrency())
       );
     }
   };
   
-  // Helper function to format currency with current settings
+  // Format price with currency from settings
   const formatPriceWithCurrency = (amount) => {
-    return formatCurrency(amount, settings.currency);
+    return formatCurrency(amount, getCurrency());
   };
   
   // Format date according to user's settings
   const formatDate = (date) => {
-    if (!date) return '';
+    const dateObj = new Date(date);
     
-    const d = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return date; // If invalid date, return as is
+    }
     
-    // Format based on user preference
-    switch (settings.dateFormat) {
-      case 'dd/mm/yyyy':
-        return format(d, 'dd/MM/yyyy HH:mm:ss');
-      case 'yyyy-mm-dd':
-        return format(d, 'yyyy-MM-dd HH:mm:ss');
-      case 'mm/dd/yyyy':
-      default:
-        return format(d, 'MM/dd/yyyy HH:mm:ss');
+    try {
+      switch (getDateFormat()) {
+        case 'mm/dd/yyyy':
+          return format(dateObj, 'MM/dd/yyyy');
+        case 'dd/mm/yyyy':
+          return format(dateObj, 'dd/MM/yyyy');
+        case 'yyyy-mm-dd':
+          return format(dateObj, 'yyyy-MM-dd');
+        default:
+          return format(dateObj, 'MM/dd/yyyy');
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return date;
     }
   };
   
@@ -513,7 +506,7 @@ const POS = () => {
     return t(`pos:units.${unitKey}`, { defaultValue: unitKey });
   };
   
-  // Complete sale function
+  // Complete sale with either single or split payment
   const completeSale = async (paymentMethod, amountReceived = 0, change = 0, cashPortion = 0, cardPortion = 0, explicitDiscount = null) => {
     if (cartItems.length === 0) {
       toast.error(t('pos:payment.emptyCart'));
@@ -584,8 +577,8 @@ const POS = () => {
       
       // Check for low stock items if notifications are enabled - moved outside of try/catch so it runs even if product refresh fails
       const lowStockItems = [];
-      if (settings.enableNotifications) {
-        console.log('Checking for low stock items, notifications enabled:', settings.enableNotifications);
+      if (getNotificationsEnabled()) {
+        console.log('Checking for low stock items, notifications enabled:', getNotificationsEnabled());
         // Get fresh product data for each cart item to check stock
         for (const item of cartItems) {
           try {
@@ -632,12 +625,12 @@ const POS = () => {
       setCurrentReceipt({
         ...saleData,
         items: cartItems,
-        businessName: settings.businessName,
-        businessAddress: settings.businessAddress,
-        businessPhone: settings.businessPhone,
-        businessEmail: settings.businessEmail,
-        receiptHeader: settings.receiptHeader,
-        receiptFooter: settings.receiptFooter || t('pos:receipt.thankYou'),
+        businessName: getBusinessName(),
+        businessAddress: getBusinessAddress(),
+        businessPhone: getBusinessPhone(),
+        businessEmail: getBusinessEmail(),
+        receiptHeader: getReceiptHeader(),
+        receiptFooter: getReceiptFooter() || t('pos:receipt.thankYou'),
         amountPaid: amountReceived,
         changeAmount: change,
         total: finalTotal,

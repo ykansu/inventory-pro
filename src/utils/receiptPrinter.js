@@ -68,7 +68,13 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
     lines.push(`<div style="text-align:center;">${t('pos:receipt.email')}: ${receipt.businessEmail}</div>`);
   }
   
-  lines.push(`<div style="text-align:center;">${t('pos:receipt.number', { number: receipt.receipt_number })}</div>`);
+  // Receipt number and date
+  if (receipt.receiptNumber) {
+    lines.push(`<div style="text-align:center;">${t('pos:receipt.number', { number: receipt.receiptNumber })}</div>`);
+  } else if (receipt.receipt_number) {
+    lines.push(`<div style="text-align:center;">${t('pos:receipt.number', { number: receipt.receipt_number })}</div>`);
+  }
+  
   lines.push(`<div style="text-align:center;">${receipt.date}</div>`);
   
   // Custom header (if exists)
@@ -134,12 +140,13 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
   </div>`);
   
   // Payment information
+  const paymentMethod = receipt.paymentMethod || receipt.payment_method;
   lines.push(`<div style="display:flex; justify-content:space-between;">
     <div>${t('pos:receipt.paymentMethod')}:</div>
-    <div>${t(`pos:paymentMethods.${receipt.payment_method}`)}</div>
+    <div>${t(`pos:paymentMethods.${paymentMethod}`)}</div>
   </div>`);
   
-  if (receipt.payment_method === 'split') {
+  if (paymentMethod === 'split') {
     lines.push(`<div style="display:flex; justify-content:space-between;">
       <div>${t('pos:receipt.cashAmount')}:</div>
       <div>${formatCurrency(receipt.cashAmount)}</div>
@@ -156,7 +163,7 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
         <div>${formatCurrency(receipt.changeAmount)}</div>
       </div>`);
     }
-  } else if (receipt.payment_method === 'cash') {
+  } else if (paymentMethod === 'cash') {
     lines.push(`<div style="display:flex; justify-content:space-between;">
       <div>${t('pos:receipt.amountReceived')}:</div>
       <div>${formatCurrency(receipt.amountPaid)}</div>

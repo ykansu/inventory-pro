@@ -1,29 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { SaleService, DashboardService } from '../../services/DatabaseService';
+import { DashboardService } from '../../services/DatabaseService';
 import StatCard from './StatCard';
-import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
 
 const TodaySalesCard = () => {
   const { t } = useTranslation(['dashboard']);
   const [loading, setLoading] = useState(true);
   const [todaySales, setTodaySales] = useState(0);
-  const { settings } = useDatabase();
-  const [currency, setCurrency] = useState('usd');
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const settingsObj = await settings.getAllSettings();
-        setCurrency(settingsObj.currency?.toLowerCase() || 'usd');
-      } catch (error) {
-        console.error('Failed to load settings:', error);
-      }
-    };
-
-    loadSettings();
-  }, [settings]);
+  const { getCurrency } = useSettings();
 
   useEffect(() => {
     const fetchTodaySales = async () => {
@@ -50,7 +36,7 @@ const TodaySalesCard = () => {
   return (
     <StatCard
       title={t('dashboard:stats.todaySales')}
-      value={loading ? '' : formatCurrency(todaySales, currency)}
+      value={loading ? '' : formatCurrency(todaySales, getCurrency())}
       isLoading={loading}
       tooltipKey="todaySales"
     />

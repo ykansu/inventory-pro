@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import StatCard from './StatCard';
 import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
 
 const InventoryMetricsCards = () => {
@@ -12,21 +13,8 @@ const InventoryMetricsCards = () => {
     turnoverRate: 0,
     totalValue: 0,
   });
-  const { settings, dashboard } = useDatabase();
-  const [currency, setCurrency] = useState('usd');
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const settingsObj = await settings.getAllSettings();
-        setCurrency(settingsObj.currency?.toLowerCase() || 'usd');
-      } catch (error) {
-        console.error('Failed to load settings:', error);
-      }
-    };
-
-    loadSettings();
-  }, [settings]);
+  const { dashboard } = useDatabase();
+  const { getCurrency } = useSettings();
 
   useEffect(() => {
     const fetchInventoryMetrics = async () => {
@@ -73,7 +61,7 @@ const InventoryMetricsCards = () => {
       
       <StatCard
         title={t('dashboard:stats.inventoryValue')}
-        value={formatCurrency(inventoryMetrics.totalValue, currency)}
+        value={formatCurrency(inventoryMetrics.totalValue, getCurrency())}
         isLoading={loading}
         error={error}
         onRetry={handleRetry}

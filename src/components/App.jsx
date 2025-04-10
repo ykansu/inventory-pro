@@ -2,6 +2,7 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
 import { DatabaseProvider } from '../context/DatabaseContext';
+import { SettingsProvider } from '../context/SettingsContext';
 import { Toaster } from 'react-hot-toast';
 import LanguageInitializer from './LanguageInitializer';
 
@@ -112,9 +113,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <DatabaseProvider>
-      <LanguageInitializer>
-        <AppContent />
-      </LanguageInitializer>
+      <SettingsProvider>
+        <LanguageInitializer>
+          <AppContent />
+        </LanguageInitializer>
+      </SettingsProvider>
     </DatabaseProvider>
   );
 };

@@ -135,15 +135,9 @@ export const DatabaseProvider = ({ children }) => {
         'email': 'business_email',
         'taxId': 'tax_id',
         
-        // Tax settings
-        'enableTax': 'enable_tax',
-        'taxRate': 'tax_rate',
-        'taxName': 'tax_name',
-        
         // Receipt settings
         'receiptHeader': 'receipt_header',
         'showLogo': 'show_logo',
-        'showTaxDetails': 'show_tax_details',
         
         // General settings
         'dateFormat': 'date_format',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from '../hooks/useTranslation';
-import { useDatabase } from '../context/DatabaseContext';
+import { useSettings } from '../context/SettingsContext';
 import TotalProductsCard from '../components/dashboard/TotalProductsCard';
 import LowStockItemsCard from '../components/dashboard/LowStockItemsCard';
 import TodaySalesCard from '../components/dashboard/TodaySalesCard';
@@ -17,31 +17,14 @@ import InventoryValueBySupplierChart from '../components/dashboard/InventoryValu
 
 const Dashboard = () => {
   const { t } = useTranslation(['dashboard', 'common']);
-  const { settings } = useDatabase();
-  const [businessName, setBusinessName] = React.useState('Inventory Pro Store');
-
-  // Load settings
-  React.useEffect(() => {
-    const loadBusinessName = async () => {
-      try {
-        if (settings) {
-          const settingsObj = await settings.getAllSettings();
-          setBusinessName(settingsObj.business_name || 'Inventory Pro Store');
-        }
-      } catch (error) {
-        console.error('Failed to load business name:', error);
-      }
-    };
-
-    loadBusinessName();
-  }, [settings]);
-
+  const { getBusinessName } = useSettings();
+  
   return (
     <div className="dashboard-page">
       <div className="dashboard-header">
         <h2>{t('dashboard:overview')}</h2>
         <p>{t('dashboard:welcome')}</p>
-        <div className="business-name">{businessName}</div>
+        <div className="business-name">{getBusinessName()}</div>
       </div>
       
       {/* Key Performance Metrics - First Row */}

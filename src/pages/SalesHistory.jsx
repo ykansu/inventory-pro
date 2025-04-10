@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import useSalesHistory from '../hooks/useSalesHistory';
-import { SaleService, SettingService, ProductService } from '../services/DatabaseService';
+import { SaleService, ProductService } from '../services/DatabaseService';
 import { calculateReturnTotal, formatCurrency } from '../utils/calculations';
 import { printReceipt } from '../utils/receiptPrinter';
 import { toast } from 'react-hot-toast';
 import '../styles/pages/sales-history.css';
 import '../styles/components/modal.css';
 import { format } from 'date-fns';
+import { useDatabase } from '../context/DatabaseContext';
+import { useSettings } from '../context/SettingsContext';
 
 // Inline styles for unit display
 const styles = {
@@ -31,6 +33,17 @@ const SalesHistory = () => {
     updateFilters,
     refresh
   } = useSalesHistory();
+  const { products } = useDatabase();
+  const { 
+    getCurrency, 
+    getDateFormat, 
+    getBusinessName,
+    getBusinessAddress,
+    getBusinessPhone,
+    getBusinessEmail,
+    getReceiptHeader,
+    getReceiptFooter
+  } = useSettings();
 
   const [tempDateRange, setTempDateRange] = useState(dateRange);
   const [tempPaymentFilter, setTempPaymentFilter] = useState('');
@@ -39,16 +52,6 @@ const SalesHistory = () => {
   const [selectedSaleDetails, setSelectedSaleDetails] = useState(null);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [isCancelConfirmModalOpen, setIsCancelConfirmModalOpen] = useState(false);
-  // Settings state for currency
-  const [currency, setCurrency] = useState('usd');
-  // Add more settings
-  const [settings, setSettings] = useState({
-    businessName: 'Inventory Pro',
-    businessAddress: '',
-    businessPhone: '',
-    businessEmail: '',
-    dateFormat: 'mm/dd/yyyy'
-  });
   
   // Return modal states
   const [returnItems, setReturnItems] = useState([]);
@@ -56,33 +59,9 @@ const SalesHistory = () => {
   const [returnError, setReturnError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Load settings
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const allSettings = await SettingService.getAllSettings();
-        if (allSettings) {
-          setCurrency(allSettings.currency?.toLowerCase() || 'usd');
-          
-          setSettings({
-            businessName: allSettings.business_name || 'Inventory Pro',
-            businessAddress: allSettings.business_address || '',
-            businessPhone: allSettings.business_phone || '',
-            businessEmail: allSettings.business_email || '',
-            dateFormat: allSettings.date_format || 'mm/dd/yyyy'
-          });
-        }
-      } catch (error) {
-        console.error('Error loading settings:', error);
-      }
-    };
-    
-    loadSettings();
-  }, []);
-
   // Helper function to format currency consistently
   const formatWithCurrency = (amount) => {
-    return formatCurrency(amount, currency);
+    return formatCurrency(amount, getCurrency());
   };
 
   // Format dates according to user settings
@@ -92,7 +71,7 @@ const SalesHistory = () => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return dateString;
     
-    switch (settings.dateFormat) {
+    switch (getDateFormat()) {
       case 'dd/mm/yyyy':
         return format(date, 'dd/MM/yyyy HH:mm');
       case 'yyyy-mm-dd':
@@ -220,45 +199,56 @@ const SalesHistory = () => {
   const handleReturnSubmit = async (e) => {
     e.preventDefault();
     
-    // Filter out items with return quantity > 0
-    const itemsToReturn = returnItems.filter(item => item.returnQuantity > 0);
-    
-    if (itemsToReturn.length === 0) {
-      setReturnError(t('sales:return.errorNoItems'));
+    // Verify at least one item is being returned
+    const hasReturns = returnItems.some(item => item.returnQuantity > 0);
+    if (!hasReturns) {
+      toast.error(t('sales:return.noItemsSelected'));
       return;
     }
     
-    setReturnError('');
-    setIsProcessing(true);
-    
     try {
-      // Calculate the amounts for reference
+      setIsProcessing(true);
+      
+      // Calculate amounts for the items being returned
       const amounts = calculateReturnAmount(returnItems);
       
-      // Format return data according to the model expectations
+      // Prepare return data
       const returnData = {
-        notes: returnNote,
+        date: new Date().toISOString(),
         reason: returnNote,
         subtotal: amounts.subtotal,
-        tax_amount: amounts.tax,
         total_amount: amounts.total,
-        return_date: new Date().toISOString()
+        reference: selectedSale.id
       };
       
-      // Format items for the return API
-      const formattedItems = itemsToReturn.map(item => ({
-        product_id: item.product_id,
-        quantity: item.returnQuantity
-      }));
+      // Filter items that have a return quantity
+      const itemsToReturn = returnItems
+        .filter(item => item.returnQuantity > 0)
+        .map(item => ({
+          product_id: item.product_id,
+          quantity: item.returnQuantity,
+          unit_price: item.unit_price,
+          total_price: item.returnQuantity * item.unit_price
+        }));
       
-      // Call the API with the expected parameters
-      await SaleService.processSaleReturn(selectedSale.id, returnData, formattedItems);
+      // Process the return
+      const result = await SaleService.processSaleReturn(selectedSale.id, returnData, itemsToReturn);
       
-      closeReturnModal();
-      refresh();
-      toast.success(t('sales:return.success'));
+      if (result && result.success) {
+        toast.success(t('sales:return.success'));
+        closeReturnModal();
+        
+        // Reset return form
+        setReturnItems([]);
+        setReturnNote('');
+        
+        // Refresh the sales list
+        refresh();
+      } else {
+        toast.error(t('sales:return.error'));
+      }
     } catch (error) {
-      console.error('Return processing error:', error);
+      console.error('Error processing return:', error);
       toast.error(t('sales:return.error'));
     } finally {
       setIsProcessing(false);
@@ -283,17 +273,17 @@ const SalesHistory = () => {
 
   // Calculate return total with tax settings applied
   const calculateReturnAmount = (items) => {
-    // Calculate subtotal
-    const subtotal = calculateReturnTotal(items);
+    // Calculate total for returned items
+    const subtotal = items.reduce((sum, item) => {
+      if (item.returnQuantity && item.returnQuantity > 0) {
+        return sum + (item.returnQuantity * item.unit_price);
+      }
+      return sum;
+    }, 0);
     
-    // Calculate tax if enabled
-    const tax = settings.enableTax ? subtotal * (settings.taxRate / 100) : 0;
-    
-    // Return total amount
     return {
       subtotal,
-      tax,
-      total: subtotal + tax
+      total: subtotal
     };
   };
 
@@ -302,35 +292,45 @@ const SalesHistory = () => {
 
   // Print receipt 
   const handlePrintReceipt = () => {
-    if (selectedSale && selectedSaleDetails) {
-      // Format receipt data in the structure expected by the receipt printer
+    if (!selectedSale) return;
+    
+    try {
+      // Create receipt data structure for the printer
       const receiptData = {
-        receipt_number: selectedSale.receipt_number,
-        businessName: settings.businessName,
-        businessAddress: settings.businessAddress,
-        businessPhone: settings.businessPhone,
-        businessEmail: settings.businessEmail,
-        date: formatDate(selectedSale.created_at),
-        items: selectedSaleDetails.items.map(item => ({
+        id: selectedSale.id,
+        receiptNumber: `S-${selectedSale.id}`,
+        date: formatDate(selectedSale.date),
+        items: selectedSale.items.map(item => ({
           name: item.product_name,
-          quantity: item.quantity,
           price: item.unit_price,
+          quantity: item.quantity,
           totalPrice: item.total_price,
-          product: item.product // Include product info for unit display
+          product: { unit: item.unit || 'pcs' }
         })),
         subtotal: selectedSale.subtotal,
         discount: selectedSale.discount_amount,
-        tax: selectedSale.tax_amount,
         total: selectedSale.total_amount,
-        payment_method: selectedSale.payment_method,
+        paymentMethod: selectedSale.payment_method,
+        cashAmount: selectedSale.cash_amount,
+        cardAmount: selectedSale.card_amount,
+        isSplitPayment: selectedSale.payment_method === 'split',
         amountPaid: selectedSale.amount_paid,
         changeAmount: selectedSale.change_amount,
-        cashAmount: selectedSale.cash_amount,
-        cardAmount: selectedSale.card_amount
+        businessName: getBusinessName(),
+        businessAddress: getBusinessAddress(),
+        businessPhone: getBusinessPhone(),
+        businessEmail: getBusinessEmail(),
+        receiptHeader: getReceiptHeader(),
+        receiptFooter: getReceiptFooter()
       };
       
-      // Use the receipt printer utility
+      // Print the receipt
       printReceipt(receiptData, t, formatWithCurrency);
+      
+      toast.success(t('sales:printSuccess'));
+    } catch (error) {
+      console.error('Error printing receipt:', error);
+      toast.error(t('sales:printError'));
     }
   };
 
@@ -522,10 +522,10 @@ const SalesHistory = () => {
             </div>
             <div className="receipt">
               <div className="receipt-header">
-                <h3>{settings.businessName}</h3>
-                {settings.businessAddress && <p>{settings.businessAddress}</p>}
-                {settings.businessPhone && <p>{t('pos:receipt.phone')}: {settings.businessPhone}</p>}
-                {settings.businessEmail && <p>{t('pos:receipt.email')}: {settings.businessEmail}</p>}
+                <h3>{getBusinessName()}</h3>
+                {getBusinessAddress() && <p>{getBusinessAddress()}</p>}
+                {getBusinessPhone() && <p>{t('pos:receipt.phone')}: {getBusinessPhone()}</p>}
+                {getBusinessEmail() && <p>{t('pos:receipt.email')}: {getBusinessEmail()}</p>}
                 <p>{t('sales:receipt.number', { number: selectedSale.receipt_number })}</p>
                 <p>{formatDate(selectedSale.created_at)}</p>
                 {selectedSale.is_returned && <p className="canceled-status">{t('sales:status.canceled')}</p>}

@@ -2,24 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { ProductService, SettingService } from '../services/DatabaseService';
 import { useDatabase } from '../context/DatabaseContext';
+import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/formatters';
 import '../styles/pages/stock-update.css';
 
 const StockUpdate = () => {
   const { t } = useTranslation(['products', 'common']);
+  const { products, categories, suppliers } = useDatabase();
+  const { getCurrency, getDateFormat } = useSettings();
   const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState([]);
+  const [productsList, setProductsList] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [suppliersList, setSuppliersList] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const { settings } = useDatabase();
-  
-  // App settings state
-  const [appSettings, setAppSettings] = useState({
-    currency: 'usd',
-    dateFormat: 'mm/dd/yyyy'
-  });
   
   // Stock update form state
   const [formData, setFormData] = useState({
@@ -39,47 +37,30 @@ const StockUpdate = () => {
     totalCost: 0
   });
   
-  // Load application settings
+  // Load products and categories on mount
   useEffect(() => {
-    const loadSettings = async () => {
+    const loadData = async () => {
       try {
-        if (settings) {
-          const settingsObj = await settings.getAllSettings();
-          setAppSettings({
-            currency: settingsObj.currency?.toLowerCase() || 'usd',
-            dateFormat: settingsObj.date_format || 'mm/dd/yyyy'
-          });
-        }
+        const allProducts = await products.getAllProducts();
+        setProductsList(allProducts);
+        
+        const allCategories = await categories.getAllCategories();
+        setCategoriesList(allCategories);
+        
+        const allSuppliers = await suppliers.getAllSuppliers();
+        setSuppliersList(allSuppliers);
       } catch (error) {
-        console.error('Error loading settings:', error);
+        console.error('Error loading data:', error);
+        toast.error(t('stockUpdate:errors.loadingData'));
       }
     };
     
-    loadSettings();
-  }, [settings]);
-  
-  // Load all products
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        setLoading(true);
-        const allProducts = await ProductService.getAllProducts();
-        setProducts(allProducts);
-        setFilteredProducts(allProducts);
-      } catch (error) {
-        console.error('Error loading products:', error);
-        toast.error(t('common:errors.loadFailed'));
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadProducts();
-  }, [t]);
+    loadData();
+  }, [products, categories, suppliers, t]);
   
   // Helper function to format currency values consistently
   const formatPrice = (amount) => {
-    return formatCurrency(amount, appSettings.currency);
+    return formatCurrency(amount, getCurrency());
   };
   
   // Format date according to settings
@@ -87,7 +68,7 @@ const StockUpdate = () => {
     if (!date) return '';
     const dateObj = new Date(date);
     
-    switch (appSettings.dateFormat) {
+    switch (getDateFormat()) {
       case 'dd/mm/yyyy':
         return `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
       case 'yyyy-mm-dd':
@@ -153,13 +134,13 @@ const StockUpdate = () => {
   // Filter products when search query changes
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setFilteredProducts(products);
+      setFilteredProducts(productsList);
       return;
     }
     
     const searchableQuery = makeTurkishSearchable(searchQuery);
     
-    const filtered = products.filter(product => {
+    const filtered = productsList.filter(product => {
       // Check by name
       const searchableName = makeTurkishSearchable(product.name);
       const nameMatch = searchableName.includes(searchableQuery);
@@ -176,7 +157,7 @@ const StockUpdate = () => {
     });
     
     setFilteredProducts(filtered);
-  }, [searchQuery, products]);
+  }, [searchQuery, productsList]);
   
   // Handle selecting a product
   const handleSelectProduct = (product) => {
@@ -328,8 +309,8 @@ const StockUpdate = () => {
       toast.success(t('common:success.stockUpdated'));
       
       // Refresh product list
-      const updatedProducts = await ProductService.getAllProducts();
-      setProducts(updatedProducts);
+      const updatedProducts = await products.getAllProducts();
+      setProductsList(updatedProducts);
       setFilteredProducts(updatedProducts);
       
       // Reset selection and form

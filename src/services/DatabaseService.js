@@ -523,6 +523,43 @@ export const SettingService = {
     }
   },
   
+  // Reset settings to defaults
+  resetSettings: async () => {
+    try {
+      // Default settings
+      const defaults = {
+        'business_name': 'Inventory Pro Store',
+        'business_address': 'Istanbul, Turkey',
+        'business_phone': '+90 123 456 7890',
+        'business_email': 'contact@inventorypro.com',
+        'currency': 'usd',
+        'receipt_footer': 'Thank you for your purchase!',
+        'date_format': 'mm/dd/yyyy',
+        'time_format': '24',
+        'enable_notifications': false,
+        'language': 'en'
+      };
+      
+      // Apply each default setting
+      for (const [key, value] of Object.entries(defaults)) {
+        const type = typeof value === 'number' ? 'number' : 
+                    typeof value === 'boolean' ? 'boolean' : 'string';
+        
+        await SettingService.saveSettingSafely(
+          key, 
+          value, 
+          type, 
+          `Default ${key} setting`
+        );
+      }
+      
+      return await SettingService.getAllSettings();
+    } catch (error) {
+      console.error('Error resetting settings:', error);
+      throw error;
+    }
+  },
+  
   // Dump settings for debugging
   dumpSettings: async () => {
     try {

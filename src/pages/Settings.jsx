@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
+import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
 
 const Settings = () => {
@@ -8,13 +9,20 @@ const Settings = () => {
   const { t, language, changeLanguage, getAvailableLanguages } = useTranslation(['settings', 'common']);
   const availableLanguages = getAvailableLanguages();
   const { 
-    settings, 
-    updateSetting, 
-    saveSettingSafely, 
-    database, 
-    isLoading,
-    resetAndReloadSettings
+    database,
+    isLoading: dbLoading
   } = useDatabase();
+  
+  const {
+    settings,
+    isLoading: settingsLoading,
+    getSetting,
+    updateSetting,
+    saveSetting,
+    resetSettings
+  } = useSettings();
+  
+  const isLoading = dbLoading || settingsLoading;
   
   // Settings state
   const [generalSettings, setGeneralSettings] = useState({
@@ -40,39 +48,37 @@ const Settings = () => {
 
   // Load settings on mount
   useEffect(() => {
-    if (!isLoading && settings) {
-      updateLocalStatesFromSettings(settings);
+    if (!isLoading) {
+      updateLocalStatesFromSettings();
     }
   }, [isLoading, settings, language]);
   
   // Function to update all local state from settings object
-  const updateLocalStatesFromSettings = async (settingsObject) => {
-    const settingsObj = await settingsObject.getAllSettings();
-    
+  const updateLocalStatesFromSettings = () => {
     // General settings - ensure proper case normalization for currency
-    const currency = settingsObj.currency ? settingsObj.currency.toLowerCase() : 'usd';
+    const currency = getSetting('currency', 'usd').toLowerCase();
     
     setGeneralSettings({
       language: language,
       currency: currency,
-      dateFormat: settingsObj.date_format || settingsObj.dateFormat || 'mm/dd/yyyy',
-      enableNotifications: settingsObj.enable_notifications,
+      dateFormat: getSetting('date_format', 'mm/dd/yyyy'),
+      enableNotifications: getSetting('enable_notifications', false),
     });
     
     // Business settings
     setBusinessSettings({
-      businessName: settingsObj.business_name || settingsObj.businessName || 'Inventory Pro Store',
-      address: settingsObj.business_address || settingsObj.address || '',
-      phone: settingsObj.business_phone || settingsObj.phone || '',
-      email: settingsObj.business_email || settingsObj.email || '',
-      taxId: settingsObj.tax_id || settingsObj.taxId || ''
+      businessName: getSetting('business_name', 'Inventory Pro Store'),
+      address: getSetting('business_address', ''),
+      phone: getSetting('business_phone', ''),
+      email: getSetting('business_email', ''),
+      taxId: getSetting('tax_id', '')
     });
     
     // Receipt settings
     setReceiptSettings({
-      header: settingsObj.receipt_header || settingsObj.receiptHeader || '',
-      footer: settingsObj.receipt_footer || '',
-      showLogo: settingsObj.show_logo
+      header: getSetting('receipt_header', ''),
+      footer: getSetting('receipt_footer', 'Thank you for your purchase!'),
+      showLogo: getSetting('show_logo', false)
     });
   };
 
@@ -87,10 +93,7 @@ const Settings = () => {
       if (success) {
         // Only change the language if saved successfully to DB
         changeLanguage(newLanguage);
-        updateLocalStatesFromSettings({
-          ...settings,
-          language: newLanguage
-        });
+        updateLocalStatesFromSettings();
         toast.success(t('settings:languageChangeSuccess'));
       } else {
         toast.error(t('settings:languageChangeError'));
@@ -149,7 +152,7 @@ const Settings = () => {
       // Create a description based on the key
       const description = `${key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')} setting`;
       
-      await saveSettingSafely(key, processedValue, type, description);
+      await saveSetting(key, processedValue, type, description);
       return true;
     } catch (error) {
       console.error(`Failed to save setting ${key}:`, error);
@@ -178,7 +181,7 @@ const Settings = () => {
     }
     
     // Refresh the settings from context to update the UI
-    updateLocalStatesFromSettings(settings);
+    updateLocalStatesFromSettings();
     
     // Show a single toast based on the result
     if (success) {
@@ -208,7 +211,7 @@ const Settings = () => {
     }
     
     // Refresh the settings from context to update the UI
-    updateLocalStatesFromSettings(settings);
+    updateLocalStatesFromSettings();
     
     // Show a single toast based on the result
     if (success) {
@@ -234,7 +237,7 @@ const Settings = () => {
     }
     
     // Refresh the settings from context to update the UI
-    updateLocalStatesFromSettings(settings);
+    updateLocalStatesFromSettings();
     
     // Show a single toast based on the result
     if (success) {
@@ -389,6 +392,24 @@ const Settings = () => {
           }
         }, 1000);
       }
+    }
+  };
+
+  // Reset settings handler
+  const handleResetSettings = async () => {
+    try {
+      const success = await resetSettings();
+      
+      if (success) {
+        // Update local state to reflect reset settings
+        updateLocalStatesFromSettings();
+        toast.success(t('settings:resetSettings.success'));
+      } else {
+        toast.error(t('settings:resetSettings.error'));
+      }
+    } catch (error) {
+      console.error('Failed to reset settings:', error);
+      toast.error(t('settings:resetSettings.error'));
     }
   };
 
@@ -695,15 +716,7 @@ const Settings = () => {
                   <p>{t('settings:database.resetSettings.description')}</p>
                   <button 
                     className="button secondary"
-                    onClick={async () => {
-                      const success = await resetAndReloadSettings();
-                      if (success) {
-                        toast.success(t('settings:database.resetSettings.success'));
-                        window.location.reload();
-                      } else {
-                        toast.error(t('settings:database.resetSettings.error'));
-                      }
-                    }}
+                    onClick={handleResetSettings}
                   >
                     {t('settings:database.resetSettings.action')}
                   </button>

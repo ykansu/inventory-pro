@@ -14,6 +14,7 @@ import { Pie, Bar } from 'react-chartjs-2';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import '../../styles/components/index.css';
 
 // Register ChartJS components
@@ -32,25 +33,9 @@ const CategoryProfitsChart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [categoryProfits, setCategoryProfits] = useState([]);
-  const [currency, setCurrency] = useState('usd');
   const [chartType, setChartType] = useState('pie'); // 'pie' or 'bar'
-  const { settings, dashboard } = useDatabase();
-
-  useEffect(() => {
-    // Get currency from settings
-    const loadSettings = async () => {
-      try {
-        if (settings) {
-          const settingsObj = await settings.getAllSettings();
-          setCurrency(settingsObj.currency?.toLowerCase() || 'usd');
-        }
-      } catch (error) {
-        console.error('Error fetching currency settings:', error);
-      }
-    };
-
-    loadSettings();
-  }, [settings]);
+  const { dashboard } = useDatabase();
+  const { getCurrency } = useSettings();
 
   useEffect(() => {
     const fetchCategoryProfits = async () => {
@@ -178,9 +163,9 @@ const CategoryProfitsChart = () => {
               label += ': ';
             }
             if (context.parsed !== undefined && context.parsed.y !== undefined) {
-              label += formatCurrency(context.parsed.y, currency);
+              label += formatCurrency(context.parsed.y, getCurrency());
             } else if (context.parsed !== undefined) {
-              label += formatCurrency(context.parsed, currency);
+              label += formatCurrency(context.parsed, getCurrency());
             }
             return label;
           }
@@ -192,7 +177,7 @@ const CategoryProfitsChart = () => {
         beginAtZero: true,
         stacked: false,
         ticks: {
-          callback: (value) => formatCurrency(value, currency),
+          callback: (value) => formatCurrency(value, getCurrency()),
         }
       },
       x: {
@@ -259,9 +244,9 @@ const CategoryProfitsChart = () => {
             {categoryProfits.map((category, index) => (
               <div key={`category-${index}-${category.name}`} className="category-details-row">
                 <div className="details-cell">{category.name}</div>
-                <div className="details-cell">{formatCurrency(category.revenue, currency)}</div>
-                <div className="details-cell">{formatCurrency(category.cost, currency)}</div>
-                <div className="details-cell">{formatCurrency(category.profit, currency)}</div>
+                <div className="details-cell">{formatCurrency(category.revenue, getCurrency())}</div>
+                <div className="details-cell">{formatCurrency(category.cost, getCurrency())}</div>
+                <div className="details-cell">{formatCurrency(category.profit, getCurrency())}</div>
                 <div className="details-cell">{category.margin}%</div>
               </div>
             ))}

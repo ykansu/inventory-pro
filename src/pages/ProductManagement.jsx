@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
+import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
 
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', 'edit', 'categories', or 'suppliers'
   const { t } = useTranslation(['products', 'common']);
-  const { products, categories, suppliers, settings, isLoading } = useDatabase();
+  const { products, categories, suppliers, isLoading } = useDatabase();
+  const { getCurrency } = useSettings();
   
   // State for product data
   const [productList, setProductList] = useState([]);
@@ -94,31 +96,24 @@ const ProductManagement = () => {
     loadData();
   }, [products, categories, suppliers, t]);
 
-  // Load currency settings
+  // Set currency symbol based on current currency
   useEffect(() => {
-    const loadCurrencySettings = async () => {
-      try {
-        if (settings) {
-          const settingsObj = await settings.getAllSettings();
-          const currency = settingsObj.currency ? settingsObj.currency.toLowerCase() : 'usd';
-          
-          // Map currency to symbol
-          const currencyMap = {
-            'usd': '$',
-            'eur': '€',
-            'gbp': '£',
-            'try': '₺'
-          };
-          
-          setCurrencySymbol(currencyMap[currency] || '$');
-        }
-      } catch (error) {
-        console.error('Error loading currency settings:', error);
-      }
+    const setCurrencySymbolFromSettings = () => {
+      const currency = getCurrency();
+      
+      // Map currency to symbol
+      const currencyMap = {
+        'usd': '$',
+        'eur': '€',
+        'gbp': '£',
+        'try': '₺'
+      };
+      
+      setCurrencySymbol(currencyMap[currency] || '$');
     };
     
-    loadCurrencySettings();
-  }, [settings]);
+    setCurrencySymbolFromSettings();
+  }, [getCurrency]);
 
   // Format price with currency symbol
   const formatPrice = (price) => {
