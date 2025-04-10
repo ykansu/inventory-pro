@@ -36,7 +36,7 @@ const POS = () => {
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
   const [discount, setDiscount] = useState(0); // Discount amount
-  const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed' or 'total'
+  const [discountType, setDiscountType] = useState('fixed'); // 'percentage' or 'fixed' or 'total'
   const [discountValue, setDiscountValue] = useState(''); // User input value
   
   // State for payment modal
@@ -100,14 +100,16 @@ const POS = () => {
   
   // Calculate totals whenever cart items or discount change
   useEffect(() => {
-    const newSubtotal = cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
+    const newSubtotal = parseFloat(cartItems.reduce((sum, item) => sum + (parseFloat(item.totalPrice) || 0), 0).toFixed(2));
     
     // Apply discount to subtotal
-    const discountedSubtotal = Math.max(0, newSubtotal - discount);
+    const discountedSubtotal = parseFloat(Math.max(0, newSubtotal - discount).toFixed(2));
     
     // Only calculate tax if tax calculation is enabled and tax rate is greater than 0
-    const newTax = settings.enableTax && settings.taxRate > 0 ? discountedSubtotal * (settings.taxRate / 100) : 0;
-    const newTotal = discountedSubtotal + newTax;
+    const newTax = settings.enableTax && settings.taxRate > 0 
+      ? parseFloat((discountedSubtotal * (parseFloat(settings.taxRate) / 100)).toFixed(2)) 
+      : 0;
+    const newTotal = parseFloat((discountedSubtotal + newTax).toFixed(2));
     
     setSubtotal(newSubtotal);
     setTax(newTax);
@@ -243,16 +245,16 @@ const POS = () => {
       }
       
       item.quantity += 1;
-      item.totalPrice = item.quantity * item.price;
+      item.totalPrice = parseFloat((item.quantity * parseFloat(item.price)).toFixed(2));
       setCartItems(updatedCart);
     } else {
       // Add new item to cart
       const newItem = {
         id: product.id,
         name: product.name,
-        price: product.selling_price,
+        price: parseFloat(product.selling_price),
         quantity: 1,
-        totalPrice: product.selling_price,
+        totalPrice: parseFloat(product.selling_price),
         product: product
       };
       setCartItems([...cartItems, newItem]);
@@ -268,7 +270,7 @@ const POS = () => {
         return {
           ...item,
           quantity,
-          totalPrice: quantity * item.price
+          totalPrice: parseFloat((quantity * parseFloat(item.price)).toFixed(2))
         };
       }
       return item;
@@ -303,7 +305,7 @@ const POS = () => {
         setDiscountValue('100');
         setDiscount(subtotal);
       } else {
-        setDiscount((subtotal * value) / 100);
+        setDiscount(parseFloat(((subtotal * value) / 100).toFixed(2)));
       }
     } else if (discountType === 'total') {
       // Calculate discount based on desired total
@@ -313,7 +315,7 @@ const POS = () => {
         setDiscount(0);
       } else {
         // Calculate the discount as the difference between subtotal and desired total
-        setDiscount(subtotal - value);
+        setDiscount(parseFloat((subtotal - value).toFixed(2)));
       }
     } else { // fixed amount
       // Ensure fixed discount doesn't exceed subtotal
@@ -321,7 +323,7 @@ const POS = () => {
         setDiscountValue(subtotal.toFixed(2));
         setDiscount(subtotal);
       } else {
-        setDiscount(value);
+        setDiscount(parseFloat(value.toFixed(2)));
       }
     }
   };
@@ -334,15 +336,19 @@ const POS = () => {
   
   // Calculate split payment change
   const calculateSplitPayment = (cash) => {
+    // Ensure we're working with a valid number
     const cashValue = parseFloat(cash) || 0;
+    
+    // Store the raw input value so the user can continue editing
     setCashAmount(cash);
     
     // Calculate how much should be paid by card after cash payment
-    const remainingAmount = Math.max(0, total - cashValue);
+    const remainingAmount = parseFloat(Math.max(0, total - cashValue).toFixed(2));
     setCardAmount(remainingAmount.toFixed(2));
     
     // If cash exceeds total, calculate change
-    setSplitChange(Math.max(0, cashValue - total));
+    const changeAmount = parseFloat(Math.max(0, cashValue - total).toFixed(2));
+    setSplitChange(changeAmount);
   };
   
   // Process payment
@@ -353,13 +359,66 @@ const POS = () => {
     }
     
     // Validation for different payment methods
-    if (paymentMethod === 'cash' && (parseFloat(amountReceived) || 0) < total) {
-      alert(t('pos:payment.insufficientAmount'));
-      return;
+    if (paymentMethod === 'cash') {
+      const amountPaid = parseFloat(amountReceived) || 0;
+      
+      if (amountPaid < total) {
+        // Calculate the difference as potential discount
+        const shortfall = parseFloat((total - amountPaid).toFixed(2));
+        
+        // Ask user if they want to apply this as a discount
+        const confirmDiscount = window.confirm(
+          `${t('pos:payment.shortfallPrompt', { 
+            shortfall: formatPriceWithCurrency(shortfall) 
+          })} ${t('pos:payment.applyAsDiscount')}`
+        );
+        
+        if (confirmDiscount) {
+          // Apply the difference as a fixed discount
+          const updatedDiscount = parseFloat(shortfall.toFixed(2));
+          
+          try {
+            setIsProcessing(true);
+            
+            // Create adjusted total for the sale
+            const adjustedTotal = parseFloat((total - updatedDiscount).toFixed(2));
+            
+            // Complete the sale with the discount applied
+            await completeSale(
+              paymentMethod,
+              amountPaid,
+              0, // No change as amount equals new total
+              0,
+              0,
+              updatedDiscount // Pass the discount explicitly
+            );
+            
+            // Close payment modal
+            setShowPaymentModal(false);
+            
+            // Show receipt modal
+            setShowReceiptModal(true);
+          } catch (error) {
+            console.error('Error processing payment with discount:', error);
+            toast.error(t('pos:payment.error'));
+          } finally {
+            setIsProcessing(false);
+          }
+          
+          return;
+        } else {
+          // User doesn't want to apply discount
+          alert(t('pos:payment.insufficientAmount'));
+          return;
+        }
+      }
     }
     
     if (paymentMethod === 'split') {
-      const totalPayment = (parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0);
+      const cashValue = parseFloat(cashAmount) || 0;
+      const cardValue = parseFloat(cardAmount) || 0;
+      const totalPayment = parseFloat((cashValue + cardValue).toFixed(2));
+      
       if (totalPayment < total) {
         alert(t('pos:payment.insufficientSplitAmount'));
         return;
@@ -371,18 +430,26 @@ const POS = () => {
       
       // Call the completeSale function with the appropriate parameters
       if (paymentMethod === 'split') {
+        const cashValue = parseFloat(cashAmount) || 0;
+        const cardValue = parseFloat(cardAmount) || 0;
+        const totalPaid = parseFloat((cashValue + cardValue).toFixed(2));
+        const changeAmount = parseFloat(Math.max(0, totalPaid - total).toFixed(2));
+        
         await completeSale(
           'split',
-          (parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0),
-          parseFloat(splitChange) || 0,
-          parseFloat(cashAmount) || 0,
-          parseFloat(cardAmount) || 0
+          totalPaid,
+          changeAmount,
+          cashValue,
+          cardValue
         );
       } else {
+        const amountPaid = parseFloat(amountReceived) || total;
+        const changeAmount = parseFloat(Math.max(0, amountPaid - total).toFixed(2));
+        
         await completeSale(
           paymentMethod,
-          parseFloat(amountReceived) || total,
-          parseFloat(change) || 0
+          amountPaid,
+          changeAmount
         );
       }
       
@@ -403,7 +470,14 @@ const POS = () => {
   const calculateChange = (value) => {
     const amount = parseFloat(value) || 0;
     setAmountReceived(value);
-    setChange(Math.max(0, amount - total));
+    
+    if (amount < total) {
+      // Amount is less than total, no change to calculate
+      setChange(0);
+    } else {
+      // Calculate change normally
+      setChange(parseFloat(Math.max(0, amount - total).toFixed(2)));
+    }
   };
   
   // Print receipt
@@ -452,7 +526,7 @@ const POS = () => {
   };
   
   // Complete sale function
-  const completeSale = async (paymentMethod, amountReceived = 0, change = 0, cashPortion = 0, cardPortion = 0) => {
+  const completeSale = async (paymentMethod, amountReceived = 0, change = 0, cashPortion = 0, cardPortion = 0, explicitDiscount = null) => {
     if (cartItems.length === 0) {
       toast.error(t('pos:payment.emptyCart'));
       return;
@@ -461,19 +535,30 @@ const POS = () => {
     try {
       // Format cart items for the database
       const receiptNumber = `INV-${format(new Date(), 'yyyyMMdd-HHmmss')}`;
+      
+      // Use explicit discount if provided, otherwise use the current discount state
+      const discountAmount = explicitDiscount !== null ? explicitDiscount : discount;
+      // Calculate the adjusted total if there's an explicit discount
+      const finalSubtotal = subtotal;
+      const finalTax = explicitDiscount !== null 
+        ? parseFloat((Math.max(0, subtotal - explicitDiscount) * (settings.taxRate / 100)).toFixed(2)) 
+        : tax;
+      const finalTotal = explicitDiscount !== null 
+        ? parseFloat((Math.max(0, subtotal - explicitDiscount) + finalTax).toFixed(2)) 
+        : total;
     
       // Prepare sale data
       const saleData = {
         receipt_number: receiptNumber,
-        subtotal: subtotal,
-        discount_amount: discount,  // Include discount amount
-        tax_amount: tax,
-        total_amount: total,
+        subtotal: parseFloat(finalSubtotal),
+        discount_amount: parseFloat(discountAmount),
+        tax_amount: parseFloat(finalTax),
+        total_amount: parseFloat(finalTotal),
         payment_method: paymentMethod,
-        amount_paid: parseFloat(amountReceived) || total,
+        amount_paid: parseFloat(amountReceived) || parseFloat(finalTotal),
         change_amount: parseFloat(change) || 0,
-        cash_amount: paymentMethod === 'split' ? cashPortion : (paymentMethod === 'cash' ? amountReceived : 0),
-        card_amount: paymentMethod === 'split' ? cardPortion : (paymentMethod === 'card' ? total : 0),
+        cash_amount: paymentMethod === 'split' ? parseFloat(cashPortion) : (paymentMethod === 'cash' ? parseFloat(amountReceived) : 0),
+        card_amount: paymentMethod === 'split' ? parseFloat(cardPortion) : (paymentMethod === 'card' ? parseFloat(finalTotal) : 0),
         created_at: new Date(),
         updated_at: new Date()
       };
@@ -482,10 +567,10 @@ const POS = () => {
       const saleItems = cartItems.map(item => ({
         product_id: item.id,
         product_name: item.name,
-        quantity: item.quantity,
-        unit_price: item.price,
+        quantity: parseInt(item.quantity),
+        unit_price: parseFloat(item.price),
         discount_amount: 0, // Discount functionality could be added later
-        total_price: item.totalPrice
+        total_price: parseFloat(item.totalPrice)
       }));
       
       // Create the sale
@@ -570,10 +655,10 @@ const POS = () => {
         receiptFooter: settings.receiptFooter || t('pos:receipt.thankYou'),
         amountPaid: amountReceived,
         changeAmount: change,
-        total: total,
-        tax: tax,
-        discount: discount,
-        subtotal: subtotal,
+        total: finalTotal,
+        tax: finalTax,
+        discount: discountAmount,
+        subtotal: finalSubtotal,
         date: formatDate(new Date()),
         cashAmount: cashPortion,
         cardAmount: cardPortion
@@ -581,7 +666,7 @@ const POS = () => {
       
       // Show success message
       toast.success(t('pos:notifications.saleCompleted', { 
-        amount: formatPriceWithCurrency(total) 
+        amount: formatPriceWithCurrency(finalTotal) 
       }), {
         duration: 5000,
         icon: '💰',
@@ -776,8 +861,8 @@ const POS = () => {
                   onChange={(e) => setDiscountType(e.target.value)}
                   className="discount-type-select"
                 >
-                  <option value="percentage">{t('pos:discount.percentage')}</option>
                   <option value="fixed">{t('pos:discount.fixed')}</option>
+                  <option value="percentage">{t('pos:discount.percentage')}</option>
                   <option value="total">{t('pos:discount.total')}</option>
                 </select>
                 <input
@@ -826,6 +911,8 @@ const POS = () => {
               className="payment-button cash"
               onClick={() => {
                 setPaymentMethod('cash');
+                setAmountReceived(total.toFixed(2));
+                setChange(0);
                 setShowPaymentModal(true);
               }}
               disabled={cartItems.length === 0}
@@ -883,7 +970,7 @@ const POS = () => {
                       <input
                         type="number"
                         step="0.01"
-                        min={total}
+                        min="0.01"
                         value={amountReceived}
                         onChange={(e) => calculateChange(e.target.value)}
                         className="amount-input"
@@ -894,6 +981,12 @@ const POS = () => {
                       <span>{t('pos:payment.change')}:</span>
                       <span>{formatPriceWithCurrency(change)}</span>
                     </div>
+                    {parseFloat(amountReceived) < total && (
+                      <div className="shortfall-notice">
+                        <span>{t('pos:payment.shortfallNotice')}:</span>
+                        <span>{formatPriceWithCurrency(total - parseFloat(amountReceived))}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -950,8 +1043,8 @@ const POS = () => {
                 className="button primary"
                 onClick={processPayment}
                 disabled={
-                  (paymentMethod === 'cash' && (parseFloat(amountReceived) || 0) < (total - discountValue)) || 
-                  (paymentMethod === 'split' && ((parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) < (total - discountValue))) ||
+                  (paymentMethod === 'cash' && !amountReceived) || 
+                  (paymentMethod === 'split' && ((parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) < total)) ||
                   isProcessing
                 }
               >

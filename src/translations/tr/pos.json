@@ -77,7 +77,10 @@
     "emptyCart": "Sepet boş. İşleme devam etmeden önce ürün ekleyin.",
     "insufficientAmount": "Alınan tutar toplam tutardan az.",
     "insufficientSplitAmount": "Toplam ödeme tutarı, toplam tutar yetersiz.",
-    "error": "Ödeme işlemi sırasında bir hata oluştu."
+    "error": "Ödeme işlemi sırasında bir hata oluştu.",
+    "shortfallNotice": "Eksik tutar",
+    "shortfallPrompt": "Müşteri toplam tutardan {{shortfall}} daha az ödeme yapıyor.",
+    "applyAsDiscount": "Bu farkı indirim olarak uygulamak ister misiniz?"
   },
   "paymentMethods": {
     "cash": "Nakit",

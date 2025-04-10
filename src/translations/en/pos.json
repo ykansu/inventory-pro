@@ -73,7 +73,10 @@
     "emptyCart": "The cart is empty. Add items before proceeding.",
     "insufficientAmount": "The amount received is less than the total amount.",
     "insufficientSplitAmount": "The combined payment amount is less than the total amount.",
-    "error": "An error occurred while processing the payment."
+    "error": "An error occurred while processing the payment.",
+    "shortfallNotice": "Shortfall amount",
+    "shortfallPrompt": "Customer is paying {{shortfall}} less than the total amount.",
+    "applyAsDiscount": "Would you like to apply this as a discount?"
   },
   "paymentMethods": {
     "cash": "Cash",
