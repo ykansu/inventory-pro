@@ -13,7 +13,8 @@
     "currency": "Para Birimi",
     "dateFormat": "Tarih Formatı",
     "enableLowStockNotifications": "Düşük Stok Bildirimlerini Etkinleştir",
-    "maxBackups": "Saklanacak Maksimum Yedek Sayısı"
+    "maxBackups": "Saklanacak Maksimum Yedek Sayısı",
+    "creditCardVendorFee": "Kredi Kartı Komisyon Oranı (%)"
   },
   "languages": {
     "en": "İngilizce",

@@ -29,7 +29,8 @@ const Settings = () => {
     language: language,
     currency: 'usd',
     dateFormat: 'mm/dd/yyyy',
-    enableNotifications: false
+    enableNotifications: false,
+    creditCardVendorFee: 0.68
   });
   
   const [businessSettings, setBusinessSettings] = useState({
@@ -63,6 +64,7 @@ const Settings = () => {
       currency: currency,
       dateFormat: getSetting('date_format', 'mm/dd/yyyy'),
       enableNotifications: getSetting('enable_notifications', false),
+      creditCardVendorFee: getSetting('credit_card_vendor_fee', 0.68),
     });
     
     // Business settings
@@ -169,7 +171,8 @@ const Settings = () => {
       language: generalSettings.language, 
       currency: generalSettings.currency.toLowerCase(),
       date_format: generalSettings.dateFormat,
-      enable_notifications: generalSettings.enableNotifications
+      enable_notifications: generalSettings.enableNotifications,
+      credit_card_vendor_fee: generalSettings.creditCardVendorFee
     };
     
     // Save all general settings except language (already saved when changed)
@@ -506,6 +509,20 @@ const Settings = () => {
                     <option value="dd/mm/yyyy">DD/MM/YYYY</option>
                     <option value="yyyy-mm-dd">YYYY-MM-DD</option>
                   </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="creditCardVendorFee">{t('settings:general.creditCardVendorFee', 'Credit Card Vendor Fee (%)')}</label>
+                  <input 
+                    type="number" 
+                    id="creditCardVendorFee" 
+                    name="creditCardVendorFee"
+                    value={generalSettings.creditCardVendorFee}
+                    onChange={handleGeneralChange}
+                    step="0.01"
+                    min="0"
+                    max="100"
+                  />
                 </div>
 
                 <div className="form-group checkbox-group">

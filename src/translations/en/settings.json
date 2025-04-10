@@ -13,7 +13,8 @@
     "currency": "Currency",
     "dateFormat": "Date Format",
     "enableLowStockNotifications": "Enable Low Stock Notifications",
-    "maxBackups": "Max Backups to Keep"
+    "maxBackups": "Max Backups to Keep",
+    "creditCardVendorFee": "Credit Card Vendor Fee (%)"
   },
   "languages": {
     "en": "English",

@@ -10,6 +10,7 @@ import { Doughnut } from 'react-chartjs-2';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import '../../styles/components/index.css';
 
 // Register ChartJS components
@@ -24,9 +25,16 @@ const RevenueByPaymentChart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [revenueByPayment, setRevenueByPayment] = useState([]);
-  const [currency, setCurrency] = useState('usd');
   const [totalRevenue, setTotalRevenue] = useState(0);
-  const { settings, dashboard } = useDatabase();
+  const { dashboard } = useDatabase();
+  const { 
+    getSetting,
+    isLoading: settingsLoading 
+  } = useSettings();
+  
+  // Get settings
+  const currency = getSetting('currency', 'usd').toLowerCase();
+  const creditCardVendorFee = getSetting('credit_card_vendor_fee', 0.68);
 
   // Define colors for payment methods
   const paymentMethodColors = {
@@ -51,23 +59,9 @@ const RevenueByPaymentChart = () => {
   };
 
   useEffect(() => {
-    // Get currency from settings
-    const loadSettings = async () => {
-      try {
-        if (settings) {
-          const settingsObj = await settings.getAllSettings();
-          setCurrency(settingsObj.currency?.toLowerCase() || 'usd');
-        }
-      } catch (error) {
-        console.error('Error fetching currency settings:', error);
-      }
-    };
-
-    loadSettings();
-  }, [settings]);
-
-  useEffect(() => {
     const fetchRevenueByPayment = async () => {
+      if (settingsLoading) return;
+      
       setLoading(true);
       setError(null);
       try {
@@ -75,8 +69,63 @@ const RevenueByPaymentChart = () => {
         const data = await dashboard.getRevenueByPaymentMethod();
         
         if (data && data.length > 0) {
+          // Find the split payment if it exists
+          const splitPaymentIndex = data.findIndex(item => 
+            item.method.toLowerCase() === 'split'
+          );
+          
+          // Process data to merge split payments with cash and card
+          let processedData = [...data];
+          
+          // If split payment exists, distribute it to card and cash
+          if (splitPaymentIndex !== -1) {
+            const splitPayment = processedData[splitPaymentIndex];
+            
+            // Remove split row
+            processedData.splice(splitPaymentIndex, 1);
+            
+            // Find cash payment or create it if it doesn't exist
+            const cashPaymentIndex = processedData.findIndex(item => 
+              item.method.toLowerCase() === 'cash'
+            );
+            
+            if (cashPaymentIndex !== -1) {
+              // Add split cash portion to existing cash
+              processedData[cashPaymentIndex].revenue += 
+                (splitPayment.revenue - splitPayment.card_amount);
+            } else {
+              // Create new cash entry with split cash portion
+              processedData.push({
+                method: 'cash',
+                revenue: splitPayment.revenue - splitPayment.card_amount,
+                count: splitPayment.count
+              });
+            }
+            
+            // Find card payment or create it if it doesn't exist
+            const cardPaymentIndex = processedData.findIndex(item => 
+              item.method.toLowerCase() === 'card'
+            );
+            
+            if (cardPaymentIndex !== -1) {
+              // Add split card portion to existing card
+              processedData[cardPaymentIndex].revenue += splitPayment.card_amount;
+              // Track card amount for fee calculation
+              processedData[cardPaymentIndex].card_amount = 
+                (processedData[cardPaymentIndex].card_amount || 0) + splitPayment.card_amount;
+            } else {
+              // Create new card entry with split card portion
+              processedData.push({
+                method: 'card',
+                revenue: splitPayment.card_amount,
+                card_amount: splitPayment.card_amount,
+                count: splitPayment.count
+              });
+            }
+          }
+          
           // Filter out methods with zero revenue and normalize method names
-          const filteredData = data
+          const filteredData = processedData
             .filter(item => item.revenue > 0)
             .map(item => ({
               ...item,
@@ -100,7 +149,7 @@ const RevenueByPaymentChart = () => {
     };
 
     fetchRevenueByPayment();
-  }, [dashboard]);
+  }, [dashboard, settingsLoading]);
 
   const handleRetry = () => {
     fetchRevenueByPayment();
@@ -108,6 +157,17 @@ const RevenueByPaymentChart = () => {
 
   const getPercentage = (revenue) => {
     return totalRevenue > 0 ? ((revenue / totalRevenue) * 100).toFixed(1) : 0;
+  };
+
+  // Get card revenue (including card portion of split payments which is now merged)
+  const getCardRevenue = () => {
+    const cardPayment = revenueByPayment.find(item => item.method.toLowerCase() === 'card');
+    return cardPayment ? (cardPayment.card_amount || cardPayment.revenue) : 0;
+  };
+
+  const getNetCardAmount = (revenue) => {
+    const amount = revenue - (revenue * (creditCardVendorFee / 100));
+    return parseFloat(amount.toFixed(2));
   };
 
   const getColor = (method) => {
@@ -163,7 +223,7 @@ const RevenueByPaymentChart = () => {
         <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.revenueByPayment')}>?</span>
       </h3>
       
-      {loading ? (
+      {loading || settingsLoading ? (
         <div className="chart-container">
           <LoadingSpinner />
         </div>
@@ -207,6 +267,25 @@ const RevenueByPaymentChart = () => {
                   <div className="summary-cell">{getPercentage(item.revenue)}%</div>
                 </div>
               ))}
+              
+              {/* Add net amount row for card payments after vendor fee */}
+              {revenueByPayment.some(item => item.method.toLowerCase() === 'card') && (
+                <div className="payment-summary-row net-amount-row">
+                  <div className="summary-cell">
+                    <span className="payment-color-indicator" style={{ backgroundColor: 'rgba(33, 150, 243, 0.3)' }}></span>
+                    {t('dashboard:labels.netCardAmountAfterFee', 'Net Card Amount (After Vendor Fee)')}
+                  </div>
+                  <div className="summary-cell">
+                    {formatCurrency(
+                      getNetCardAmount(getCardRevenue()), 
+                      currency
+                    )}
+                  </div>
+                  <div className="summary-cell">
+                    <small>({t('dashboard:labels.feePercentage', { 0: creditCardVendorFee })})</small>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

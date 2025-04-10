@@ -113,6 +113,7 @@ export const SettingsProvider = ({ children }) => {
     getReceiptFooter: () => getSetting('receipt_footer', 'Thank you for your purchase!'),
     getLanguage: () => getSetting('language', 'en'),
     getNotificationsEnabled: () => getSetting('enable_notifications', false),
+    getCreditCardVendorFee: () => getSetting('credit_card_vendor_fee', 0.68),
   };
 
   return (

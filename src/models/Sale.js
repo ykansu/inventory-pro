@@ -801,6 +801,7 @@ class Sale extends BaseModel {
         .select(
           'payment_method as method',
           db.raw('SUM(total_amount) as revenue'),
+          db.raw('SUM(card_amount) as card_amount'),
           db.raw('COUNT(*) as count')
         )
         .groupBy('payment_method');
@@ -813,6 +814,7 @@ class Sale extends BaseModel {
       const formattedData = paymentData.map(item => ({
         method: item.method || 'unknown',
         revenue: parseFloat(item.revenue) || 0,
+        card_amount: parseFloat(item.card_amount) || 0,
         count: parseInt(item.count) || 0
       }));
       

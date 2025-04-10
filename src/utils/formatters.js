@@ -18,7 +18,12 @@ export const formatCurrency = (amount, currency = 'usd') => {
   };
   
   const symbol = currencySymbols[currency.toLowerCase()] || '$';
-  return `${symbol}${amount.toLocaleString()}`;
+  
+  // Format with exactly 2 decimal places
+  return `${symbol}${amount.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
 };
 
 /**

@@ -61,7 +61,9 @@
     "inventoryValue": "Inventory Value",
     "paymentSummary": "Payment Summary",
     "percentage": "Percentage",
-    "period": "Time Period"
+    "period": "Time Period",
+    "netCardAmountAfterFee": "Net Card Amount (After Vendor Fee)",
+    "feePercentage": "{{0}}% fee"
   },
   "periods": {
     "week": "Week",

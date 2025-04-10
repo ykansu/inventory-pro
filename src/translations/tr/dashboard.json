@@ -61,7 +61,9 @@
     "inventoryValue": "Stok Değeri",
     "paymentSummary": "Ödeme Özeti",
     "percentage": "Yüzde",
-    "period": "Zaman Dilimi"
+    "period": "Zaman Dilimi",
+    "netCardAmountAfterFee": "Net Kart Tutarı (Komisyon Sonrası)",
+    "feePercentage": "%{{0}} komisyon"
   },
   "periods": {
     "week": "Hafta",
