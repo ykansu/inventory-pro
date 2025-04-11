@@ -29,6 +29,7 @@
     "title": "Sale Details"
   },
   "status": {
+    "completed": "Completed",
     "canceled": "Canceled"
   },
   "receipt": {

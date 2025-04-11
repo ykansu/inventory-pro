@@ -23,12 +23,13 @@
       "payment": "Ödeme",
       "actions": "İşlemler"
     },
-    "noRecords": "Seçilen döneme için satış kaydı bulunamadı."
+    "noRecords": "Seçilen dönem için satış kaydı bulunamadı."
   },
   "details": {
     "title": "Satış Detayları"
   },
   "status": {
+    "completed": "Tamamlandı",
     "canceled": "İptal Edildi"
   },
   "receipt": {

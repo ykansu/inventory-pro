@@ -43,43 +43,56 @@ export const formatRow = (left, right) => {
 
 /**
  * Format a receipt for thermal printing
- * @param {Object} receipt - Receipt data
- * @param {function} t - Translation function
- * @param {function} formatCurrency - Currency formatting function
+ * @param {Object} receiptData - Receipt data
  * @returns {string} - Formatted receipt HTML
  */
-export const formatReceipt = (receipt, t, formatCurrency) => {
-  if (!receipt) return '';
+export const formatReceipt = (receiptData) => {
+  if (!receiptData) return '';
+  
+  // Extract translation function, currency formatter and receipt data
+  const { t, formatCurrency, sale, business, receiptHeader, receiptFooter } = receiptData;
+  
+  // Check if required functions are available
+  if (typeof t !== 'function') {
+    console.error('Translation function (t) is not provided or is not a function');
+    return '<div>Error: Translation function not available</div>';
+  }
+  
+  if (typeof formatCurrency !== 'function') {
+    console.error('Currency formatting function is not provided or is not a function');
+    return '<div>Error: Currency formatter not available</div>';
+  }
   
   const lines = [];
   
   // Header
-  lines.push(`<div style="text-align:center; font-weight:bold;">${receipt.businessName}</div>`);
+  lines.push(`<div style="text-align:center; font-weight:bold;">${business.name}</div>`);
   
-  if (receipt.businessAddress) {
-    lines.push(`<div style="text-align:center;">${receipt.businessAddress}</div>`);
+  if (business.address) {
+    lines.push(`<div style="text-align:center;">${business.address}</div>`);
   }
   
-  if (receipt.businessPhone) {
-    lines.push(`<div style="text-align:center;">${t('pos:receipt.phone')}: ${receipt.businessPhone}</div>`);
+  if (business.phone) {
+    lines.push(`<div style="text-align:center;">${t('pos:receipt.phone')}: ${business.phone}</div>`);
   }
   
-  if (receipt.businessEmail) {
-    lines.push(`<div style="text-align:center;">${t('pos:receipt.email')}: ${receipt.businessEmail}</div>`);
+  if (business.email) {
+    lines.push(`<div style="text-align:center;">${t('pos:receipt.email')}: ${business.email}</div>`);
   }
   
   // Receipt number and date
-  if (receipt.receiptNumber) {
-    lines.push(`<div style="text-align:center;">${t('pos:receipt.number', { number: receipt.receiptNumber })}</div>`);
-  } else if (receipt.receipt_number) {
-    lines.push(`<div style="text-align:center;">${t('pos:receipt.number', { number: receipt.receipt_number })}</div>`);
+  if (sale.receipt_number) {
+    lines.push(`<div style="text-align:center;">${t('pos:receipt.number', { number: sale.receipt_number })}</div>`);
+  } else if (sale.id) {
+    lines.push(`<div style="text-align:center;">${t('pos:receipt.number', { number: sale.id })}</div>`);
   }
   
-  lines.push(`<div style="text-align:center;">${receipt.date}</div>`);
+  // Use formattedDate directly if it exists
+  lines.push(`<div style="text-align:center;">${sale.formattedDate || sale.date}</div>`);
   
   // Custom header (if exists)
-  if (receipt.receiptHeader) {
-    lines.push(`<div style="text-align:center; font-style:italic;">${receipt.receiptHeader}</div>`);
+  if (receiptHeader) {
+    lines.push(`<div style="text-align:center; font-style:italic;">${receiptHeader}</div>`);
   }
   
   // Divider
@@ -95,27 +108,29 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
   lines.push(`<div>${DIVIDER_LINE}</div>`);
   
   // Items
-  receipt.items.forEach(item => {
-    // If item name is too long, trim it
-    let displayName = item.name;
-    if (displayName.length > 20) {
-      displayName = displayName.substring(0, 17) + '...';
-    }
-    
-    // Get unit name if product has a unit
-    let unitDisplay = '';
-    if (item.product && item.product.unit) {
-      const unitKey = item.product.unit.toLowerCase();
-      // Direct translation from the translation files (all abbreviations are now directly in the translations)
-      unitDisplay = t(`pos:units.${unitKey}`, { defaultValue: unitKey });
-    }
-    
-    lines.push(`<div style="display:flex;">
-      <div style="flex:3;">${displayName}</div>
-      <div style="flex:1; text-align:center;">${item.quantity}${unitDisplay ? ' ' + unitDisplay : ''}</div>
-      <div style="flex:2; text-align:right;">${formatCurrency(item.totalPrice)}</div>
-    </div>`);
-  });
+  if (sale.items && Array.isArray(sale.items)) {
+    sale.items.forEach(item => {
+      // If item name is too long, trim it
+      let displayName = item.product_name || item.name;
+      if (displayName && displayName.length > 20) {
+        displayName = displayName.substring(0, 17) + '...';
+      }
+      
+      // Get unit name if product has a unit
+      let unitDisplay = '';
+      if (item.product && item.product.unit) {
+        const unitKey = item.product.unit.toLowerCase();
+        // Direct translation from the translation files (all abbreviations are now directly in the translations)
+        unitDisplay = t(`pos:units.${unitKey}`, { defaultValue: unitKey });
+      }
+      
+      lines.push(`<div style="display:flex;">
+        <div style="flex:3;">${displayName}</div>
+        <div style="flex:1; text-align:center;">${item.quantity}${unitDisplay ? ' ' + unitDisplay : ''}</div>
+        <div style="flex:2; text-align:right;">${formatCurrency(item.total_price || item.totalPrice)}</div>
+      </div>`);
+    });
+  }
   
   // Divider
   lines.push(`<div>${DIVIDER_LINE}</div>`);
@@ -123,61 +138,79 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
   // Summary
   lines.push(`<div style="display:flex; justify-content:space-between;">
     <div>${t('pos:summary.subtotal')}:</div>
-    <div>${formatCurrency(receipt.subtotal)}</div>
+    <div>${formatCurrency(sale.subtotal)}</div>
   </div>`);
   
-  if (receipt.discount > 0) {
+  if (sale.discount > 0 || sale.discount_amount > 0) {
     lines.push(`<div style="display:flex; justify-content:space-between;">
       <div>${t('pos:summary.discount')}:</div>
-      <div>-${formatCurrency(receipt.discount)}</div>
+      <div>-${formatCurrency(sale.discount || sale.discount_amount)}</div>
     </div>`);
   }
   
   // Total (with emphasis)
   lines.push(`<div style="display:flex; justify-content:space-between; font-weight:bold;">
     <div>${t('pos:summary.total')}:</div>
-    <div>${formatCurrency(receipt.total)}</div>
+    <div>${formatCurrency(sale.total_amount)}</div>
   </div>`);
   
   // Payment information
-  const paymentMethod = receipt.paymentMethod || receipt.payment_method;
+  const paymentMethod = sale.payment_method;
   lines.push(`<div style="display:flex; justify-content:space-between;">
     <div>${t('pos:receipt.paymentMethod')}:</div>
     <div>${t(`pos:paymentMethods.${paymentMethod}`)}</div>
   </div>`);
   
   if (paymentMethod === 'split') {
-    lines.push(`<div style="display:flex; justify-content:space-between;">
-      <div>${t('pos:receipt.cashAmount')}:</div>
-      <div>${formatCurrency(receipt.cashAmount)}</div>
-    </div>`);
+    if (sale.payment_details && Array.isArray(sale.payment_details)) {
+      sale.payment_details.forEach(payment => {
+        lines.push(`<div style="display:flex; justify-content:space-between;">
+          <div>${t(`pos:paymentMethods.${payment.method}`)}:</div>
+          <div>${formatCurrency(payment.amount)}</div>
+        </div>`);
+      });
+    } else {
+      // Legacy format
+      if (sale.cash_amount > 0) {
+        lines.push(`<div style="display:flex; justify-content:space-between;">
+          <div>${t('pos:receipt.cashAmount')}:</div>
+          <div>${formatCurrency(sale.cash_amount)}</div>
+        </div>`);
+      }
+      
+      if (sale.card_amount > 0) {
+        lines.push(`<div style="display:flex; justify-content:space-between;">
+          <div>${t('pos:receipt.cardAmount')}:</div>
+          <div>${formatCurrency(sale.card_amount)}</div>
+        </div>`);
+      }
+    }
     
-    lines.push(`<div style="display:flex; justify-content:space-between;">
-      <div>${t('pos:receipt.cardAmount')}:</div>
-      <div>${formatCurrency(receipt.cardAmount)}</div>
-    </div>`);
-    
-    if (receipt.changeAmount > 0) {
+    if (sale.change_amount > 0) {
       lines.push(`<div style="display:flex; justify-content:space-between;">
         <div>${t('pos:receipt.change')}:</div>
-        <div>${formatCurrency(receipt.changeAmount)}</div>
+        <div>${formatCurrency(sale.change_amount)}</div>
       </div>`);
     }
   } else if (paymentMethod === 'cash') {
-    lines.push(`<div style="display:flex; justify-content:space-between;">
-      <div>${t('pos:receipt.amountReceived')}:</div>
-      <div>${formatCurrency(receipt.amountPaid)}</div>
-    </div>`);
+    if (sale.amount_paid > 0) {
+      lines.push(`<div style="display:flex; justify-content:space-between;">
+        <div>${t('pos:receipt.amountReceived')}:</div>
+        <div>${formatCurrency(sale.amount_paid)}</div>
+      </div>`);
+    }
     
-    lines.push(`<div style="display:flex; justify-content:space-between;">
-      <div>${t('pos:receipt.change')}:</div>
-      <div>${formatCurrency(receipt.changeAmount)}</div>
-    </div>`);
+    if (sale.change_amount > 0) {
+      lines.push(`<div style="display:flex; justify-content:space-between;">
+        <div>${t('pos:receipt.change')}:</div>
+        <div>${formatCurrency(sale.change_amount)}</div>
+      </div>`);
+    }
   }
   
   // Footer
   lines.push(`<div>${DIVIDER_LINE}</div>`);
-  lines.push(`<div style="text-align:center;">${receipt.receiptFooter || t('pos:receipt.thankYou')}</div>`);
+  lines.push(`<div style="text-align:center;">${receiptFooter || t('pos:receipt.thankYou')}</div>`);
   
   return `
     <div style="font-family: 'Courier New', monospace; width: 58mm; font-size: 10px; line-height: 1.2;">
@@ -188,14 +221,12 @@ export const formatReceipt = (receipt, t, formatCurrency) => {
 
 /**
  * Print receipt to thermal printer
- * @param {Object} receipt - Receipt data
- * @param {function} t - Translation function
- * @param {function} formatCurrency - Currency formatting function 
+ * @param {Object} receiptData - Receipt data with t, formatCurrency, sale and business properties
  */
-export const printReceipt = (receipt, t, formatCurrency) => {
-  if (!receipt) return;
+export const printReceipt = (receiptData) => {
+  if (!receiptData) return;
   
-  const receiptHTML = formatReceipt(receipt, t, formatCurrency);
+  const receiptHTML = formatReceipt(receiptData);
   
   const printWindow = window.open('', '_blank');
   

@@ -5,21 +5,25 @@ import { SaleService, ProductService } from '../services/DatabaseService';
 import { calculateReturnTotal, formatCurrency } from '../utils/calculations';
 import { printReceipt } from '../utils/receiptPrinter';
 import { toast } from 'react-hot-toast';
-import '../styles/pages/sales-history.css';
-import '../styles/components/modal.css';
 import { format } from 'date-fns';
 import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
-import '../styles/pages/sales-history.css';
+
+// Import CSS module
+import styles from '../styles/pages/sales-history.module.css';
+
+// Import common components
+import Button from '../components/common/Button';
+import Table from '../components/common/Table';
+import Modal from '../components/common/Modal';
+import FormGroup from '../components/common/FormGroup';
 
 // Inline styles for unit display
-const styles = {
-  unitName: {
-    fontSize: '0.75rem',
-    color: '#4b5563',
-    marginLeft: '0.25rem',
-    whiteSpace: 'nowrap'
-  }
+const unitNameStyle = {
+  fontSize: '0.75rem',
+  color: '#4b5563',
+  marginLeft: '0.25rem',
+  whiteSpace: 'nowrap'
 };
 
 const SalesHistory = () => {
@@ -112,14 +116,25 @@ const SalesHistory = () => {
     }
   }, [selectedSale]);
 
-  // Handle filter application
-  const handleApplyFilters = () => {
+  // Handle filter application for date range only
+  const handleApplyDateFilters = () => {
     updateFilters({
       start: tempDateRange.start,
-      end: tempDateRange.end,
-      payment: tempPaymentFilter,
-      query: tempSearchQuery
+      end: tempDateRange.end
     });
+  };
+
+  // Handlers for immediate filter application
+  const handlePaymentFilterChange = (e) => {
+    const value = e.target.value;
+    setTempPaymentFilter(value);
+    updateFilters({ payment: value });
+  };
+
+  const handleSearchQueryChange = (e) => {
+    const value = e.target.value;
+    setTempSearchQuery(value);
+    updateFilters({ query: value });
   };
 
   // Load sale details when a sale is selected
@@ -173,13 +188,11 @@ const SalesHistory = () => {
   // Open the return modal
   const openReturnModal = () => {
     setIsReturnModalOpen(true);
-    document.body.classList.add('modal-open');
   };
 
   // Close the return modal
   const closeReturnModal = () => {
     setIsReturnModalOpen(false);
-    document.body.classList.remove('modal-open');
   };
 
   // Handle quantity change in return modal
@@ -203,7 +216,7 @@ const SalesHistory = () => {
     // Verify at least one item is being returned
     const hasReturns = returnItems.some(item => item.returnQuantity > 0);
     if (!hasReturns) {
-      toast.error(t('sales:return.noItemsSelected'));
+      toast.error(t('sales:return.errorNoItems'));
       return;
     }
     
@@ -248,292 +261,342 @@ const SalesHistory = () => {
       } else {
         toast.error(t('sales:return.error'));
       }
-    } catch (error) {
-      console.error('Error processing return:', error);
+    } catch (err) {
+      console.error('Error processing return:', err);
+      setReturnError(t('sales:return.errorProcessing'));
       toast.error(t('sales:return.error'));
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Render the sale item list
+  // Helper function to render sale items
   const renderSaleItems = (items) => {
-    if (!items || items.length === 0) {
-      return <tr><td colSpan="4">No items found</td></tr>;
-    }
-
-    return items.map(item => (
-      <tr key={item.id}>
-        <td>{item.product_name}</td>
-        <td>{item.quantity} {item.product && getUnitName(item.product)}</td>
+    return items.map((item, index) => (
+      <tr key={item.id || index}>
+        <td>{item.product_name || item.name}</td>
+        <td>
+          {item.quantity}
+          <span style={unitNameStyle}>
+            {item.product?.unit || 'units'}
+          </span>
+        </td>
         <td>{formatWithCurrency(item.unit_price)}</td>
         <td>{formatWithCurrency(item.total_price)}</td>
       </tr>
     ));
   };
 
-  // Calculate return total with tax settings applied
+  // Helper function to calculate return amounts
   const calculateReturnAmount = (items) => {
-    // Calculate total for returned items
-    const subtotal = items.reduce((sum, item) => {
-      if (item.returnQuantity && item.returnQuantity > 0) {
-        return sum + (item.returnQuantity * item.unit_price);
-      }
-      return sum;
-    }, 0);
+    const returnItems = items.filter(item => item.returnQuantity > 0);
     
-    return {
-      subtotal,
-      total: subtotal
-    };
+    if (returnItems.length === 0) {
+      return { subtotal: 0, total: 0 };
+    }
+    
+    const subtotal = returnItems.reduce(
+      (sum, item) => sum + (item.unit_price * item.returnQuantity), 
+      0
+    );
+    
+    // Calculate total (applying discounts or taxes if needed)
+    return calculateReturnTotal(returnItems, selectedSale);
   };
 
-  // For display in the UI
-  const returnAmounts = calculateReturnAmount(returnItems);
-
-  // Print receipt 
+  // Helper function to print receipt
   const handlePrintReceipt = () => {
     if (!selectedSale) return;
     
     try {
-      // Create receipt data structure for the printer
       const receiptData = {
-        id: selectedSale.id,
-        receiptNumber: `S-${selectedSale.id}`,
-        date: formatDate(selectedSale.date),
-        items: selectedSale.items.map(item => ({
-          name: item.product_name,
-          price: item.unit_price,
-          quantity: item.quantity,
-          totalPrice: item.total_price,
-          product: { unit: item.unit || 'pcs' }
-        })),
-        subtotal: selectedSale.subtotal,
-        discount: selectedSale.discount_amount,
-        total: selectedSale.total_amount,
-        paymentMethod: selectedSale.payment_method,
-        cashAmount: selectedSale.cash_amount,
-        cardAmount: selectedSale.card_amount,
-        isSplitPayment: selectedSale.payment_method === 'split',
-        amountPaid: selectedSale.amount_paid,
-        changeAmount: selectedSale.change_amount,
-        businessName: getBusinessName(),
-        businessAddress: getBusinessAddress(),
-        businessPhone: getBusinessPhone(),
-        businessEmail: getBusinessEmail(),
+        business: {
+          name: getBusinessName(),
+          address: getBusinessAddress(),
+          phone: getBusinessPhone(),
+          email: getBusinessEmail()
+        },
         receiptHeader: getReceiptHeader(),
-        receiptFooter: getReceiptFooter()
+        receiptFooter: getReceiptFooter(),
+        sale: {
+          ...selectedSale,
+          formattedDate: formatDate(selectedSale.created_at || selectedSale.date)
+        },
+        formatCurrency: formatWithCurrency,
+        t
       };
       
-      // Print the receipt
-      printReceipt(receiptData, t, formatWithCurrency);
-      
-      toast.success(t('sales:printSuccess'));
-    } catch (error) {
-      console.error('Error printing receipt:', error);
-      toast.error(t('sales:printError'));
+      printReceipt(receiptData);
+    } catch (err) {
+      console.error('Error printing receipt:', err);
+      toast.error(t('pos:receipt.printError'));
     }
   };
 
-  // Get the translated unit name for a product
+  // Helper function to get unit name
   const getUnitName = (product) => {
-    if (!product || !product.unit) return t('pos:units.default');
+    if (!product) return 'units';
     
-    // Get the unit key in lowercase
-    const unitKey = product.unit.toLowerCase();
+    if (typeof product === 'object' && product.unit) {
+      return product.unit;
+    }
     
-    // Try direct translation first - this will get abbreviations like "ad", "kg", etc.
-    return t(`pos:units.${unitKey}`, { defaultValue: unitKey });
+    return 'units';
   };
 
-  // Open the cancel confirmation modal
+  // Modal control functions
   const openCancelConfirmModal = () => {
     setIsCancelConfirmModalOpen(true);
-    document.body.classList.add('modal-open');
   };
 
   // Close the cancel confirmation modal
   const closeCancelConfirmModal = () => {
     setIsCancelConfirmModalOpen(false);
-    document.body.classList.remove('modal-open');
   };
 
   // Handle sale cancellation
   const handleCancelSale = async () => {
     if (!selectedSale) return;
     
-    setIsProcessing(true);
-    
     try {
-      // Call the API to cancel the sale
-      await SaleService.cancelSale(selectedSale.id);
+      const result = await SaleService.cancelSale(selectedSale.id);
       
-      closeCancelConfirmModal();
-      refresh();
-      handleCloseDetails();
-      toast.success(t('sales:cancel.success'));
-    } catch (error) {
-      console.error('Sale cancellation error:', error);
+      if (result && result.success) {
+        toast.success(t('sales:cancel.success'));
+        closeCancelConfirmModal();
+        
+        // Refresh the sales list and update the selected sale
+        refresh();
+        
+        // Update the selected sale to show it's canceled
+        if (selectedSale) {
+          const updatedSale = await SaleService.getSaleById(selectedSale.id);
+          setSelectedSale(updatedSale);
+          setSelectedSaleDetails(updatedSale);
+        }
+      } else {
+        toast.error(t('sales:cancel.error'));
+      }
+    } catch (err) {
+      console.error('Error canceling sale:', err);
       toast.error(t('sales:cancel.error'));
-    } finally {
-      setIsProcessing(false);
     }
   };
 
+  // Define table columns for the sales table
+  const columns = [
+    {
+      key: 'id',
+      title: t('sales:table.headers.receipt'),
+      render: (sale) => (
+        <span className={sale.is_returned ? styles.canceledSale : ''}>
+          #{sale.receipt_number || sale.id}
+        </span>
+      )
+    },
+    {
+      key: 'date',
+      title: t('sales:table.headers.dateTime'),
+      render: (sale) => (
+        <span className={sale.is_returned ? styles.canceledSale : ''}>
+          {formatDate(sale.created_at || sale.date)}
+        </span>
+      )
+    },
+    {
+      key: 'items',
+      title: t('sales:table.headers.items'),
+      render: (sale) => (
+        <span className={sale.is_returned ? styles.canceledSale : ''}>
+          {sale.item_count || 0}
+        </span>
+      )
+    },
+    {
+      key: 'total_amount',
+      title: t('sales:table.headers.total'),
+      render: (sale) => (
+        <span className={sale.is_returned ? styles.canceledSale : ''}>
+          {formatWithCurrency(sale.total_amount)}
+        </span>
+      )
+    },
+    {
+      key: 'payment_method',
+      title: t('sales:table.headers.payment'),
+      render: (sale) => (
+        <span className={sale.is_returned ? styles.canceledSale : ''}>
+          {sale.payment_method === 'split' 
+            ? t('sales:paymentMethods.split') 
+            : t(`sales:paymentMethods.${sale.payment_method}`)}
+        </span>
+      )
+    },
+    {
+      key: 'status',
+      title: t('common:status'),
+      render: (sale) => (
+        sale.is_returned ? (
+          <span className={`${styles.statusBadge} ${styles.canceled}`}>
+            {t('sales:status.canceled')}
+          </span>
+        ) : (
+          <span className={styles.statusBadge}>
+            {t('sales:status.completed')}
+          </span>
+        )
+      )
+    },
+    {
+      key: 'actions',
+      title: t('sales:table.headers.actions'),
+      render: (sale) => (
+        <Button 
+          variant="secondary" 
+          size="small" 
+          onClick={() => handleSelectSale(sale)}
+        >
+          {t('sales:actions.viewDetails')}
+        </Button>
+      )
+    }
+  ];
+
+  // Return the component JSX
   return (
-    <div className="sales-history-page inventory-pro-sales-history">
-      <div className="page-header">
-        <h2>{t('sales:pageTitle')}</h2>
-        <button 
-          className="refresh-button" 
-          onClick={refresh} 
+    <div className={styles.salesHistoryPage}>
+      <div className={styles.pageHeader}>
+        <h1>{t('sales:title')}</h1>
+        <Button 
+          variant="primary"
+          onClick={refresh}
           disabled={loading}
         >
-          {loading ? t('common:loading') : t('common:refresh')}
-        </button>
+          {t('common:refresh')}
+        </Button>
       </div>
 
-      <div className="sales-filters">
-        <div className="date-filters sales-date-filters">
-          <div className="form-group date-filter-group">
-            <label htmlFor="startDate" className="date-filter-label">{t('sales:filters.from')}</label>
-            <input 
-              type="date" 
-              id="startDate" 
-              className="date-input"
-              value={tempDateRange.start}
-              onChange={(e) => setTempDateRange({ ...tempDateRange, start: e.target.value })}
-            />
-          </div>
-          <div className="form-group date-filter-group">
-            <label htmlFor="endDate" className="date-filter-label">{t('sales:filters.to')}</label>
-            <input 
-              type="date" 
-              id="endDate" 
-              className="date-input"
-              value={tempDateRange.end}
-              onChange={(e) => setTempDateRange({ ...tempDateRange, end: e.target.value })}
-            />
-          </div>
-          <button className="filter-button date-filter-button" onClick={handleApplyFilters}>
-            {t('sales:filters.apply')}
-          </button>
-        </div>
-
-        <div className="additional-filters">
-          <select 
-            className="filter-select"
-            value={tempPaymentFilter}
-            onChange={(e) => {
-              setTempPaymentFilter(e.target.value);
-              updateFilters({ payment: e.target.value });
-            }}
+      <div className={styles.salesFilters}>
+        <div className={styles.salesDateFilters}>
+          <FormGroup 
+            label={t('sales:filters.from')} 
+            htmlFor="start-date"
           >
-            <option value="">{t('sales:filters.allPaymentMethods')}</option>
-            <option value="cash">{t('sales:paymentMethods.cash')}</option>
-            <option value="card">{t('sales:paymentMethods.card')}</option>
-            <option value="split">{t('sales:paymentMethods.split')}</option>
-          </select>
-          <input 
-            type="text" 
-            placeholder={t('sales:filters.searchPlaceholder')} 
-            className="search-input"
-            value={tempSearchQuery}
-            onChange={(e) => {
-              setTempSearchQuery(e.target.value);
-              updateFilters({ query: e.target.value });
-            }}
-          />
+            <input
+              id="start-date"
+              type="date"
+              className={styles.dateInput}
+              value={tempDateRange.start}
+              onChange={(e) => setTempDateRange(prev => ({ ...prev, start: e.target.value }))}
+            />
+          </FormGroup>
+
+          <FormGroup 
+            label={t('sales:filters.to')} 
+            htmlFor="end-date"
+          >
+            <input
+              id="end-date"
+              type="date"
+              className={styles.dateInput}
+              value={tempDateRange.end}
+              onChange={(e) => setTempDateRange(prev => ({ ...prev, end: e.target.value }))}
+            />
+          </FormGroup>
+
+          <Button
+            variant="primary"
+            onClick={handleApplyDateFilters}
+            disabled={loading}
+          >
+            {t('sales:filters.apply')}
+          </Button>
+        </div>
+
+        <div className={styles.additionalFilters}>
+          <FormGroup 
+            label={t('sales:table.headers.payment')} 
+            htmlFor="payment-filter"
+          >
+            <select
+              id="payment-filter"
+              className={styles.filterSelect}
+              value={tempPaymentFilter}
+              onChange={handlePaymentFilterChange}
+            >
+              <option value="">{t('sales:filters.allPaymentMethods')}</option>
+              <option value="cash">{t('sales:paymentMethods.cash')}</option>
+              <option value="card">{t('sales:paymentMethods.card')}</option>
+              <option value="split">{t('sales:paymentMethods.split')}</option>
+            </select>
+          </FormGroup>
+
+          <FormGroup 
+            label={t('common:search')} 
+            htmlFor="search-query"
+          >
+            <input
+              id="search-query"
+              type="text"
+              className={styles.searchInput}
+              value={tempSearchQuery}
+              onChange={handleSearchQueryChange}
+              placeholder={t('sales:filters.searchPlaceholder')}
+            />
+          </FormGroup>
         </div>
       </div>
 
-      <div className="sales-container">
-        <div className="sales-list">
+      <div className={styles.salesContainer}>
+        <div className={styles.salesList}>
           {loading ? (
-            <div className="loading-state">{t('sales:loading')}</div>
+            <div className={styles.loadingState}>
+              {t('sales:loading')}
+            </div>
           ) : error ? (
-            <div className="error-state">{t('sales:error')}</div>
+            <div className={styles.errorState}>
+              {t('sales:error')}
+            </div>
           ) : (
-            <table className="sales-table">
-              <thead>
-                <tr>
-                  <th>{t('sales:table.headers.receipt')}</th>
-                  <th>{t('sales:table.headers.dateTime')}</th>
-                  <th>{t('sales:table.headers.items')}</th>
-                  <th>{t('sales:table.headers.subtotal')}</th>
-                  <th>{t('sales:table.headers.discount')}</th>
-                  <th>{t('sales:table.headers.total')}</th>
-                  <th>{t('sales:table.headers.payment')}</th>
-                  <th>{t('sales:table.headers.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sales.length === 0 ? (
-                  <tr className="empty-state">
-                    <td colSpan="8">
-                      <p>{t('sales:table.noRecords')}</p>
-                    </td>
-                  </tr>
-                ) : (
-                  sales.map(sale => (
-                    <tr key={sale.id} onClick={() => handleSelectSale(sale)} className={sale.is_returned ? 'canceled-sale' : ''}>
-                      <td>
-                        {sale.receipt_number || '-'}
-                        {sale.is_returned && <span className="status-badge canceled">{t('sales:status.canceled')}</span>}
-                      </td>
-                      <td>{formatDate(sale.created_at)}</td>
-                      <td>{sale.total_items || 0}</td>
-                      <td>{formatWithCurrency(sale.subtotal || 0)}</td>
-                      <td>{sale.discount_amount > 0 ? `-${formatWithCurrency(sale.discount_amount || 0)}` : '-'}</td>
-                      <td>{formatWithCurrency(sale.total_amount || 0)}</td>
-                      <td>
-                        {sale.payment_method === 'split' ? (
-                          <div className="payment-method-split">
-                            {t(`sales:paymentMethods.${sale.payment_method}`)}
-                            <div className="payment-details">
-                              {formatWithCurrency(sale.cash_amount || 0)} + {formatWithCurrency(sale.card_amount || 0)}
-                            </div>
-                          </div>
-                        ) : (
-                          t(`sales:paymentMethods.${sale.payment_method}`)
-                        )}
-                      </td>
-                      <td>
-                        <button 
-                          className="action-button view"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectSale(sale);
-                          }}
-                        >
-                          {t('sales:actions.viewDetails')}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            <Table
+              columns={columns}
+              data={sales.map(sale => ({
+                ...sale,
+                className: selectedSale && selectedSale.id === sale.id ? styles.selectedRow : '',
+                onClick: () => handleSelectSale(sale)
+              }))}
+              emptyMessage={t('sales:table.noRecords')}
+            />
           )}
         </div>
 
         {selectedSale && (
-          <div className="sale-details">
-            <div className="sale-details-header">
-              <h3>{t('sales:details.title')} - {t('sales:receipt.number', { number: selectedSale.receipt_number })}</h3>
-              <button className="close-button" onClick={handleCloseDetails}>×</button>
+          <div className={styles.saleDetails}>
+            <div className={styles.saleDetailsHeader}>
+              <h3>{t('sales:details.title')}</h3>
+              <Button 
+                variant="secondary" 
+                size="small" 
+                onClick={handleCloseDetails}
+              >
+                {t('common:close')}
+              </Button>
             </div>
-            <div className="receipt">
-              <div className="receipt-header">
-                <h3>{getBusinessName()}</h3>
+
+            <div className={styles.receipt}>
+              <div className={styles.receiptHeader}>
+                <h4>{getBusinessName()}</h4>
                 {getBusinessAddress() && <p>{getBusinessAddress()}</p>}
-                {getBusinessPhone() && <p>{t('pos:receipt.phone')}: {getBusinessPhone()}</p>}
-                {getBusinessEmail() && <p>{t('pos:receipt.email')}: {getBusinessEmail()}</p>}
-                <p>{t('sales:receipt.number', { number: selectedSale.receipt_number })}</p>
-                <p>{formatDate(selectedSale.created_at)}</p>
-                {selectedSale.is_returned && <p className="canceled-status">{t('sales:status.canceled')}</p>}
+                {getBusinessPhone() && <p>{t('common:phone')}: {getBusinessPhone()}</p>}
+                {getBusinessEmail() && <p>{t('common:email')}: {getBusinessEmail()}</p>}
+                <p>{t('common:date')}: {formatDate(selectedSale.created_at || selectedSale.date)}</p>
+                <p>{t('sales:receipt.number', { number: selectedSale.receipt_number || selectedSale.id })}</p>
+                {selectedSale.is_returned && (
+                  <div className={styles.canceledStatus}>{t('sales:status.canceled')}</div>
+                )}
               </div>
-              <div className="receipt-items">
+
+              <div className={styles.receiptItems}>
                 <table>
                   <thead>
                     <tr>
@@ -544,232 +607,240 @@ const SalesHistory = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedSaleDetails && renderSaleItems(selectedSaleDetails.items)}
+                    {selectedSale.items && renderSaleItems(selectedSale.items)}
                   </tbody>
                 </table>
               </div>
-              <div className="receipt-summary">
-                <div className="summary-row">
+
+              <div className={styles.receiptSummary}>
+                <div className={styles.summaryRow}>
                   <span>{t('sales:receipt.subtotal')}:</span>
                   <span>{formatWithCurrency(selectedSale.subtotal)}</span>
                 </div>
-                {selectedSale.discount_amount > 0 && (
-                  <div className="summary-row discount">
+
+                {(selectedSale.discount > 0 || selectedSale.discount_amount > 0) && (
+                  <div className={`${styles.summaryRow} ${styles.discount}`}>
                     <span>{t('sales:receipt.discount')}:</span>
-                    <span>-{formatWithCurrency(selectedSale.discount_amount)}</span>
+                    <span>-{formatWithCurrency(selectedSale.discount || selectedSale.discount_amount || 0)}</span>
                   </div>
                 )}
-                <div className="summary-row total">
+
+                {selectedSale.tax_amount > 0 && (
+                  <div className={styles.summaryRow}>
+                    <span>{t('sales:receipt.tax')}:</span>
+                    <span>{formatWithCurrency(selectedSale.tax_amount)}</span>
+                  </div>
+                )}
+
+                <div className={`${styles.summaryRow} ${styles.total}`}>
                   <span>{t('sales:receipt.total')}:</span>
                   <span>{formatWithCurrency(selectedSale.total_amount)}</span>
                 </div>
-                <div className="summary-row">
+
+                {/* Payment Method */}
+                <div className={styles.summaryRow}>
                   <span>{t('sales:receipt.paymentMethod')}:</span>
-                  <span>{t(`sales:paymentMethods.${selectedSale.payment_method}`)}</span>
+                  <span>
+                    {selectedSale.payment_method === 'split' 
+                      ? t('sales:paymentMethods.split') 
+                      : t(`sales:paymentMethods.${selectedSale.payment_method}`)}
+                  </span>
                 </div>
 
-                {selectedSale.payment_method === 'split' ? (
-                  <>
-                    <div className="summary-row payment-detail">
-                      <span>{t('sales:receipt.cashAmount')}:</span>
-                      <span>{formatWithCurrency(selectedSale.cash_amount || 0)}</span>
+                {selectedSale.payment_method === 'split' && selectedSale.payment_details && (
+                  <div className={styles.paymentMethodSplit}>
+                    <div>{t('common:paymentDetails')}:</div>
+                    <div className={styles.paymentDetails}>
+                      {selectedSale.payment_details.map((payment, idx) => (
+                        <div className={styles.summaryRow} key={idx}>
+                          <span>{t(`sales:paymentMethods.${payment.method}`)}:</span>
+                          <span>{formatWithCurrency(payment.amount)}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div className="summary-row payment-detail">
-                      <span>{t('sales:receipt.cardAmount')}:</span>
-                      <span>{formatWithCurrency(selectedSale.card_amount || 0)}</span>
+                  </div>
+                )}
+
+                {/* Cash and card amount for split payments from older format */}
+                {selectedSale.payment_method === 'split' && !selectedSale.payment_details && (
+                  <div className={styles.paymentMethodSplit}>
+                    <div>{t('common:paymentDetails')}:</div>
+                    <div className={styles.paymentDetails}>
+                      {selectedSale.cash_amount > 0 && (
+                        <div className={styles.summaryRow}>
+                          <span>{t('sales:paymentMethods.cash')}:</span>
+                          <span>{formatWithCurrency(selectedSale.cash_amount)}</span>
+                        </div>
+                      )}
+                      {selectedSale.card_amount > 0 && (
+                        <div className={styles.summaryRow}>
+                          <span>{t('sales:paymentMethods.card')}:</span>
+                          <span>{formatWithCurrency(selectedSale.card_amount)}</span>
+                        </div>
+                      )}
                     </div>
-                    {selectedSale.change_amount > 0 && (
-                      <div className="summary-row">
-                        <span>{t('sales:receipt.change')}:</span>
-                        <span>{formatWithCurrency(selectedSale.change_amount)}</span>
-                      </div>
-                    )}
-                  </>
-                ) : selectedSale.payment_method === 'cash' && (
-                  <>
-                    <div className="summary-row">
-                      <span>{t('sales:receipt.amountReceived')}:</span>
-                      <span>{formatWithCurrency(selectedSale.amount_paid)}</span>
-                    </div>
-                    <div className="summary-row">
-                      <span>{t('sales:receipt.change')}:</span>
-                      <span>{formatWithCurrency(selectedSale.change_amount)}</span>
-                    </div>
-                  </>
+                  </div>
+                )}
+
+                {/* Change amount if applicable */}
+                {selectedSale.change_amount > 0 && (
+                  <div className={styles.summaryRow}>
+                    <span>{t('sales:receipt.change')}:</span>
+                    <span>{formatWithCurrency(selectedSale.change_amount)}</span>
+                  </div>
                 )}
               </div>
-              <div className="receipt-actions">
-                <button 
-                  className="button secondary" 
-                  onClick={handlePrintReceipt} 
-                  disabled={!selectedSale}
-                >
-                  {t('sales:actions.printReceipt')}
-                </button>
-                <button 
-                  className="button primary" 
-                  onClick={openReturnModal} 
-                  disabled={!selectedSale || selectedSale.is_returned}
-                >
-                  {t('sales:actions.processReturn')}
-                </button>
-                <button 
-                  className="button danger" 
-                  onClick={openCancelConfirmModal} 
-                  disabled={!selectedSale || selectedSale.is_returned}
-                >
-                  {t('sales:actions.cancelSale')}
-                </button>
-              </div>
+            </div>
+
+            <div className={styles.receiptActions}>
+              <Button 
+                variant="primary" 
+                onClick={handlePrintReceipt}
+              >
+                {t('sales:actions.printReceipt')}
+              </Button>
+              
+              {!selectedSale.is_returned && (
+                <>
+                  <Button 
+                    variant="secondary" 
+                    onClick={openReturnModal}
+                  >
+                    {t('sales:actions.processReturn')}
+                  </Button>
+                  
+                  <Button 
+                    variant="danger" 
+                    onClick={openCancelConfirmModal}
+                  >
+                    {t('sales:actions.cancelSale')}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}
       </div>
-      
-      {/* Return Modal - Now inline like in POS page */}
-      {isReturnModalOpen && selectedSale && (
-        <div className="modal-overlay">
-          <div className="modal return-modal">
-            <div className="modal-header">
-              <h3>{t('sales:return.title')} - {t('sales:receipt.number', { number: selectedSale.receipt_number })}</h3>
-              <button className="close-button" onClick={closeReturnModal}>×</button>
-            </div>
-            
-            <form onSubmit={handleReturnSubmit}>
-              <div className="modal-body">
-                {returnError && <div className="error-message">{returnError}</div>}
-                
-                <div className="return-info">
-                  {t('sales:return.receiptInfo', { 
-                    number: selectedSale.receipt_number, 
-                    date: formatDate(selectedSale.created_at) 
-                  })}
-                </div>
-                
-                <div className="return-items">
-                  <table className="return-items-table">
-                    <thead>
-                      <tr>
-                        <th>{t('sales:return.product')}</th>
-                        <th>{t('sales:return.originalQuantity')}</th>
-                        <th>{t('sales:return.price')}</th>
-                        <th>{t('sales:return.returnQuantity')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {returnItems.map(item => (
-                        <tr key={item.id}>
-                          <td>{item.product_name}</td>
-                          <td>{item.quantity} {item.product && getUnitName(item.product)}</td>
-                          <td>{formatWithCurrency(item.unit_price || item.price || 0)}</td>
-                          <td>
-                            <input
-                              type="number"
-                              min="0"
-                              max={item.quantity}
-                              value={item.returnQuantity}
-                              onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
-                              className="return-quantity-input"
-                            />
-                            {item.product && <span style={styles.unitName}>{getUnitName(item.product)}</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="return-note">
-                  <label htmlFor="return-note">{t('sales:return.note')}:</label>
-                  <textarea
-                    id="return-note"
-                    value={returnNote}
-                    onChange={(e) => setReturnNote(e.target.value)}
-                    placeholder={t('sales:return.notePlaceholder')}
-                    required
-                    disabled={isProcessing}
-                  />
-                </div>
-                
-                <div className="return-summary">
-                  <div className="return-total">
-                    <span>{t('sales:return.subtotal')}:</span>
-                    <span>{formatWithCurrency(returnAmounts.subtotal)}</span>
-                  </div>
-                  <div className="return-total">
-                    <span>{t('sales:return.totalRefund')}:</span>
-                    <span>{formatWithCurrency(returnAmounts.total)}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="button secondary" 
-                  onClick={closeReturnModal}
-                  disabled={isProcessing}
-                >
-                  {t('common:cancel')}
-                </button>
-                <button 
-                  type="submit" 
-                  className="button primary" 
-                  disabled={isProcessing || returnAmounts.total <= 0}
-                >
-                  {isProcessing ? t('common:processing') : t('sales:return.confirm')}
-                </button>
-              </div>
-            </form>
+
+      {/* Return Modal */}
+      <Modal
+        isOpen={isReturnModalOpen}
+        onClose={closeReturnModal}
+        title={t('sales:return.title')}
+        size="large"
+      >
+        <form onSubmit={handleReturnSubmit}>
+          <div className={styles.returnItems}>
+            <h4>{t('sales:return.selectItems', { defaultValue: "Select Items to Return" })}</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th>{t('sales:return.product')}</th>
+                  <th>{t('sales:return.originalQuantity')}</th>
+                  <th>{t('sales:return.returnQuantity')}</th>
+                  <th>{t('sales:return.price')}</th>
+                  <th>{t('sales:return.returnAmount', { defaultValue: "Return Amount" })}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {returnItems.map(item => (
+                  <tr key={item.id}>
+                    <td>{item.product_name || item.name}</td>
+                    <td>
+                      {item.quantity} 
+                      <span style={unitNameStyle}>
+                        {getUnitName(item.product)}
+                      </span>
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        min="0"
+                        max={item.quantity}
+                        value={item.returnQuantity || 0}
+                        onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
+                      />
+                    </td>
+                    <td>{formatWithCurrency(item.unit_price)}</td>
+                    <td>{formatWithCurrency(item.unit_price * (item.returnQuantity || 0))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
-      
-      {/* Cancel Sale Confirmation Modal */}
-      {isCancelConfirmModalOpen && selectedSale && (
-        <div className="modal-overlay">
-          <div className="modal cancel-modal">
-            <div className="modal-header">
-              <h3>{t('sales:cancel.title')}</h3>
-              <button className="close-button" onClick={closeCancelConfirmModal}>×</button>
+
+          <div className={styles.returnNote}>
+            <FormGroup 
+              label={t('sales:return.note')} 
+              htmlFor="return-note"
+            >
+              <textarea
+                id="return-note"
+                value={returnNote}
+                onChange={(e) => setReturnNote(e.target.value)}
+                placeholder={t('sales:return.notePlaceholder')}
+              />
+            </FormGroup>
+          </div>
+
+          <div className={styles.returnSummary}>
+            <div className={styles.returnTotal}>
+              <span>{t('sales:return.totalRefund')}</span>
+              <span>{formatWithCurrency(calculateReturnAmount(returnItems).total)}</span>
             </div>
-            
-            <div className="modal-body">
-              <p className="cancel-warning">
-                {t('sales:cancel.warning')}
-              </p>
-              <p>
-                {t('sales:cancel.receiptInfo', { 
-                  number: selectedSale.receipt_number, 
-                  date: formatDate(selectedSale.created_at) 
-                })}
-              </p>
-              <p className="cancel-detail">
-                {t('sales:cancel.detail')}
-              </p>
-            </div>
-            
-            <div className="modal-footer">
-              <button 
-                type="button" 
-                className="button secondary" 
-                onClick={closeCancelConfirmModal}
-                disabled={isProcessing}
-              >
-                {t('common:cancel')}
-              </button>
-              <button 
-                type="button" 
-                className="button danger" 
-                onClick={handleCancelSale}
-                disabled={isProcessing}
-              >
-                {isProcessing ? t('common:processing') : t('sales:cancel.confirm')}
-              </button>
+            <div className={styles.returnInfo}>
+              {t('sales:return.info', { defaultValue: "Returns will be processed immediately and inventory will be updated." })}
             </div>
           </div>
+
+          {returnError && <div className={styles.errorMessage}>{returnError}</div>}
+
+          <div className={styles.receiptActions}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isProcessing}
+            >
+              {isProcessing ? t('common:processing') : t('sales:return.confirm')}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={closeReturnModal}
+              disabled={isProcessing}
+            >
+              {t('common:cancel')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        isOpen={isCancelConfirmModalOpen}
+        onClose={closeCancelConfirmModal}
+        title={t('sales:cancel.title')}
+      >
+        <div className={styles.cancelWarning}>
+          <p>{t('sales:cancel.warning')}</p>
         </div>
-      )}
+        <div className={styles.cancelDetail}>
+          <p>{t('sales:cancel.detail')}</p>
+        </div>
+        <div className={styles.receiptActions}>
+          <Button
+            variant="danger"
+            onClick={handleCancelSale}
+          >
+            {t('sales:cancel.confirm')}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={closeCancelConfirmModal}
+          >
+            {t('common:cancel')}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

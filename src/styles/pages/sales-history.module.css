@@ -1,0 +1,482 @@
+/* Sales History Page Styles */
+.salesHistoryPage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+/* Page Header */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Filters Section */
+.salesFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+  justify-content: space-between;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Date filters */
+.salesDateFilters {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.dateFilterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 160px;
+  margin-bottom: 0 !important;
+}
+
+.dateFilterLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  white-space: nowrap;
+  display: block;
+  margin-bottom: 0;
+}
+
+.dateInput {
+  padding: 0.625rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 160px;
+  width: auto;
+  height: 38px;
+  box-sizing: border-box;
+  background-color: #fff;
+  transition: border-color 0.2s;
+  margin: 0;
+}
+
+.dateInput:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Additional filters section */
+.additionalFilters {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.filterSelect {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 0.875rem;
+}
+
+.searchInput {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  width: 200px;
+  font-size: 0.875rem;
+}
+
+/* Sales Container */
+.salesContainer {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.salesList {
+  flex: 1;
+  min-width: 300px; /* Prevent too narrow layouts */
+}
+
+/* Custom Table Styles */
+.salesTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.salesTable th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background-color: #f3f4f6;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.salesTable td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+}
+
+.tableRow:last-child td {
+  border-bottom: none;
+}
+
+.emptyState td {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.selectedRow {
+  background-color: #eff6ff;
+}
+
+.loadingState, .errorState {
+  background-color: white;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.errorState {
+  color: #dc2626;
+}
+
+/* Action Buttons */
+.actionButton {
+  padding: 0.25rem 0.5rem;
+  background-color: #e5e7eb;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #4b5563;
+  transition: background-color 0.2s;
+}
+
+.viewButton {
+  composes: actionButton;
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.viewButton:hover {
+  background-color: #bfdbfe;
+}
+
+/* Sale Details Panel */
+.saleDetails {
+  width: 350px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  height: fit-content;
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.saleDetailsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f3f4f6;
+}
+
+.saleDetailsHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1e40af;
+}
+
+/* Receipt Styles */
+.receipt {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.receiptHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.receiptHeader h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.receiptHeader p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.receiptItems {
+  margin-bottom: 1.5rem;
+}
+
+.receiptItems table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.receiptItems th {
+  text-align: left;
+  padding: 0.5rem;
+  color: #6b7280;
+  font-weight: 500;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.receiptItems td {
+  padding: 0.5rem;
+}
+
+.receiptSummary {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e5e7eb;
+  font-size: 0.875rem;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.summaryRow.discount {
+  color: #f43f5e;
+}
+
+.summaryRow.total {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.summaryRow.paymentDetail {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Payment details */
+.paymentMethodSplit {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #e5e7eb;
+  font-size: 0.8rem;
+}
+
+.paymentMethodSplit .paymentDetails {
+  margin-top: 0.25rem;
+  color: #6b7280;
+}
+
+/* Receipt Actions */
+.receiptActions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+/* Discount and statuses */
+.discount {
+  color: #f43f5e;
+}
+
+/* Return items section */
+.returnItems {
+  margin-bottom: 1.5rem;
+}
+
+.returnItems table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.returnItems th {
+  text-align: left;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.returnItems td {
+  padding: 0.5rem;
+}
+
+.returnItems input[type="number"] {
+  width: 60px;
+  padding: 0.25rem 0.5rem;
+  text-align: center;
+}
+
+.returnNote {
+  margin-bottom: 1.5rem;
+}
+
+.returnNote label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.returnNote textarea {
+  width: 100%;
+  height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.returnSummary {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.returnTotal {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.returnInfo {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+.errorMessage {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #fee2e2;
+  border-radius: 4px;
+  border-left: 3px solid #dc2626;
+}
+
+/* Status indicators */
+.canceledSale {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  background-color: #d1fae5;
+  color: #047857;
+}
+
+.statusBadge.canceled {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.canceledStatus {
+  color: #ef4444;
+  font-weight: 500;
+  background-color: #fee2e2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .salesContainer {
+    flex-direction: column;
+  }
+  
+  .saleDetails {
+    width: 100%;
+    position: static;
+    max-height: none;
+    margin-top: 1rem;
+  }
+  
+  .salesFilters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .salesDateFilters,
+  .additionalFilters {
+    width: 100%;
+  }
+  
+  .dateFilterGroup {
+    min-width: auto;
+    flex: 1;
+  }
+  
+  .dateInput {
+    width: 100%;
+  }
+  
+  .filterSelect,
+  .searchInput {
+    width: 100%;
+  }
+  
+  .salesTable {
+    font-size: 0.875rem;
+  }
+  
+  .salesTable th,
+  .salesTable td {
+    padding: 0.5rem;
+  }
+  
+  .receiptActions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .dateFilterGroup {
+    width: 100%;
+  }
+} 

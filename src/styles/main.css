@@ -1,8 +1,2 @@
 /* Main CSS file - imports all component and page styles */
 
-/* Components */
-@import './components/buttons.css';
-@import './components/forms.css';
-@import './components/modal.css';
-@import './components/table.css';
-@import './components/loading-spinner.css';
