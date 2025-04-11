@@ -2,7 +2,7 @@ const BaseModel = require('./BaseModel');
 const dbManager = require('../database/dbManager');
 const fs = require('fs').promises;
 const path = require('path');
-
+const { startOfMonth, endOfMonth, subMonths } = require('date-fns');
 class Expense extends BaseModel {
   constructor() {
     super('expenses');
@@ -148,6 +148,80 @@ class Expense extends BaseModel {
     
     const results = await query;
     return { success: true, data: results };
+  }
+
+  // Add a new method to get expenses trend data from the database directly
+  async getExpensesTrend(months = 6) {
+    const db = await this.getDb();
+    
+    try {
+      // Calculate date range
+      const endDate = new Date();
+      const startDate = startOfMonth(subMonths(endDate, months - 1));
+      
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+      
+      // SQL query to get monthly expense totals
+      const result = await db.raw(`
+        SELECT 
+          strftime('%Y', expense_date) as year,
+          strftime('%m', expense_date) as month,
+          SUM(amount) as total_amount
+        FROM expenses
+        WHERE expense_date BETWEEN ? AND ?
+        GROUP BY strftime('%Y', expense_date), strftime('%m', expense_date)
+        ORDER BY year ASC, month ASC
+      `, [formattedStartDate, formattedEndDate]);
+      
+      // Get results from the query (handle different DB drivers)
+      const rows = result && result.length ? result : result && result.rows ? result.rows : [];
+      
+      // Create a map for all the months in the range
+      const monthlyData = {};
+      
+      // Initialize all months with zero values
+      for (let i = 0; i < months; i++) {
+        const date = subMonths(new Date(), i);
+        
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; // 1-12 format
+        // Format properly for map key
+        const paddedMonth = month.toString().padStart(2, '0');
+        const monthKey = `${year}-${paddedMonth}`;
+        
+        // Month name (short)
+        const monthName = date.toLocaleString('default', { month: 'short' });
+        
+        monthlyData[monthKey] = {
+          name: `${monthName} ${year}`,
+          expenses: 0,
+          month: month,
+          year: year,
+          sortKey: year * 100 + month // For sorting
+        };
+      }
+      
+      // Fill in actual data
+      rows.forEach(row => {
+        const year = row.year;
+        const month = row.month;
+        const monthKey = `${year}-${month}`;
+        
+        if (monthlyData[monthKey]) {
+          monthlyData[monthKey].expenses = parseFloat(row.total_amount) || 0;
+        }
+      });
+      
+      // Convert to array and sort
+      const trendData = Object.values(monthlyData)
+        .sort((a, b) => a.sortKey - b.sortKey);
+      
+      return { success: true, data: trendData };
+    } catch (error) {
+      console.error('Error getting expenses trend:', error);
+      return { success: false, error: error.message };
+    }
   }
 }
 

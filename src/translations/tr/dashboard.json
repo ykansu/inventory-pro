@@ -23,6 +23,7 @@
     "categoryBreakdown": "Kategori Dağılımı",
     "categoryProfits": "Kategori Kar Analizi",
     "inventoryTrend": "Stok Değeri Trendi",
+    "expensesTrend": "Aylık Gider Trendi",
     "inventoryValueByCategory": "Kategoriye Göre Stok Değeri",
     "inventoryValueBySupplier": "Tedarikçiye Göre Stok Değeri",
     "supplierPerformance": "Tedarikçi Performansı",
@@ -65,7 +66,8 @@
     "percentage": "Yüzde",
     "period": "Zaman Dilimi",
     "netCardAmountAfterFee": "Net Kart Tutarı (Komisyon Sonrası)",
-    "feePercentage": "%{{0}} komisyon"
+    "feePercentage": "%{{0}} komisyon",
+    "expenses": "Giderler"
   },
   "periods": {
     "week": "Hafta",
@@ -91,6 +93,7 @@
     "categoryBreakdown": "Ürünlerin ve toplam envanter değerlerinin ürün kategorilerine göre dağılımı. Benzersiz ürünlerin sayısını ve kategori başına toplam envanter değerini gösterir ve hangi kategorilerin envanter yatırımınızda baskın olduğunu belirlemeye yardımcı olur.",
     "categoryProfits": "Her ürün kategorisi için toplam gelir, maliyet, kar miktarı ve kar marjı yüzdesini gösteren detaylı kar analizi. En karlı ürün kategorilerinizi ve fiyatlandırma veya maliyet ayarlamaları gerektirebilecek kategorileri belirlemenize yardımcı olur.",
     "inventoryTrend": "Her ayın sonunda toplam envanter değerini gösteren 6 aylık geçmiş trend. Envanter seviyelerindeki mevsimsel kalıpları ve zaman içinde stoka yatırılan sermayeyi görselleştirmeye yardımcı olur.",
+    "expensesTrend": "Zaman içindeki aylık giderleri gösteren 6 aylık geçmiş trend. Bu görselleştirme, harcama kalıplarını takip etmeye ve dikkat gerektiren olağandışı yüksek giderli ayları belirlemeye yardımcı olur.",
     "revenueTrend": "Her ay için toplam satış gelirini gösteren 6 aylık geçmiş trend. Satış kalıplarını, mevsimsel dalgalanmaları ve genel işletme büyüme yörüngesini belirlemeye yardımcı olur.",
     "profitTrend": "Her ay için toplam geliri (üst çubuklar) net karla (alt çubuklar) karşılaştıran 6 aylık geçmiş trend. Bu görselleştirme, hem üst düzey büyümeyi hem de alt düzey karlılığı takip etmeye yardımcı olur ve zaman içinde kar marjındaki eğilimleri ortaya çıkarır.",
     "monthlyExpenses": "İçinde bulunulan takvim ayı için kaydedilen toplam giderler. Bu, kategori veya ödeme yönteminden bağımsız olarak giderler modülünde kaydedilen tüm gider işlemlerini içerir.",

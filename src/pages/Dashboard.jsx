@@ -13,7 +13,7 @@ import CategoryProfitsChart from '../components/dashboard/CategoryProfitsChart';
 import TopProductsChart from '../components/dashboard/TopProductsChart';
 import RevenueByPaymentChart from '../components/dashboard/RevenueByPaymentChart';
 import RevenueBySupplierChart from '../components/dashboard/RevenueBySupplierChart';
-import InventoryTrendChart from '../components/dashboard/InventoryTrendChart';
+import ExpensesTrendChart from '../components/dashboard/ExpensesTrendChart';
 import InventoryValueByCategoryChart from '../components/dashboard/InventoryValueByCategoryChart';
 import InventoryValueBySupplierChart from '../components/dashboard/InventoryValueBySupplierChart';
 
@@ -48,7 +48,7 @@ const Dashboard = () => {
         <RevenueByPaymentChart />
         <InventoryValueByCategoryChart />
         <InventoryValueBySupplierChart />
-        <InventoryTrendChart />
+        <ExpensesTrendChart />
         <ProfitTrendChart />
       </div>
     </div>

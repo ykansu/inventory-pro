@@ -220,10 +220,8 @@ class Product extends BaseModel {
       
       // Extract COGS value from result
       const cogs = cogsResult[0]?.total_cogs ? parseFloat(cogsResult[0].total_cogs) : 0;
-      console.log('cogs', cogs);
       // Calculate turnover rate (COGS / Average Inventory Value)
       const turnoverRate = cogs / currentInventoryValue;
-      console.log('turnoverRate', turnoverRate);
       return turnoverRate;
     } catch (error) {
       console.error('Error in getInventoryTurnoverRate:', error);

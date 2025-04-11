@@ -23,6 +23,7 @@
     "categoryBreakdown": "Category Breakdown",
     "categoryProfits": "Category Profit Analysis",
     "inventoryTrend": "Inventory Value Trend",
+    "expensesTrend": "Monthly Expenses Trend",
     "inventoryValueByCategory": "Inventory Value by Category",
     "inventoryValueBySupplier": "Inventory Value by Supplier",
     "supplierPerformance": "Supplier Performance",
@@ -65,7 +66,8 @@
     "percentage": "Percentage",
     "period": "Time Period",
     "netCardAmountAfterFee": "Net Card Amount (After Vendor Fee)",
-    "feePercentage": "{{0}}% fee"
+    "feePercentage": "{{0}}% fee",
+    "expenses": "Expenses"
   },
   "periods": {
     "week": "Week",
@@ -91,6 +93,7 @@
     "categoryBreakdown": "Distribution of products and their total inventory value across product categories. Shows both the count of unique products and total inventory value per category, helping identify which categories dominate your inventory investment.",
     "categoryProfits": "Detailed profit analysis for each product category, showing total revenue, cost, profit amount, and profit margin percentage. Helps identify your most profitable product categories and those that might need pricing or cost adjustments.",
     "inventoryTrend": "6-month historical trend showing the total value of inventory holdings at the end of each month. Helps visualize seasonal patterns in inventory levels and capital investment in stock over time.",
+    "expensesTrend": "6-month historical trend showing monthly expenses over time. This visualization helps track spending patterns and identify months with unusually high expenses that may require attention.",
     "revenueTrend": "6-month historical trend showing total sales revenue for each month. Helps identify sales patterns, seasonal fluctuations, and overall business growth trajectory.",
     "profitTrend": "6-month historical trend comparing total revenue (top bars) to net profit (bottom bars) for each month. This visualization helps track both top-line growth and bottom-line profitability, revealing trends in profit margin over time.",
     "monthlyExpenses": "Total expenses recorded for the current calendar month. This includes all expense transactions recorded in the expenses module, regardless of category or payment method.",

@@ -134,6 +134,16 @@ function registerExpenseHandlers() {
       return { success: false, error: error.message };
     }
   });
+
+  // Get expenses trend data
+  ipcMain.handle('expenses:getExpensesTrend', async (_, months = 6) => {
+    try {
+      return await Expense.getExpensesTrend(months);
+    } catch (error) {
+      console.error('Error getting expenses trend data:', error);
+      return { success: false, error: error.message };
+    }
+  });
 }
 
 module.exports = { registerExpenseHandlers }; 

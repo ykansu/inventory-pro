@@ -825,6 +825,16 @@ export const ExpenseService = {
       console.error(`Error deleting expense ${id}:`, error);
       throw error;
     }
+  },
+
+  // Get expenses trend data
+  getExpensesTrend: async (months = 6) => {
+    try {
+      return await window.database.getExpensesTrend(months);
+    } catch (error) {
+      console.error('Error fetching expenses trend:', error);
+      throw error;
+    }
   }
 };
 

@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('database', {
   deleteExpense: (id) => ipcRenderer.invoke('expenses:delete', id),
   getMonthlyExpenses: (year, month) => ipcRenderer.invoke('expenses:getMonthlyExpenses', year, month),
   getExpensesByCategory: (startDate, endDate) => ipcRenderer.invoke('expenses:getByCategory', startDate, endDate),
+  getExpensesTrend: (months) => ipcRenderer.invoke('expenses:getExpensesTrend', months),
   
   // Expense Categories
   getAllExpenseCategories: () => ipcRenderer.invoke('expense-categories:getAll'),
