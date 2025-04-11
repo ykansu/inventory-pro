@@ -15,13 +15,8 @@ const TodaySalesCard = () => {
     const fetchTodaySales = async () => {
       try {
         setLoading(true);
-        
-        // Use the dedicated dashboard service method that calls the backend function
         const total = await DashboardService.getTodaySalesTotal();
         setTodaySales(total);
-        
-        // Log for debugging
-        console.log('Today sales retrieved from backend:', total);
       } catch (error) {
         console.error('Error fetching today sales:', error);
         setTodaySales(0);
@@ -43,4 +38,4 @@ const TodaySalesCard = () => {
   );
 };
 
-export default TodaySalesCard; 
+export default TodaySalesCard;
