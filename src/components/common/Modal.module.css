@@ -22,6 +22,7 @@
   max-height: 90vh;
   width: 100%;
   animation: slideIn 0.3s ease-out;
+  overflow: hidden;
 }
 
 .small {
@@ -46,6 +47,7 @@
   align-items: center;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
 }
 
 .header h3 {

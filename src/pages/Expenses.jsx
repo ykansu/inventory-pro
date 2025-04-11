@@ -12,7 +12,11 @@ import {
   format,
   subDays 
 } from 'date-fns';
-import '../styles/pages/expenses.css';
+import styles from './Expenses.module.css';
+import Button from '../components/common/Button';
+import FormGroup from '../components/common/FormGroup';
+import Modal from '../components/common/Modal';
+import Table from '../components/common/Table';
 
 const Expenses = () => {
   const { t } = useTranslation('expenses');
@@ -348,76 +352,123 @@ const Expenses = () => {
     setTimeout(() => loadExpenses(), 0);
   };
 
+  // Define table columns for expenses
+  const tableColumns = [
+    { key: 'expense_date', title: t('date'), render: (row) => formatDate(row.expense_date) },
+    { key: 'description', title: t('description'), cellClassName: styles.descriptionCell },
+    { key: 'reference_number', title: t('reference') },
+    { key: 'recipient', title: t('recipient') },
+    { 
+      key: 'category_name', 
+      title: t('category'),
+      render: (row) => (
+        <span
+          className={styles.categoryBadge}
+          style={{ backgroundColor: getCategoryColor(row.category_name || t('other')) }}
+        >
+          {row.category_name || t('other')}
+        </span>
+      )
+    },
+    { key: 'payment_method', title: t('paymentMethod'), render: (row) => t(row.payment_method) },
+    { 
+      key: 'amount', 
+      title: t('amount'), 
+      cellClassName: styles.amountCell,
+      className: styles.amountColumn,
+      render: (row) => formatCurrency(row.amount)
+    },
+    {
+      key: 'actions',
+      title: t('actions'),
+      className: styles.actionsColumn,
+      cellClassName: styles.actionsCell,
+      render: (row) => (
+        <>
+          <Button size="small" onClick={() => handleEditExpense(row)}>
+            <i className="fas fa-edit"></i>
+          </Button>
+          <Button variant="danger" size="small" onClick={() => handleDeleteExpense(row.id)}>
+            <i className="fas fa-trash"></i>
+          </Button>
+        </>
+      )
+    }
+  ];
+
   return (
-    <div className="expenses-page">
-      <div className="page-header">
+    <div className={styles.expensesPage}>
+      <div className={styles.pageHeader}>
         <h1>{t('title')}</h1>
-        <div className="actions">
-          <button 
+        <div className={styles.actions}>
+          <Button 
+            variant="secondary"
             onClick={() => {
               setSelectedCategory(null);
               setShowCategoryModal(true);
-            }} 
-            className="btn btn-secondary"
+            }}
           >
             {t('addCategory')}
-          </button>
-          <button 
+          </Button>
+          <Button
             onClick={() => {
               setSelectedExpense(null);
               setShowExpenseModal(true);
-            }} 
-            className="btn btn-primary"
+            }}
           >
             {t('addExpense')}
-          </button>
+          </Button>
         </div>
       </div>
 
-      <form onSubmit={handleFilterSubmit} className="filters-container">
-        <div className="filter-date-section">
-          <div className="date-quick-filters">
-            <button type="button" onClick={() => setDateRange('today')} className="btn btn-sm">
+      <form onSubmit={handleFilterSubmit} className={styles.filtersContainer}>
+        <div className={styles.filterDateSection}>
+          <div className={styles.dateQuickFilters}>
+            <Button size="small" onClick={() => setDateRange('today')}>
               {t('today')}
-            </button>
-            <button type="button" onClick={() => setDateRange('week')} className="btn btn-sm">
+            </Button>
+            <Button size="small" onClick={() => setDateRange('week')}>
               {t('thisWeek')}
-            </button>
-            <button type="button" onClick={() => setDateRange('month')} className="btn btn-sm">
+            </Button>
+            <Button size="small" onClick={() => setDateRange('month')}>
               {t('thisMonth')}
-            </button>
-            <button type="button" onClick={() => setDateRange('year')} className="btn btn-sm">
+            </Button>
+            <Button size="small" onClick={() => setDateRange('year')}>
               {t('thisYear')}
-            </button>
+            </Button>
           </div>
           
-          <div className="filter-group">
-            <label>{t('dateRange')}</label>
-            <div className="date-range">
-              <input
-                type="date"
-                name="startDate"
-                value={filters.startDate}
-                onChange={handleFilterChange}
-              />
-              <span className="date-separator">-</span>
-              <input
-                type="date"
-                name="endDate"
-                value={filters.endDate}
-                onChange={handleFilterChange}
-              />
-            </div>
+          <div className={styles.filterGroup}>
+            <FormGroup label={t('dateRange')}>
+              <div className={styles.dateRange}>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={filters.startDate}
+                  onChange={handleFilterChange}
+                  className="form-control"
+                />
+                <span className={styles.dateSeparator}>-</span>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={filters.endDate}
+                  onChange={handleFilterChange}
+                  className="form-control"
+                />
+              </div>
+            </FormGroup>
           </div>
         </div>
 
-        <div className="filters-row">
-          <div className="filter-group">
-            <label>{t('category')}</label>
+        <div className={styles.filtersRow}>
+          <FormGroup label={t('category')} htmlFor="categoryId">
             <select
+              id="categoryId"
               name="categoryId"
               value={filters.categoryId}
               onChange={handleFilterChange}
+              className="form-control"
             >
               <option value="">{t('all')}</option>
               {categoriesList.map(category => (
@@ -426,14 +477,15 @@ const Expenses = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </FormGroup>
 
-          <div className="filter-group">
-            <label>{t('paymentMethod')}</label>
+          <FormGroup label={t('paymentMethod')} htmlFor="paymentMethod">
             <select
+              id="paymentMethod"
               name="paymentMethod"
               value={filters.paymentMethod}
               onChange={handleFilterChange}
+              className="form-control"
             >
               <option value="">{t('all')}</option>
               <option value="cash">{t('cash')}</option>
@@ -442,40 +494,41 @@ const Expenses = () => {
               <option value="check">{t('check')}</option>
               <option value="other">{t('other')}</option>
             </select>
-          </div>
+          </FormGroup>
 
-          <div className="filter-group">
-            <label>{t('search')}</label>
+          <FormGroup label={t('search')} htmlFor="search">
             <input
               type="text"
+              id="search"
               name="search"
               value={filters.search}
               onChange={handleFilterChange}
               placeholder={t('searchPlaceholder')}
+              className="form-control"
             />
-          </div>
+          </FormGroup>
         </div>
 
-        <div className="filter-actions">
-          <button type="submit" className="btn btn-primary">
+        <div className={styles.filterActions}>
+          <Button type="submit">
             {t('applyFilters')}
-          </button>
-          <button type="button" onClick={resetFilters} className="btn btn-secondary">
+          </Button>
+          <Button variant="secondary" onClick={resetFilters}>
             {t('resetFilters')}
-          </button>
+          </Button>
         </div>
       </form>
 
-      <div className="summary-cards">
-        <div className="summary-card total">
+      <div className={styles.summaryCards}>
+        <div className={`${styles.summaryCard} ${styles.summaryCardTotal}`}>
           <h3>{t('totalExpenses')}</h3>
           <p>{formatCurrency(expensesList.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0))}</p>
         </div>
         {Object.entries(categoryTotals).map(([category, total]) => (
-          <div key={category} className="summary-card">
+          <div key={category} className={styles.summaryCard}>
             <h3>
               <span 
-                className="category-indicator" 
+                className={styles.categoryIndicator} 
                 style={{ backgroundColor: getCategoryColor(category) }}
               ></span> 
               {category}
@@ -488,246 +541,176 @@ const Expenses = () => {
       {loading ? (
         <div className="loading-spinner"></div>
       ) : expensesList.length === 0 ? (
-        <div className="no-data">
+        <div className={styles.noData}>
           <p>{t('noExpenses')}</p>
         </div>
       ) : (
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>{t('date')}</th>
-                <th>{t('description')}</th>
-                <th>{t('reference')}</th>
-                <th>{t('recipient')}</th>
-                <th>{t('category')}</th>
-                <th>{t('paymentMethod')}</th>
-                <th className="amount-column">{t('amount')}</th>
-                <th className="actions-column">{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expensesList.map(expense => (
-                <tr key={expense.id}>
-                  <td>{formatDate(expense.expense_date)}</td>
-                  <td className="description-cell">{expense.description}</td>
-                  <td>{expense.reference_number}</td>
-                  <td>{expense.recipient}</td>
-                  <td>
-                    {expense.category_name ? (
-                      <span
-                        className="category-badge"
-                        style={{ backgroundColor: getCategoryColor(expense.category_name) }}
-                      >
-                        {expense.category_name}
-                      </span>
-                    ) : (
-                      <span
-                        className="category-badge"
-                        style={{ backgroundColor: getCategoryColor(t('other')) }}
-                      >
-                        {t('other')}
-                      </span>
-                    )}
-                  </td>
-                  <td>{t(expense.payment_method)}</td>
-                  <td className="amount-cell">{formatCurrency(expense.amount)}</td>
-                  <td className="actions-cell">
-                    <button
-                      onClick={() => handleEditExpense(expense)}
-                      className="btn-icon"
-                      title={t('edit')}
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteExpense(expense.id)}
-                      className="btn-icon delete"
-                      title={t('delete')}
-                    >
-                      <i className="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table 
+          columns={tableColumns}
+          data={expensesList}
+          emptyMessage={t('noExpenses')}
+          isLoading={loading}
+        />
       )}
 
       {/* Expense Modal */}
-      {showExpenseModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2>{selectedExpense ? t('editExpense') : t('addExpense')}</h2>
-              <button
-                onClick={() => {
-                  setShowExpenseModal(false);
-                  setSelectedExpense(null);
-                }}
-                className="modal-close"
-              >
-                &times;
-              </button>
-            </div>
-            <form onSubmit={handleExpenseSubmit}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="date">{t('date')}</label>
-                  <input
-                    type="date"
-                    id="date"
-                    name="date"
-                    defaultValue={selectedExpense?.expense_date?.slice(0, 10) || format(new Date(), 'yyyy-MM-dd')}
-                    required
-                  />
-                </div>
+      <Modal
+        isOpen={showExpenseModal}
+        onClose={() => {
+          setShowExpenseModal(false);
+          setSelectedExpense(null);
+        }}
+        title={selectedExpense ? t('editExpense') : t('addExpense')}
+        size="medium"
+      >
+        <form onSubmit={handleExpenseSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%', boxSizing: 'border-box' }}>
+          <div className={styles.formRow}>
+            <FormGroup label={t('date')} htmlFor="date" required>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                defaultValue={selectedExpense?.expense_date?.slice(0, 10) || format(new Date(), 'yyyy-MM-dd')}
+                required
+                className={`form-control ${styles.modalFormControl}`}
+              />
+            </FormGroup>
 
-                <div className="form-group">
-                  <label htmlFor="amount">{t('amount')}</label>
-                  <input
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    step="0.01"
-                    defaultValue={selectedExpense?.amount || ''}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="description">{t('description')}</label>
-                <input
-                  type="text"
-                  id="description"
-                  name="description"
-                  defaultValue={selectedExpense?.description || ''}
-                  required
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="category_id">{t('category')}</label>
-                  <select
-                    id="category_id"
-                    name="category_id"
-                    defaultValue={selectedExpense?.category_id || 
-                      (categoriesList.find(cat => cat.name.toLowerCase() === t('other').toLowerCase())?.id || '')}
-                  >
-                    <option value="">{t('selectCategory')}</option>
-                    {categoriesList.map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="payment_method">{t('paymentMethod')}</label>
-                  <select
-                    id="payment_method"
-                    name="payment_method"
-                    defaultValue={selectedExpense?.payment_method || 'cash'}
-                    required
-                  >
-                    <option value="cash">{t('cash')}</option>
-                    <option value="card">{t('card')}</option>
-                    <option value="bankTransfer">{t('bankTransfer')}</option>
-                    <option value="check">{t('check')}</option>
-                    <option value="other">{t('other')}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="recipient">{t('recipient')}</label>
-                <input
-                  type="text"
-                  id="recipient"
-                  name="recipient"
-                  defaultValue={selectedExpense?.recipient || ''}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="reference">{t('reference')}</label>
-                <input
-                  type="text"
-                  id="reference"
-                  name="reference"
-                  defaultValue={selectedExpense?.reference_number || ''}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="notes">{t('notes')}</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  defaultValue={selectedExpense?.notes || ''}
-                ></textarea>
-              </div>
-
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
-                  {selectedExpense ? t('update') : t('save')}
-                </button>
-              </div>
-            </form>
+            <FormGroup label={t('amount')} htmlFor="amount" required>
+              <input
+                type="number"
+                id="amount"
+                name="amount"
+                step="0.01"
+                defaultValue={selectedExpense?.amount || ''}
+                required
+                className={`form-control ${styles.modalFormControl}`}
+              />
+            </FormGroup>
           </div>
-        </div>
-      )}
+
+          <FormGroup label={t('description')} htmlFor="description" required>
+            <input
+              type="text"
+              id="description"
+              name="description"
+              defaultValue={selectedExpense?.description || ''}
+              required
+              className={`form-control ${styles.modalFormControl}`}
+            />
+          </FormGroup>
+
+          <div className={styles.formRow}>
+            <FormGroup label={t('category')} htmlFor="category_id">
+              <select
+                id="category_id"
+                name="category_id"
+                defaultValue={selectedExpense?.category_id || 
+                  (categoriesList.find(cat => cat.name.toLowerCase() === t('other').toLowerCase())?.id || '')}
+                className={`form-control ${styles.modalFormControl}`}
+              >
+                <option value="">{t('selectCategory')}</option>
+                {categoriesList.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </FormGroup>
+
+            <FormGroup label={t('paymentMethod')} htmlFor="payment_method" required>
+              <select
+                id="payment_method"
+                name="payment_method"
+                defaultValue={selectedExpense?.payment_method || 'cash'}
+                required
+                className={`form-control ${styles.modalFormControl}`}
+              >
+                <option value="cash">{t('cash')}</option>
+                <option value="card">{t('card')}</option>
+                <option value="bankTransfer">{t('bankTransfer')}</option>
+                <option value="check">{t('check')}</option>
+                <option value="other">{t('other')}</option>
+              </select>
+            </FormGroup>
+          </div>
+
+          <FormGroup label={t('recipient')} htmlFor="recipient">
+            <input
+              type="text"
+              id="recipient"
+              name="recipient"
+              defaultValue={selectedExpense?.recipient || ''}
+              className={`form-control ${styles.modalFormControl}`}
+            />
+          </FormGroup>
+
+          <FormGroup label={t('reference')} htmlFor="reference">
+            <input
+              type="text"
+              id="reference"
+              name="reference"
+              defaultValue={selectedExpense?.reference_number || ''}
+              className={`form-control ${styles.modalFormControl}`}
+            />
+          </FormGroup>
+
+          <FormGroup label={t('notes')} htmlFor="notes">
+            <textarea
+              id="notes"
+              name="notes"
+              defaultValue={selectedExpense?.notes || ''}
+              className={`form-control ${styles.modalFormControl} ${styles.modalTextarea}`}
+              rows="3"
+            ></textarea>
+          </FormGroup>
+
+          <div className={styles.formActions}>
+            <Button type="submit" variant="primary" size="medium">
+              {selectedExpense ? t('update') : t('save')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Category Modal */}
-      {showCategoryModal && (
-        <div className="modal-overlay">
-          <div className="modal category-modal">
-            <div className="modal-header">
-              <h2>{selectedCategory ? t('editCategory') : t('addCategory')}</h2>
-              <button
-                onClick={() => {
-                  setShowCategoryModal(false);
-                  setSelectedCategory(null);
-                }}
-                className="modal-close"
-              >
-                &times;
-              </button>
-            </div>
-            <form onSubmit={handleCategorySubmit}>
-              <div className="form-group">
-                <label htmlFor="name">{t('name')}</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  defaultValue={selectedCategory?.name || ''}
-                  required
-                />
-              </div>
+      <Modal
+        isOpen={showCategoryModal}
+        onClose={() => {
+          setShowCategoryModal(false);
+          setSelectedCategory(null);
+        }}
+        title={selectedCategory ? t('editCategory') : t('addCategory')}
+        size="small"
+      >
+        <form onSubmit={handleCategorySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%', boxSizing: 'border-box' }}>
+          <FormGroup label={t('name')} htmlFor="name" required>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              defaultValue={selectedCategory?.name || ''}
+              required
+              className={`form-control ${styles.modalFormControl}`}
+            />
+          </FormGroup>
 
-              <div className="form-group">
-                <label htmlFor="description">{t('description')}</label>
-                <textarea
-                  id="description"
-                  name="description"
-                  defaultValue={selectedCategory?.description || ''}
-                ></textarea>
-              </div>
+          <FormGroup label={t('description')} htmlFor="description">
+            <textarea
+              id="description"
+              name="description"
+              defaultValue={selectedCategory?.description || ''}
+              className={`form-control ${styles.modalFormControl} ${styles.modalTextarea}`}
+            ></textarea>
+          </FormGroup>
 
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
-                  {selectedCategory ? t('update') : t('save')}
-                </button>
-              </div>
-            </form>
+          <div className={styles.formActions}>
+            <Button type="submit" variant="primary">
+              {selectedCategory ? t('update') : t('save')}
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </div>
   );
 };

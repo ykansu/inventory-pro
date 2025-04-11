@@ -123,6 +123,8 @@ body {
   transition: border-color 0.2s;
   width: 100%;
   background-color: white;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .form-control:focus {
