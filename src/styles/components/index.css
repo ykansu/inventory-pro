@@ -17,7 +17,7 @@
   font-size: 12px;
   margin-left: 6px;
   cursor: help;
-  position: relative;
+  position: relative; 
 }
 
 /* Simple tooltip implementation */

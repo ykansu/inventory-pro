@@ -6,7 +6,17 @@ import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/calculations';
 import { printReceipt } from '../utils/receiptPrinter';
-import '../styles/pages/pos.css';
+import styles from './POS.module.css';
+
+// Component imports
+import SearchBar from '../components/POS/SearchBar';
+import CategoryFilter from '../components/POS/CategoryFilter';
+import ProductGrid from '../components/POS/ProductGrid';
+import Cart from '../components/POS/Cart';
+import CartSummary from '../components/POS/CartSummary';
+import PaymentActions from '../components/POS/PaymentActions';
+import PaymentModal from '../components/POS/PaymentModal';
+import ReceiptModal from '../components/POS/ReceiptModal';
 
 const POS = () => {
   const { t } = useTranslation(['pos', 'common', 'products']);
@@ -458,11 +468,26 @@ const POS = () => {
   // Print receipt
   const printReceiptHandler = () => {
     if (currentReceipt) {
-      printReceipt(
-        currentReceipt, 
-        t, 
-        (amount) => formatCurrency(amount, getCurrency())
-      );
+      printReceipt({
+        t,
+        formatCurrency: (amount) => formatCurrency(amount, getCurrency()),
+        sale: {
+          ...currentReceipt,
+          items: currentReceipt.items.map(item => ({
+            ...item,
+            total_price: item.totalPrice,
+            product_name: item.name
+          }))
+        },
+        business: {
+          name: currentReceipt.businessName,
+          address: currentReceipt.businessAddress,
+          phone: currentReceipt.businessPhone,
+          email: currentReceipt.businessEmail
+        },
+        receiptHeader: currentReceipt.receiptHeader,
+        receiptFooter: currentReceipt.receiptFooter
+      });
     }
   };
   
@@ -708,438 +733,114 @@ const POS = () => {
     }
   };
   
+  // Handlers for opening payment modals
+  const handleCashPayment = () => {
+    setPaymentMethod('cash');
+    setAmountReceived(total.toFixed(2));
+    setChange(0);
+    setShowPaymentModal(true);
+  };
+  
+  const handleCardPayment = () => {
+    setPaymentMethod('card');
+    setShowPaymentModal(true);
+  };
+  
+  const handleSplitPayment = () => {
+    setPaymentMethod('split');
+    setCashAmount('');
+    setCardAmount(total.toFixed(2));
+    setSplitChange(0);
+    setShowPaymentModal(true);
+  };
+  
   return (
-    <div className="pos-page">
-      <div className="pos-container">
-        <div className="pos-left-panel">
-          <div className="product-search">
-            <form onSubmit={handleSearch}>
-              <input
-                type="text"
-                ref={searchInputRef}
-                placeholder={t('pos:search.placeholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleBarcodeInput}
-                className="search-input"
-              />
-              <button type="submit" className="search-button">{t('pos:search.button')}</button>
-            </form>
-          </div>
+    <div className={styles.page}>
+      <div className={styles.container}>
+        <div className={styles.leftPanel}>
+          <SearchBar 
+            searchQuery={searchQuery}
+            onSearchChange={(e) => setSearchQuery(e.target.value)}
+            onSearch={handleSearch}
+            onBarcodeInput={handleBarcodeInput}
+            searchInputRef={searchInputRef}
+          />
 
-          <div className="category-filter-container">
-            <div className="category-filter-header" onClick={() => setIsCategoryFilterCollapsed(!isCategoryFilterCollapsed)}>
-              <span>{t('pos:categories.title')}</span>
-              <button className="toggle-filter-button">
-                {isCategoryFilterCollapsed ? '▼' : '▲'}
-              </button>
-            </div>
-            {!isCategoryFilterCollapsed && (
-              <div className="product-categories">
-                <button 
-                  className={`category-button ${selectedCategory === null ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  {t('pos:categories.all')}
-                </button>
-                {categories.map(category => (
-                  <button 
-                    key={category.id}
-                    className={`category-button ${selectedCategory === category.id ? 'active' : ''}`}
-                    onClick={() => setSelectedCategory(category.id)}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <CategoryFilter 
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            isCollapsed={isCategoryFilterCollapsed}
+            onToggleCollapse={() => setIsCategoryFilterCollapsed(!isCategoryFilterCollapsed)}
+          />
 
-          <div className="product-grid">
-            {filteredProducts.length === 0 ? (
-              <div className="product-grid-empty">
-                <p>{t('pos:productGrid.empty')}</p>
-              </div>
-            ) : (
-              filteredProducts.map(product => (
-                <div 
-                  key={product.id}
-                  className={`product-card ${product.stock_quantity <= 0 ? 'out-of-stock' : ''}`}
-                  onClick={() => product.stock_quantity > 0 && addToCart(product)}
-                >
-                  <div className="product-name">{product.name}</div>
-                  <div className="product-price">{formatPriceWithCurrency(product.selling_price)}</div>
-                  <div className="product-stock">
-                    {product.stock_quantity <= 0 
-                      ? t('pos:productGrid.outOfStock') 
-                      : t('pos:productGrid.inStock', { count: product.stock_quantity, unit: getUnitName(product) })}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          <ProductGrid 
+            products={filteredProducts}
+            onProductSelect={addToCart}
+            getUnitName={getUnitName}
+            formatPriceWithCurrency={formatPriceWithCurrency}
+          />
         </div>
 
-        <div className="pos-right-panel">
-          <div className="cart-header">
-            <h3>{t('pos:cart.title')}</h3>
-            <button className="clear-cart-button" onClick={clearCart}>{t('pos:cart.clear')}</button>
-          </div>
+        <Cart 
+          cartItems={cartItems}
+          onUpdateQuantity={updateCartItemQuantity}
+          onRemoveItem={removeCartItem}
+          onClearCart={clearCart}
+          getUnitName={getUnitName}
+          formatPriceWithCurrency={formatPriceWithCurrency}
+        >
+          <CartSummary 
+            subtotal={subtotal}
+            total={total}
+            discount={discount}
+            discountType={discountType}
+            discountValue={discountValue}
+            onDiscountTypeChange={setDiscountType}
+            onDiscountValueChange={setDiscountValue}
+            onClearDiscount={clearDiscount}
+            formatPriceWithCurrency={formatPriceWithCurrency}
+          />
 
-          <div className="cart-items">
-            {cartItems.length === 0 ? (
-              <div className="cart-empty">
-                <p>{t('pos:cart.empty')}</p>
-                <p>{t('pos:cart.addInstructions')}</p>
-              </div>
-            ) : (
-              <div className="cart-item-list">
-                {cartItems.map(item => (
-                  <div key={item.id} className="cart-item">
-                    <div className="item-details">
-                      <div className="item-name">{item.name}</div>
-                      <div className="item-price">{formatPriceWithCurrency(item.price)} × 
-                        <input
-                          type="number"
-                          min="1"
-                          max={item.product.stock_quantity}
-                          value={item.quantity}
-                          onChange={(e) => updateCartItemQuantity(item.id, parseInt(e.target.value))}
-                          className="quantity-input"
-                        />
-                        <span className="unit-name">{getUnitName(item.product)}</span>
-                      </div>
-                    </div>
-                    <div className="item-actions">
-                      <span className="item-total">{formatPriceWithCurrency(item.totalPrice)}</span>
-                      <button 
-                        className="remove-item-button"
-                        onClick={() => removeCartItem(item.id)}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="cart-summary">
-            <div className="summary-row">
-              <span>{t('pos:summary.subtotal')}:</span>
-              <span>{formatPriceWithCurrency(subtotal)}</span>
-            </div>
-            
-            {/* Discount section */}
-            <div className="discount-section">
-              <div className="discount-controls">
-                <select 
-                  value={discountType} 
-                  onChange={(e) => setDiscountType(e.target.value)}
-                  className="discount-type-select"
-                >
-                  <option value="fixed">{t('pos:discount.fixed')}</option>
-                  <option value="percentage">{t('pos:discount.percentage')}</option>
-                  <option value="total">{t('pos:discount.total')}</option>
-                </select>
-                <input
-                  type="number"
-                  min="0"
-                  max={discountType === 'percentage' ? '100' : subtotal}
-                  step="0.01"
-                  value={discountValue}
-                  onChange={(e) => setDiscountValue(e.target.value)}
-                  placeholder={
-                    discountType === 'percentage' ? '0%' : 
-                    discountType === 'total' ? t('pos:discount.desiredTotal') : '0.00'
-                  }
-                  className="discount-input"
-                />
-                <button 
-                  onClick={clearDiscount}
-                  className="clear-discount"
-                  disabled={!discount}
-                >
-                  ×
-                </button>
-              </div>
-              {discount > 0 && (
-                <div className="summary-row discount-row">
-                  <span>{t('pos:summary.discount')}:</span>
-                  <span>-{formatPriceWithCurrency(discount)}</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="summary-row total">
-              <span>{t('pos:summary.total')}:</span>
-              <span>{formatPriceWithCurrency(total)}</span>
-            </div>
-          </div>
-
-          <div className="payment-actions">
-            <button 
-              className="payment-button cash"
-              onClick={() => {
-                setPaymentMethod('cash');
-                setAmountReceived(total.toFixed(2));
-                setChange(0);
-                setShowPaymentModal(true);
-              }}
-              disabled={cartItems.length === 0}
-            >
-              {t('pos:payment.cash')}
-            </button>
-            <button 
-              className="payment-button card"
-              onClick={() => {
-                setPaymentMethod('card');
-                setShowPaymentModal(true);
-              }}
-              disabled={cartItems.length === 0}
-            >
-              {t('pos:payment.card')}
-            </button>
-            <button 
-              className="payment-button split"
-              onClick={() => {
-                setPaymentMethod('split');
-                setCashAmount('');
-                setCardAmount(total.toFixed(2));
-                setSplitChange(0);
-                setShowPaymentModal(true);
-              }}
-              disabled={cartItems.length === 0}
-            >
-              {t('pos:payment.split')}
-            </button>
-          </div>
-        </div>
+          <PaymentActions 
+            onCashPayment={handleCashPayment}
+            onCardPayment={handleCardPayment}
+            onSplitPayment={handleSplitPayment}
+            isCartEmpty={cartItems.length === 0}
+            total={total}
+          />
+        </Cart>
       </div>
       
       {/* Payment Modal */}
-      {showPaymentModal && (
-        <div className="modal-overlay">
-          <div className="modal payment-modal">
-            <div className="modal-header">
-              <h3>{t(`pos:payment.${paymentMethod}Title`)}</h3>
-              <button className="close-button" onClick={() => setShowPaymentModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="payment-details">
-                <div className="payment-summary">
-                  <div className="summary-row">
-                    <span>{t('pos:summary.total')}:</span>
-                    <span>{formatPriceWithCurrency(total)}</span>
-                  </div>
-                </div>
-                
-                {paymentMethod === 'cash' && (
-                  <div className="cash-payment-form">
-                    <div className="form-group">
-                      <label>{t('pos:payment.amountReceived')}:</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={amountReceived}
-                        onChange={(e) => calculateChange(e.target.value)}
-                        className="amount-input"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="change-amount">
-                      <span>{t('pos:payment.change')}:</span>
-                      <span>{formatPriceWithCurrency(change)}</span>
-                    </div>
-                    {parseFloat(amountReceived) < total && (
-                      <div className="shortfall-notice">
-                        <span>{t('pos:payment.shortfallNotice')}:</span>
-                        <span>{formatPriceWithCurrency(total - parseFloat(amountReceived))}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {paymentMethod === 'split' && (
-                  <div className="split-payment-form">
-                    <div className="form-group">
-                      <label>{t('pos:payment.cashPortion')}:</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={cashAmount}
-                        onChange={(e) => calculateSplitPayment(e.target.value)}
-                        className="amount-input"
-                        autoFocus
-                      />
-                      {splitChange > 0 && (
-                        <div className="change-amount">
-                          <span>{t('pos:payment.change')}:</span>
-                          <span>{formatPriceWithCurrency(splitChange)}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="form-group">
-                      <label>{t('pos:payment.cardPortion')}:</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={cardAmount}
-                        onChange={(e) => setCardAmount(e.target.value)}
-                        className="amount-input"
-                        disabled={splitChange > 0}
-                      />
-                    </div>
-                    <div className="payment-summary split-total">
-                      <div className="summary-row">
-                        <span>{t('pos:payment.totalPayment')}:</span>
-                        <span>{formatPriceWithCurrency((parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) - splitChange)}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button 
-                className="button secondary"
-                onClick={() => setShowPaymentModal(false)}
-              >
-                {t('common:cancel')}
-              </button>
-              <button 
-                className="button primary"
-                onClick={processPayment}
-                disabled={
-                  (paymentMethod === 'cash' && !amountReceived) || 
-                  (paymentMethod === 'split' && ((parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) < total)) ||
-                  isProcessing
-                }
-              >
-                {isProcessing ? t('common:processing') : t('pos:payment.complete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PaymentModal 
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        paymentMethod={paymentMethod}
+        amountReceived={amountReceived}
+        cashAmount={cashAmount}
+        cardAmount={cardAmount}
+        splitChange={splitChange}
+        change={change}
+        total={total}
+        onAmountReceivedChange={calculateChange}
+        onCashAmountChange={calculateSplitPayment}
+        onCardAmountChange={setCardAmount}
+        onProcessPayment={processPayment}
+        formatPriceWithCurrency={formatPriceWithCurrency}
+        isProcessing={isProcessing}
+      />
       
       {/* Receipt Modal */}
-      {showReceiptModal && currentReceipt && (
-        <div className="modal-overlay">
-          <div className="modal receipt-modal">
-            <div className="modal-header">
-              <h3>{t('pos:receipt.title')}</h3>
-              <button className="close-button" onClick={() => setShowReceiptModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="receipt" ref={receiptRef}>
-                <div className="receipt-header">
-                  <h4>{currentReceipt.businessName}</h4>
-                  {currentReceipt.businessAddress && <p>{currentReceipt.businessAddress}</p>}
-                  {currentReceipt.businessPhone && <p>{t('pos:receipt.phone')}: {currentReceipt.businessPhone}</p>}
-                  {currentReceipt.businessEmail && <p>{t('pos:receipt.email')}: {currentReceipt.businessEmail}</p>}
-                  {currentReceipt.receiptHeader && <p className="receipt-custom-header">{currentReceipt.receiptHeader}</p>}
-                  <p>{t('pos:receipt.number', { number: currentReceipt.receiptNumber })}</p>
-                  <p>{currentReceipt.date}</p>
-                </div>
-                <div className="receipt-items">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>{t('pos:receipt.item')}</th>
-                        <th>{t('pos:receipt.quantity')}</th>
-                        <th>{t('pos:receipt.price')}</th>
-                        <th>{t('pos:receipt.total')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentReceipt.items.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item.name}</td>
-                          <td>{item.quantity} {getUnitName(item.product)}</td>
-                          <td>{formatPriceWithCurrency(item.price)}</td>
-                          <td>{formatPriceWithCurrency(item.totalPrice)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="receipt-summary">
-                  <div className="summary-row">
-                    <span>{t('pos:summary.subtotal')}:</span>
-                    <span>{formatPriceWithCurrency(currentReceipt.subtotal)}</span>
-                  </div>
-                  {currentReceipt.discount > 0 && (
-                    <div className="summary-row discount">
-                      <span>{t('pos:summary.discount')}:</span>
-                      <span>-{formatPriceWithCurrency(currentReceipt.discount)}</span>
-                    </div>
-                  )}
-                  <div className="summary-row total">
-                    <span>{t('pos:summary.total')}:</span>
-                    <span>{formatPriceWithCurrency(currentReceipt.total)}</span>
-                  </div>
-                  <div className="summary-row">
-                    <span>{t('pos:receipt.paymentMethod')}:</span>
-                    <span>{t(`pos:paymentMethods.${currentReceipt.payment_method}`)}</span>
-                  </div>
-                  
-                  {currentReceipt.payment_method === 'split' ? (
-                    <>
-                      <div className="summary-row">
-                        <span>{t('pos:receipt.cashAmount')}:</span>
-                        <span>{formatPriceWithCurrency(currentReceipt.cashAmount)}</span>
-                      </div>
-                      <div className="summary-row">
-                        <span>{t('pos:receipt.cardAmount')}:</span>
-                        <span>{formatPriceWithCurrency(currentReceipt.cardAmount)}</span>
-                      </div>
-                      {currentReceipt.changeAmount > 0 && (
-                        <div className="summary-row">
-                          <span>{t('pos:receipt.change')}:</span>
-                          <span>{formatPriceWithCurrency(currentReceipt.changeAmount)}</span>
-                        </div>
-                      )}
-                    </>
-                  ) : currentReceipt.payment_method === 'cash' && (
-                    <>
-                      <div className="summary-row">
-                        <span>{t('pos:receipt.amountReceived')}:</span>
-                        <span>{formatPriceWithCurrency(currentReceipt.amountPaid)}</span>
-                      </div>
-                      <div className="summary-row">
-                        <span>{t('pos:receipt.change')}:</span>
-                        <span>{formatPriceWithCurrency(currentReceipt.changeAmount)}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="thank-you">
-                  <p>{currentReceipt.receiptFooter || t('pos:receipt.thankYou')}</p>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button 
-                className="button secondary"
-                onClick={() => setShowReceiptModal(false)}
-              >
-                {t('pos:receipt.close')}
-              </button>
-              <button 
-                className="button primary"
-                onClick={printReceiptHandler}
-              >
-                {t('pos:receipt.print')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ReceiptModal 
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+        receipt={currentReceipt}
+        formatPriceWithCurrency={formatPriceWithCurrency}
+        onPrint={printReceiptHandler}
+        receiptRef={receiptRef}
+        getUnitName={getUnitName}
+      />
     </div>
   );
 };

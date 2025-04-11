@@ -1,0 +1,33 @@
+.productSearch {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.productSearch form {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.searchButton {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.searchButton:hover {
+  background-color: #1d4ed8;
+} 

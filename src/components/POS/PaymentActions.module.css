@@ -1,0 +1,52 @@
+.paymentActions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.paymentButton {
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.paymentButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cash {
+  background-color: #10b981;
+  color: white;
+}
+
+.cash:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.card {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.card:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.split {
+  background-color: #6366f1;
+  color: white;
+}
+
+.split:hover:not(:disabled) {
+  background-color: #4f46e5;
+} 

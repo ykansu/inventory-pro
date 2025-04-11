@@ -10,6 +10,7 @@ const Modal = ({
   footer,
   size = 'medium',
   closeOnBackdropClick = true,
+  className = '',
 }) => {
   // Close on escape key press
   useEffect(() => {
@@ -42,7 +43,7 @@ const Modal = ({
 
   return (
     <div className={styles.overlay} onClick={handleBackdropClick}>
-      <div className={`${styles.modal} ${styles[size]}`}>
+      <div className={`${styles.modal} ${styles[size]} ${className}`}>
         <div className={styles.header}>
           <h3>{title}</h3>
           <button 

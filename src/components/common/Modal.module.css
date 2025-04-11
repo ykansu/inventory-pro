@@ -29,6 +29,10 @@
   max-width: 400px;
 }
 
+.extraSmall {
+  max-width: 460px;
+}
+
 .medium {
   max-width: 600px;
 }
