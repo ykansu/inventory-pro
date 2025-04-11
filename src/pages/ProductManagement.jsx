@@ -3,6 +3,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
+import '../styles/pages/product-management.css';
 
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', 'edit', 'categories', or 'suppliers'

@@ -123,6 +123,27 @@
   height: 1rem;
 }
 
+/* Fix for form-group checkbox items */
+.form-group.checkbox-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.form-group.checkbox-group input[type="checkbox"] {
+  margin: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+}
+
+.form-group.checkbox-group label {
+  margin: 0;
+  cursor: pointer;
+}
+
 /* Buttons styling */
 .button {
   padding: 0.625rem 1.25rem;

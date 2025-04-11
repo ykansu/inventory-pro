@@ -6,11 +6,3 @@
 @import './components/modal.css';
 @import './components/table.css';
 @import './components/loading-spinner.css';
-
-/* Pages */
-@import './pages/dashboard.css';
-@import './pages/product-management.css';
-@import './pages/pos.css';
-@import './pages/sales-history.css';
-@import './pages/reports.css';
-@import './pages/settings.css'; 

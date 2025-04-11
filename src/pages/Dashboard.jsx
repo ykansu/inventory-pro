@@ -16,6 +16,7 @@ import RevenueBySupplierChart from '../components/dashboard/RevenueBySupplierCha
 import ExpensesTrendChart from '../components/dashboard/ExpensesTrendChart';
 import InventoryValueByCategoryChart from '../components/dashboard/InventoryValueByCategoryChart';
 import InventoryValueBySupplierChart from '../components/dashboard/InventoryValueBySupplierChart';
+import '../styles/pages/dashboard.css';
 
 const Dashboard = () => {
   const { t } = useTranslation(['dashboard', 'common']);
@@ -42,14 +43,14 @@ const Dashboard = () => {
       
       {/* Dashboard Sections - Grid Layout */}
       <div className="dashboard-sections">
-        <CategoryProfitsChart />
         <TopProductsChart />
         <RevenueBySupplierChart />
         <RevenueByPaymentChart />
-        <InventoryValueByCategoryChart />
         <InventoryValueBySupplierChart />
         <ExpensesTrendChart />
         <ProfitTrendChart />
+        <CategoryProfitsChart />
+        <InventoryValueByCategoryChart />
       </div>
     </div>
   );

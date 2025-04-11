@@ -3,6 +3,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
+import '../styles/pages/settings.css';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');

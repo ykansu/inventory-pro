@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import '../styles/pages/reports.css';
 
 const Reports = () => {
   const [reportType, setReportType] = useState('daily');

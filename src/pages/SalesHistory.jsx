@@ -10,6 +10,7 @@ import '../styles/components/modal.css';
 import { format } from 'date-fns';
 import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
+import '../styles/pages/sales-history.css';
 
 // Inline styles for unit display
 const styles = {
@@ -380,12 +381,12 @@ const SalesHistory = () => {
   };
 
   return (
-    <div className="sales-history-page">
+    <div className="sales-history-page inventory-pro-sales-history">
       <div className="page-header">
-        <h2>{t('sales:title')}</h2>
+        <h2>{t('sales:pageTitle')}</h2>
         <button 
           className="refresh-button" 
-          onClick={refresh}
+          onClick={refresh} 
           disabled={loading}
         >
           {loading ? t('common:loading') : t('common:refresh')}
@@ -393,26 +394,28 @@ const SalesHistory = () => {
       </div>
 
       <div className="sales-filters">
-        <div className="date-filters">
-          <div className="form-group">
-            <label htmlFor="startDate">{t('sales:filters.from')}</label>
+        <div className="date-filters sales-date-filters">
+          <div className="form-group date-filter-group">
+            <label htmlFor="startDate" className="date-filter-label">{t('sales:filters.from')}</label>
             <input 
               type="date" 
               id="startDate" 
+              className="date-input"
               value={tempDateRange.start}
               onChange={(e) => setTempDateRange({ ...tempDateRange, start: e.target.value })}
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="endDate">{t('sales:filters.to')}</label>
+          <div className="form-group date-filter-group">
+            <label htmlFor="endDate" className="date-filter-label">{t('sales:filters.to')}</label>
             <input 
               type="date" 
               id="endDate" 
+              className="date-input"
               value={tempDateRange.end}
               onChange={(e) => setTempDateRange({ ...tempDateRange, end: e.target.value })}
             />
           </div>
-          <button className="filter-button" onClick={handleApplyFilters}>
+          <button className="filter-button date-filter-button" onClick={handleApplyFilters}>
             {t('sales:filters.apply')}
           </button>
         </div>

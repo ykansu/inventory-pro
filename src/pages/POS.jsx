@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/calculations';
 import { printReceipt } from '../utils/receiptPrinter';
+import '../styles/pages/pos.css';
 
 const POS = () => {
   const { t } = useTranslation(['pos', 'common', 'products']);

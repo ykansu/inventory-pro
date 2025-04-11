@@ -237,27 +237,29 @@ const TopProductsChart = () => {
               {t('dashboard:placeholders.noProductData')}
             </div>
           ) : (
-            <div className="chart-container" style={{ height: `${Math.max(250, 50 * topProducts.length)}px` }}>
-              <Bar data={chartData} options={chartOptions} />
-              <div className="products-detail-info">
-                <div className="products-detail-header">
-                  <div className="detail-cell">{t('dashboard:labels.product')}</div>
-                  <div className="detail-cell">{t('dashboard:labels.quantity')}</div>
-                  <div className="detail-cell">{t('dashboard:labels.revenue')}</div>
-                  <div className="detail-cell">{t('dashboard:labels.profit')}</div>
-                  <div className="detail-cell">{t('dashboard:labels.margin')}</div>
-                </div>
-                {topProducts.map((product) => (
-                  <div key={product.id} className="products-detail-row">
-                    <div className="detail-cell product-name">{product.name}</div>
-                    <div className="detail-cell">{product.quantity}</div>
-                    <div className="detail-cell">{formatCurrency(product.revenue, currency)}</div>
-                    <div className="detail-cell">{formatCurrency(product.profit, currency)}</div>
-                    <div className="detail-cell">{product.profitMargin}%</div>
-                  </div>
-                ))}
+            <>
+              <div className="chart-container" style={{ height: `${Math.max(250, 50 * topProducts.length)}px` }}>
+                <Bar data={chartData} options={chartOptions} />
               </div>
-            </div>
+              <div className="products-detail-info">
+                  <div className="products-detail-header">
+                    <div className="detail-cell">{t('dashboard:labels.product')}</div>
+                    <div className="detail-cell">{t('dashboard:labels.quantity')}</div>
+                    <div className="detail-cell">{t('dashboard:labels.revenue')}</div>
+                    <div className="detail-cell">{t('dashboard:labels.profit')}</div>
+                    <div className="detail-cell">{t('dashboard:labels.margin')}</div>
+                  </div>
+                  {topProducts.map((product) => (
+                    <div key={product.id} className="products-detail-row">
+                      <div className="detail-cell product-name">{product.name}</div>
+                      <div className="detail-cell">{product.quantity}</div>
+                      <div className="detail-cell">{formatCurrency(product.revenue, currency)}</div>
+                      <div className="detail-cell">{formatCurrency(product.profit, currency)}</div>
+                      <div className="detail-cell">{product.profitMargin}%</div>
+                    </div>
+                  ))}
+                </div>
+            </>
           )}
         </>
       )}
