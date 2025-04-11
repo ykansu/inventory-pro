@@ -7,14 +7,14 @@ import { Toaster } from 'react-hot-toast';
 import LanguageInitializer from './LanguageInitializer';
 
 // Import page components
-import Dashboard from '../pages/Dashboard';
-import ProductManagement from '../pages/ProductManagement';
-import POS from '../pages/POS';
-import SalesHistory from '../pages/SalesHistory';
-import Reports from '../pages/Reports';
-import Settings from '../pages/Settings';
-import StockUpdate from '../pages/StockUpdate';
-import Expenses from '../pages/Expenses';
+import Dashboard from './pages/Dashboard';
+import ProductManagement from './pages/ProductManagement';
+import POS from './pages/POS';
+import SalesHistory from './pages/SalesHistory';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+import StockUpdate from './pages/StockUpdate';
+import Expenses from './pages/Expenses';
 
 // Inner component that uses hooks after providers are set up
 const AppContent = () => {

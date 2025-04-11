@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import { useDatabase } from '../context/DatabaseContext';
-import { useSettings } from '../context/SettingsContext';
+import { useTranslation } from '../../hooks/useTranslation';
+import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import { toast } from 'react-hot-toast';
 import styles from './ProductManagement.module.css';
-import Button from '../components/common/Button';
-import FormGroup from '../components/common/FormGroup';
-import Table from '../components/common/Table';
-import Pagination from '../components/common/Pagination';
+import Button from '../common/Button';
+import FormGroup from '../common/FormGroup';
+import Table from '../common/Table';
+import Pagination from '../common/Pagination';
 
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', 'edit', 'categories', or 'suppliers'

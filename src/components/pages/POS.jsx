@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import { ProductService, CategoryService, SaleService } from '../services/DatabaseService';
-import { useSettings } from '../context/SettingsContext';
+import { useTranslation } from '../../hooks/useTranslation';
+import { ProductService, CategoryService, SaleService } from '../../services/DatabaseService';
+import { useSettings } from '../../context/SettingsContext';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { formatCurrency } from '../utils/calculations';
-import { printReceipt } from '../utils/receiptPrinter';
+import { formatCurrency } from '../../utils/calculations';
+import { printReceipt } from '../../utils/receiptPrinter';
 import styles from './POS.module.css';
 
 // Component imports
-import SearchBar from '../components/POS/SearchBar';
-import CategoryFilter from '../components/POS/CategoryFilter';
-import ProductGrid from '../components/POS/ProductGrid';
-import Cart from '../components/POS/Cart';
-import CartSummary from '../components/POS/CartSummary';
-import PaymentActions from '../components/POS/PaymentActions';
-import PaymentModal from '../components/POS/PaymentModal';
-import ReceiptModal from '../components/POS/ReceiptModal';
+import SearchBar from '../POS/SearchBar';
+import CategoryFilter from '../POS/CategoryFilter';
+import ProductGrid from '../POS/ProductGrid';
+import Cart from '../POS/Cart';
+import CartSummary from '../POS/CartSummary';
+import PaymentActions from '../POS/PaymentActions';
+import PaymentModal from '../POS/PaymentModal';
+import ReceiptModal from '../POS/ReceiptModal';
 
 const POS = () => {
   const { t } = useTranslation(['pos', 'common', 'products']);

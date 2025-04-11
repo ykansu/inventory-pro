@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import { ProductService, SettingService } from '../services/DatabaseService';
-import { useDatabase } from '../context/DatabaseContext';
-import { useSettings } from '../context/SettingsContext';
+import { useTranslation } from '../../hooks/useTranslation';
+import { ProductService, SettingService } from '../../services/DatabaseService';
+import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import { toast } from 'react-hot-toast';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency } from '../../utils/formatters';
 
 // Import common components
-import SearchBox from '../components/stockUpdate/SearchBox';
-import ProductList from '../components/stockUpdate/ProductList';
-import FormGroup from '../components/common/FormGroup';
-import Button from '../components/common/Button';
-import CostCalculation from '../components/stockUpdate/CostCalculation';
+import SearchBox from '../stockUpdate/SearchBox';
+import ProductList from '../stockUpdate/ProductList';
+import FormGroup from '../common/FormGroup';
+import Button from '../common/Button';
+import CostCalculation from '../stockUpdate/CostCalculation';
 
 // Import CSS module
 import styles from './StockUpdate.module.css';

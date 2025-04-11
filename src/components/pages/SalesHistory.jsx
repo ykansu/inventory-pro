@@ -1,23 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import useSalesHistory from '../hooks/useSalesHistory';
-import { SaleService, ProductService } from '../services/DatabaseService';
-import { calculateReturnTotal, formatCurrency } from '../utils/calculations';
-import { printReceipt } from '../utils/receiptPrinter';
+import { useTranslation } from '../../hooks/useTranslation';
+import useSalesHistory from '../../hooks/useSalesHistory';
+import { SaleService, ProductService } from '../../services/DatabaseService';
+import { calculateReturnTotal, formatCurrency } from '../../utils/calculations';
+import { printReceipt } from '../../utils/receiptPrinter';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
-import { useDatabase } from '../context/DatabaseContext';
-import { useSettings } from '../context/SettingsContext';
+import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 
 // Import CSS module
 import styles from './SalesHistory.module.css';
 
 // Import common components
-import Button from '../components/common/Button';
-import Table from '../components/common/Table';
-import Modal from '../components/common/Modal';
-import FormGroup from '../components/common/FormGroup';
-import Pagination from '../components/common/Pagination';
+import Button from '../common/Button';
+import Table from '../common/Table';
+import Modal from '../common/Modal';
+import FormGroup from '../common/FormGroup';
+import Pagination from '../common/Pagination';
 
 // Inline styles for unit display
 const unitNameStyle = {

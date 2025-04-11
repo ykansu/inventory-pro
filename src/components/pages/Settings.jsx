@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '../hooks/useTranslation';
-import { useDatabase } from '../context/DatabaseContext';
-import { useSettings } from '../context/SettingsContext';
+import { useTranslation } from '../../hooks/useTranslation';
+import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import { toast } from 'react-hot-toast';
 import styles from './Settings.module.css';
-import Button from '../components/common/Button';
-import FormGroup from '../components/common/FormGroup';
-import TabNavigation from '../components/common/TabNavigation';
+import Button from '../common/Button';
+import FormGroup from '../common/FormGroup';
+import TabNavigation from '../common/TabNavigation';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');

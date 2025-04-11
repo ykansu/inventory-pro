@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
-import { useDatabase } from '../context/DatabaseContext';
-import { useSettings } from '../context/SettingsContext';
+import { useDatabase } from '../../context/DatabaseContext';
+import { useSettings } from '../../context/SettingsContext';
 import { 
   startOfMonth, 
   endOfMonth, 
@@ -13,10 +13,10 @@ import {
   subDays 
 } from 'date-fns';
 import styles from './Expenses.module.css';
-import Button from '../components/common/Button';
-import FormGroup from '../components/common/FormGroup';
-import Modal from '../components/common/Modal';
-import Table from '../components/common/Table';
+import Button from '../common/Button';
+import FormGroup from '../common/FormGroup';
+import Modal from '../common/Modal';
+import Table from '../common/Table';
 
 const Expenses = () => {
   const { t } = useTranslation('expenses');
