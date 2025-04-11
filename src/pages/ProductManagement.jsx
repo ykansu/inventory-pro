@@ -69,7 +69,6 @@ const ProductManagement = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log('Loading product data...');
         setLoading(true);
         
         // Fetch data in parallel
@@ -85,7 +84,6 @@ const ProductManagement = () => {
         setSupplierList(suppliersData || []);
         setError(null);
       } catch (err) {
-        console.error('Failed to load product data:', err);
         setError('Failed to load product data. Please check the database connection.');
         toast.error(t('products:errors.loadFailed'));
       } finally {
@@ -291,7 +289,6 @@ const ProductManagement = () => {
       // Switch to list view
       setActiveTab('list');
     } catch (err) {
-      console.error('Failed to save product:', err);
       setError('Failed to save product. Please try again.');
       toast.error(formData.id ? t('products:errors.updateFailed') : t('products:errors.createFailed'));
     } finally {
@@ -312,7 +309,6 @@ const ProductManagement = () => {
         setError(null);
         toast.success(t('products:notifications.deleteSuccess'));
       } catch (err) {
-        console.error(`Failed to delete product ${id}:`, err);
         setError('Failed to delete product. Please try again.');
         toast.error(t('products:errors.deleteFailed'));
       } finally {
@@ -345,7 +341,6 @@ const ProductManagement = () => {
         setActiveTab('edit');
       }
     } catch (err) {
-      console.error(`Failed to load product ${id} for editing:`, err);
       setError('Failed to load product for editing. Please try again.');
       toast.error(t('products:errors.loadEditFailed'));
     } finally {
@@ -391,7 +386,6 @@ const ProductManagement = () => {
       const updatedCategories = await categories.getAllCategories();
       setCategoryList(updatedCategories || []);
     } catch (err) {
-      console.error('Failed to save category:', err);
       setError('Failed to save category. Please try again.');
       toast.error(categoryFormData.id 
         ? t('products:errors.categoryUpdateFailed', { fallback: 'Failed to update category' }) 
@@ -414,7 +408,6 @@ const ProductManagement = () => {
         setError(null);
         toast.success(t('products:notifications.categoryDeleteSuccess', { fallback: 'Category deleted successfully' }));
       } catch (err) {
-        console.error(`Failed to delete category ${id}:`, err);
         setError('Failed to delete category. Please try again.');
         toast.error(t('products:errors.categoryDeleteFailed', { fallback: 'Failed to delete category' }));
       } finally {
@@ -465,7 +458,6 @@ const ProductManagement = () => {
       const updatedSuppliers = await suppliers.getAllSuppliers();
       setSupplierList(updatedSuppliers || []);
     } catch (err) {
-      console.error('Failed to save supplier:', err);
       setError('Failed to save supplier. Please try again.');
       toast.error(supplierFormData.id 
         ? t('products:errors.supplierUpdateFailed', { fallback: 'Failed to update supplier' }) 
@@ -488,7 +480,6 @@ const ProductManagement = () => {
         setError(null);
         toast.success(t('products:notifications.supplierDeleteSuccess', { fallback: 'Supplier deleted successfully' }));
       } catch (err) {
-        console.error(`Failed to delete supplier ${id}:`, err);
         setError('Failed to delete supplier. Please try again.');
         toast.error(t('products:errors.supplierDeleteFailed', { fallback: 'Failed to delete supplier' }));
       } finally {
