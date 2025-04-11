@@ -2,13 +2,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .label {
   font-weight: 500;
   color: #374151;
   font-size: 0.875rem;
+  margin-bottom: 0.25rem;
 }
 
 .required {
@@ -49,12 +50,13 @@
 .formGroup input[type="number"],
 .formGroup select,
 .formGroup textarea {
-  padding: 0.625rem;
+  padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   font-size: 0.875rem;
   transition: border-color 0.2s;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .formGroup input[type="text"]:focus,
@@ -66,6 +68,25 @@
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Styles for readonly/disabled inputs */
+.formGroup input[readonly],
+.formGroup input:disabled,
+.formGroup select:disabled,
+.formGroup textarea:disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.formGroup input[readonly]:focus,
+.formGroup input:disabled:focus,
+.formGroup select:disabled:focus,
+.formGroup textarea:disabled:focus {
+  border-color: #e5e7eb;
+  box-shadow: none;
 }
 
 /* Apply form-control class styles */

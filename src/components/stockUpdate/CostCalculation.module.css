@@ -1,0 +1,40 @@
+.costCalculationBox {
+  background-color: #f7f9fc;
+  border: 1px solid #e1e4e8;
+  border-radius: 5px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+}
+
+.costCalculationBox h4 {
+  margin-bottom: 0.75rem;
+  color: #212529;
+  font-size: 1rem;
+}
+
+.calculationDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.calcRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.calcRow.total {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e1e4e8;
+  font-weight: 600;
+}
+
+.calcRow.result {
+  margin-top: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #4a6cf7;
+} 

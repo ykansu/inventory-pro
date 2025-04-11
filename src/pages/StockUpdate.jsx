@@ -5,7 +5,16 @@ import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '../utils/formatters';
-import '../styles/pages/stock-update.css';
+
+// Import common components
+import SearchBox from '../components/stockUpdate/SearchBox';
+import ProductList from '../components/stockUpdate/ProductList';
+import FormGroup from '../components/common/FormGroup';
+import Button from '../components/common/Button';
+import CostCalculation from '../components/stockUpdate/CostCalculation';
+
+// Import CSS module
+import styles from './StockUpdate.module.css';
 
 const StockUpdate = () => {
   const { t } = useTranslation(['products', 'common']);
@@ -51,7 +60,7 @@ const StockUpdate = () => {
         setSuppliersList(allSuppliers);
       } catch (error) {
         console.error('Error loading data:', error);
-        toast.error(t('stockUpdate:errors.loadingData'));
+        toast.error(t('products:errors.loadFailed'));
       }
     };
     
@@ -159,6 +168,11 @@ const StockUpdate = () => {
     setFilteredProducts(filtered);
   }, [searchQuery, productsList]);
   
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+  
   // Handle selecting a product
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
@@ -256,265 +270,243 @@ const StockUpdate = () => {
     }
   };
   
-  // Handle submit - update stock with new cost price
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!selectedProduct) {
-      toast.error(t('common:errors.selectProduct'));
+      toast.error(t('products:errors.invalidQuantity'));
       return;
     }
     
-    if (parseFloat(formData.quantity) <= 0) {
-      toast.error(t('common:errors.invalidQuantity'));
+    if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
+      toast.error(t('products:errors.invalidQuantity'));
       return;
     }
+    
+    setLoading(true);
     
     try {
-      setLoading(true);
+      const updatedProduct = { ...selectedProduct };
       
-      // Prepare data for stock update
-      const quantity = parseFloat(formData.quantity);
-      const adjustmentType = formData.adjustmentType;
-      const reason = formData.reason || 'Stock adjustment';
-      
-      // Reference for the adjustment - use formatted date based on settings
-      const formattedDate = formatDate(new Date());
-      const reference = `Stock-${adjustmentType}-${formattedDate}`;
-      
-      // Update stock quantity first
-      await ProductService.updateStock(
-        selectedProduct.id,
-        quantity,
-        adjustmentType,
-        reason,
-        reference
-      );
-      
-      // Then update the product with new cost price and selling price (if changed)
-      const productUpdateData = {
-        cost_price: formData.adjustmentType === 'add' 
-          ? costCalculation.averageCostPrice 
-          : selectedProduct.cost_price
-      };
-      
-      // Only update selling price if it has changed
-      if (formData.newSellingPrice !== selectedProduct.selling_price) {
-        productUpdateData.selling_price = formData.newSellingPrice;
+      // Update stock quantity
+      if (formData.adjustmentType === 'add') {
+        updatedProduct.stock_quantity = parseFloat(selectedProduct.stock_quantity || 0) + parseFloat(formData.quantity);
+        updatedProduct.cost_price = costCalculation.averageCostPrice;
+      } else {
+        updatedProduct.stock_quantity = Math.max(0, parseFloat(selectedProduct.stock_quantity || 0) - parseFloat(formData.quantity));
       }
       
-      await ProductService.updateProduct(selectedProduct.id, productUpdateData);
+      // Update selling price
+      if (parseFloat(formData.newSellingPrice) > 0) {
+        updatedProduct.selling_price = parseFloat(formData.newSellingPrice);
+      }
       
-      // Show success message
-      toast.success(t('common:success.stockUpdated'));
+      // Save changes to database
+      await products.updateProduct(updatedProduct);
       
-      // Refresh product list
-      const updatedProducts = await products.getAllProducts();
+      // Create stock adjustment record
+      await products.addStockAdjustment({
+        product_id: selectedProduct.id,
+        adjustment_type: formData.adjustmentType,
+        quantity: parseFloat(formData.quantity),
+        old_stock: parseFloat(selectedProduct.stock_quantity || 0),
+        new_stock: updatedProduct.stock_quantity,
+        old_cost_price: parseFloat(selectedProduct.cost_price || 0),
+        new_cost_price: parseFloat(updatedProduct.cost_price || 0),
+        reason: formData.reason,
+        date: new Date().toISOString()
+      });
+      
+      // Update product in local state
+      const updatedProducts = productsList.map(p => 
+        p.id === updatedProduct.id ? updatedProduct : p
+      );
+      
       setProductsList(updatedProducts);
-      setFilteredProducts(updatedProducts);
-      
-      // Reset selection and form
-      setSelectedProduct(null);
+      setSelectedProduct(updatedProduct);
       setFormData({
         quantity: 0,
-        newCostPrice: 0,
-        newSellingPrice: 0,
+        newCostPrice: parseFloat(updatedProduct.cost_price) || 0,
+        newSellingPrice: parseFloat(updatedProduct.selling_price) || 0,
         adjustmentType: 'add',
         reason: ''
       });
       
+      toast.success(t('products:notifications.stockUpdateSuccess'));
     } catch (error) {
       console.error('Error updating stock:', error);
-      toast.error(t('common:errors.updateFailed'));
+      toast.error(t('products:errors.stockUpdateFailed'));
     } finally {
       setLoading(false);
     }
   };
   
+  // Reset form
+  const handleReset = () => {
+    if (selectedProduct) {
+      setFormData({
+        quantity: 0,
+        newCostPrice: parseFloat(selectedProduct.cost_price) || 0,
+        newSellingPrice: parseFloat(selectedProduct.selling_price) || 0,
+        adjustmentType: 'add',
+        reason: ''
+      });
+      
+      updateCostCalculation(0, parseFloat(selectedProduct.cost_price) || 0, selectedProduct.stock_quantity || 0);
+    }
+  };
+  
   return (
-    <div className="stock-update-page">
+    <div className={styles.stockUpdatePage}>
       <h2>{t('products:stockUpdate.title')}</h2>
       
-      <div className="stock-update-container">
-        <div className="product-search-section">
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder={t('common:search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+      <div className={styles.stockUpdateContainer}>
+        {/* Product Search and Selection Section */}
+        <div className={styles.productSearchSection}>
+          <SearchBox 
+            placeholder={t('products:search.placeholder')}
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
           
-          <div className="products-list">
-            {loading ? (
-              <div className="loading-spinner">{t('common:loading')}</div>
-            ) : (
-              <>
-                {filteredProducts.length === 0 ? (
-                  <div className="no-products">{t('products:noSearchResults')}</div>
-                ) : (
-                  filteredProducts.map(product => (
-                    <div 
-                      key={product.id} 
-                      className={`product-item ${selectedProduct?.id === product.id ? 'selected' : ''}`}
-                      onClick={() => handleSelectProduct(product)}
-                    >
-                      <div className="product-name">{product.name}</div>
-                      <div className="product-barcode">{product.barcode || t('common:notAvailable')}</div>
-                      <div className="product-stock">{t('products:stock')}: {product.stock_quantity} {getUnitName(product)}</div>
-                      <div className="product-cost">{t('products:costPrice')}: {formatPrice(product.cost_price)}</div>
-                    </div>
-                  ))
-                )}
-              </>
-            )}
-          </div>
+          <ProductList
+            products={filteredProducts}
+            selectedProduct={selectedProduct}
+            onSelectProduct={handleSelectProduct}
+            formatPrice={formatPrice}
+            getUnitName={getUnitName}
+            loading={loading}
+          />
         </div>
         
-        <div className="stock-update-form-section">
-          {selectedProduct ? (
-            <form onSubmit={handleSubmit} className="stock-update-form">
-              <h3>{selectedProduct.name}</h3>
+        {/* Stock Update Form Section */}
+        <div className={styles.stockUpdateFormSection}>
+          {!selectedProduct ? (
+            <div className={styles.noSelectionMessage}>
+              {t('products:stockUpdate.selectProductPrompt')}
+            </div>
+          ) : (
+            <form className={styles.stockUpdateForm} onSubmit={handleSubmit}>
+              <h3>{t('products:stockUpdate.title')}: {selectedProduct.name}</h3>
               
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('products:currentStock')}</label>
+              <div className={styles.formRow}>
+                <FormGroup label={t('products:currentStock')}>
                   <input 
                     type="text" 
-                    readOnly 
                     value={`${selectedProduct.stock_quantity || 0} ${getUnitName(selectedProduct)}`} 
+                    readOnly 
+                    disabled
+                    className={styles.readOnlyField}
                   />
-                </div>
+                </FormGroup>
                 
-                <div className="form-group">
-                  <label>{t('products:currentCostPrice')}</label>
+                <FormGroup label={t('products:currentCostPrice')}>
                   <input 
                     type="text" 
-                    readOnly 
                     value={formatPrice(selectedProduct.cost_price)} 
+                    readOnly 
+                    disabled
+                    className={styles.readOnlyField}
                   />
-                </div>
+                </FormGroup>
                 
-                <div className="form-group">
-                  <label>{t('products:currentSellingPrice')}</label>
+                <FormGroup label={t('products:currentSellingPrice')}>
                   <input 
                     type="text" 
-                    readOnly 
                     value={formatPrice(selectedProduct.selling_price)} 
+                    readOnly 
+                    disabled
+                    className={styles.readOnlyField}
                   />
-                </div>
+                </FormGroup>
               </div>
               
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('products:adjustmentType')}</label>
-                  <select
-                    name="adjustmentType"
+              <div className={styles.formRow}>
+                <FormGroup label={t('products:adjustmentType')}>
+                  <select 
+                    name="adjustmentType" 
                     value={formData.adjustmentType}
                     onChange={handleAdjustmentTypeChange}
                   >
                     <option value="add">{t('products:add')}</option>
                     <option value="remove">{t('products:remove')}</option>
                   </select>
-                </div>
+                </FormGroup>
                 
-                <div className="form-group">
-                  <label>{t('products:quantity')} ({getUnitName(selectedProduct)})</label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={formData.quantity}
+                <FormGroup label={t('products:quantity')}>
+                  <input 
+                    type="number" 
+                    name="quantity" 
+                    min="0" 
+                    step="1"
+                    value={formData.quantity} 
                     onChange={handleInputChange}
-                    min="0.01"
-                    step={selectedProduct.unit === 'pieces' || selectedProduct.unit === 'boxes' ? "1" : "0.01"}
+                    required
                   />
-                </div>
+                </FormGroup>
               </div>
               
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('products:newCostPrice')}</label>
-                  <input
-                    type="number"
-                    name="newCostPrice"
-                    value={formData.newCostPrice}
-                    onChange={handleInputChange}
-                    min="0"
+              <div className={styles.formRow}>
+                <FormGroup label={t('products:newCostPrice')}>
+                  <input 
+                    type="number" 
+                    name="newCostPrice" 
+                    min="0" 
                     step="0.01"
+                    value={formData.newCostPrice} 
+                    onChange={handleInputChange}
+                    disabled={formData.adjustmentType === 'remove'}
                   />
-                </div>
+                </FormGroup>
                 
-                <div className="form-group">
-                  <label>{t('products:newSellingPrice')}</label>
-                  <input
-                    type="number"
-                    name="newSellingPrice"
-                    value={formData.newSellingPrice}
-                    onChange={handleInputChange}
-                    min="0"
+                <FormGroup label={t('products:newSellingPrice')}>
+                  <input 
+                    type="number" 
+                    name="newSellingPrice" 
+                    min="0" 
                     step="0.01"
-                  />
-                </div>
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t('products:reason')}</label>
-                  <textarea
-                    name="reason"
-                    value={formData.reason}
+                    value={formData.newSellingPrice} 
                     onChange={handleInputChange}
-                    rows="2"
-                  ></textarea>
-                </div>
+                  />
+                </FormGroup>
               </div>
               
-              {formData.adjustmentType === 'add' && costCalculation.currentStock > 0 && (
-                <div className="cost-calculation-box">
-                  <h4>{t('products:stockUpdate.costCalculation')}</h4>
-                  <div className="calculation-details">
-                    <div className="calc-row">
-                      <span>{t('products:stockUpdate.currentInventory')}:</span>
-                      <span>{costCalculation.currentStock} {getUnitName(selectedProduct)} × {formatPrice(costCalculation.currentCostPrice)} = {formatPrice(costCalculation.currentStock * costCalculation.currentCostPrice)}</span>
-                    </div>
-                    <div className="calc-row">
-                      <span>{t('products:stockUpdate.newInventory')}:</span>
-                      <span>{formData.quantity} {getUnitName(selectedProduct)} × {formatPrice(formData.newCostPrice)} = {formatPrice(formData.quantity * formData.newCostPrice)}</span>
-                    </div>
-                    <div className="calc-row total">
-                      <span>{t('products:stockUpdate.totalInventory')}:</span>
-                      <span>{costCalculation.newStock} {getUnitName(selectedProduct)}, {formatPrice(costCalculation.totalCost)}</span>
-                    </div>
-                    <div className="calc-row result">
-                      <span>{t('products:stockUpdate.newAverageCost')}:</span>
-                      <span>{formatPrice(costCalculation.averageCostPrice)}</span>
-                    </div>
-                  </div>
-                </div>
+              <FormGroup label={t('products:reason')}>
+                <textarea 
+                  name="reason" 
+                  rows="3"
+                  value={formData.reason} 
+                  onChange={handleInputChange}
+                ></textarea>
+              </FormGroup>
+              
+              {/* Cost Calculation Box */}
+              {formData.adjustmentType === 'add' && parseFloat(formData.quantity) > 0 && (
+                <CostCalculation 
+                  calculation={costCalculation}
+                  formatPrice={formatPrice}
+                />
               )}
               
-              <div className="form-actions">
-                <button
+              <div className={styles.formActions}>
+                <Button 
+                  variant="secondary" 
+                  onClick={handleReset}
                   type="button"
-                  className="cancel-button"
-                  onClick={() => setSelectedProduct(null)}
                 >
-                  {t('common:cancel')}
-                </button>
-                <button
+                  {t('common:reset')}
+                </Button>
+                
+                <Button 
+                  variant="primary" 
                   type="submit"
-                  className="submit-button"
-                  disabled={loading || formData.quantity <= 0}
+                  disabled={loading}
                 >
                   {t('common:update')}
-                </button>
+                </Button>
               </div>
             </form>
-          ) : (
-            <div className="no-selection-message">
-              {t('products:stockUpdate.selectProductPrompt')}
-            </div>
           )}
         </div>
       </div>
