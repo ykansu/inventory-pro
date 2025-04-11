@@ -555,14 +555,12 @@ class Sale extends BaseModel {
       
       // Ensure limit is a number
       const numericLimit = parseInt(limit, 10) || 5;
-      console.log(`getTopSellingProducts called with period: ${period}, limit: ${limit}, sortBy: ${sortBy}, converted to numericLimit: ${numericLimit}`);
       
       // Check if required tables exist
       const hasSalesTable = await db.schema.hasTable(this.tableName);
       const hasSaleItemsTable = await db.schema.hasTable('sale_items');
       
       if (!hasSalesTable || !hasSaleItemsTable) {
-        console.log('Required tables do not exist, returning empty top products data');
         return [];
       }
       
@@ -626,20 +624,15 @@ class Sale extends BaseModel {
         sortColumn = 'profit';
       }
       
-      console.log(`Sorting by ${sortColumn} before applying limit`);
-      
       // Add limit if specified
       if (numericLimit > 0) {
-        console.log(`Applying limit of ${numericLimit} to query`);
         query = query.orderBy(sortColumn, 'desc').limit(numericLimit);
       } else {
-        console.log('No limit applied to query');
         query = query.orderBy(sortColumn, 'desc');
       }
       
       // Execute the query
       const topProducts = await query;
-      console.log(`Query returned ${topProducts.length} products`);
       
       // Calculate profit and margin for each product
       return topProducts.map(product => {

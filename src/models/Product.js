@@ -193,45 +193,43 @@ class Product extends BaseModel {
         return 0;
       }
       
-      // Check if required tables exist
-      const hasSalesTable = await db.schema.hasTable('sales');
-      const hasSaleItemsTable = await db.schema.hasTable('sale_items');
+      // Check if required tables exist using a single query
+      const tableCheck = await db.raw(`
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name IN ('sales', 'sale_items')
+        GROUP BY name
+      `);
       
-      if (!hasSalesTable || !hasSaleItemsTable) {
+      if (tableCheck.length < 2) {
         console.log('sales or sale_items table does not exist, returning default turnover rate');
-        return 4.0; // A reasonable default turnover rate for retail
+        return 0; // A reasonable default turnover rate for retail
       }
       
-      // Get all sales for the past year to calculate cost of goods sold (COGS)
+      // Get the date for one year ago
       const now = new Date();
-      const oneYearAgo = subYears(now, 1).toISOString();
+      const oneYearAgo = subYears(now, 1);
+      const oneYearAgoStr = oneYearAgo.toISOString();
       
-      // Get all sale items for the past year
-      const saleItems = await db('sale_items')
+      // Use historical_cost_price from sale_items table which was added in migration 20250402_add_price_history.js
+      // This is more efficient than joining with products table
+      const cogsResult = await db('sale_items')
         .join('sales', 'sale_items.sale_id', 'sales.id')
-        .join('products', 'sale_items.product_id', 'products.id')
-        .where('sales.created_at', '>=', oneYearAgo)
+        .where('sales.created_at', '>=', oneYearAgoStr)
         .where('sales.is_returned', false)
-        .select(
-          'sale_items.quantity',
-          'products.cost_price'
-        );
+        .select(db.raw('SUM(sale_items.quantity * sale_items.historical_cost_price) as total_cogs'));
       
-      // Calculate COGS
-      let cogs = 0;
-      saleItems.forEach(item => {
-        cogs += item.quantity * item.cost_price;
-      });
-      
+      // Extract COGS value from result
+      const cogs = cogsResult[0]?.total_cogs ? parseFloat(cogsResult[0].total_cogs) : 0;
+      console.log('cogs', cogs);
       // Calculate turnover rate (COGS / Average Inventory Value)
-      // For simplicity, we're using current inventory value as the average
       const turnoverRate = cogs / currentInventoryValue;
-      
+      console.log('turnoverRate', turnoverRate);
       return turnoverRate;
     } catch (error) {
       console.error('Error in getInventoryTurnoverRate:', error);
       return 4.0; // Default fallback - standard retail turnover rate
     }
+  
   }
   
   // Get inventory trend data for the past months
