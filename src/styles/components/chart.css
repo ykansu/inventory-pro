@@ -242,7 +242,7 @@
 /* ----------------- Payment Method Chart ----------------- */
 .payment-chart {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 20px;
 }
@@ -301,21 +301,6 @@
 .payment-method-value {
   font-size: 12px;
   color: #666;
-}
-
-@media (max-width: 768px) {
-  .payment-chart {
-    flex-direction: column;
-  }
-  
-  .payment-chart-visual {
-    width: 100%;
-    flex: 1 0 auto;
-  }
-  
-  .payment-donut-chart {
-    margin: 20px auto;
-  }
 }
 
 /* ----------------- Top Products Chart ----------------- */
