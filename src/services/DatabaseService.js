@@ -779,7 +779,8 @@ export const ExpenseService = {
   // Get all expenses with optional filters
   getAllExpenses: async (filters = {}) => {
     try {
-      return await window.database.getAllExpenses(filters);
+      const expenses = await window.database.getAllExpenses(filters);
+      return expenses || [];
     } catch (error) {
       console.error('Error fetching expenses:', error);
       throw error;

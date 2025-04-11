@@ -5,6 +5,8 @@ import TotalProductsCard from '../components/dashboard/TotalProductsCard';
 import LowStockItemsCard from '../components/dashboard/LowStockItemsCard';
 import TodaySalesCard from '../components/dashboard/TodaySalesCard';
 import MonthlyProfitMetricsCards from '../components/dashboard/MonthlyProfitMetricsCards';
+import MonthlyExpensesCard from '../components/dashboard/MonthlyExpensesCard';
+import TotalCashCard from '../components/dashboard/TotalCashCard';
 import InventoryMetricsCards from '../components/dashboard/InventoryMetricsCards';
 import ProfitTrendChart from '../components/dashboard/ProfitTrendChart';
 import CategoryProfitsChart from '../components/dashboard/CategoryProfitsChart';
@@ -34,6 +36,8 @@ const Dashboard = () => {
         <TodaySalesCard />
         <MonthlyProfitMetricsCards />
         <InventoryMetricsCards />
+        <MonthlyExpensesCard />
+        <TotalCashCard />
       </div>
       
       {/* Dashboard Sections - Grid Layout */}
