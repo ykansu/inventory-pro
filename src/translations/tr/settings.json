@@ -14,7 +14,9 @@
     "dateFormat": "Tarih Formatı",
     "enableLowStockNotifications": "Düşük Stok Bildirimlerini Etkinleştir",
     "maxBackups": "Saklanacak Maksimum Yedek Sayısı",
-    "creditCardVendorFee": "Kredi Kartı Komisyon Oranı (%)"
+    "creditCardVendorFee": "Kredi Kartı Komisyon Oranı (%)",
+    "languageChangeSuccess": "Dil değişikliği başarılı",
+    "languageChangeError": "Dil değiştirilemedi"
   },
   "languages": {
     "en": "İngilizce",
@@ -77,6 +79,7 @@
       "title": "Ayarları Sıfırla",
       "description": "Tüm ayarları varsayılan değerlerine sıfırlayın. Bu, verilerinizi etkilemeyecektir.",
       "action": "Ayarları Sıfırla",
+      "confirmMessage": "Tüm ayarları varsayılan değerlerine sıfırlamak istediğinizden emin misiniz?",
       "success": "Ayarlar başarıyla sıfırlandı",
       "error": "Ayarlar sıfırlanamadı"
     },
@@ -147,7 +150,5 @@
   },
   "saveSuccess": "Ayarlar başarıyla kaydedildi",
   "saveError": "Ayarlar kaydedilemedi",
-  "languageChangeSuccess": "Dil değişikliği başarılı",
-  "languageChangeError": "Dil değiştirilemedi",
   "saveButton": "Ayarları Kaydet"
 }

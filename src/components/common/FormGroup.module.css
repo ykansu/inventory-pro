@@ -1,0 +1,94 @@
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.errorMessage {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.checkboxGroup {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checkboxGroup .label {
+  margin: 0;
+  cursor: pointer;
+  order: 1;
+}
+
+.checkboxGroup input[type="checkbox"] {
+  margin: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  order: 0;
+}
+
+/* Form control styles */
+.formGroup input[type="text"],
+.formGroup input[type="email"],
+.formGroup input[type="tel"],
+.formGroup input[type="number"],
+.formGroup select,
+.formGroup textarea {
+  padding: 0.625rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.formGroup input[type="text"]:focus,
+.formGroup input[type="email"]:focus,
+.formGroup input[type="tel"]:focus,
+.formGroup input[type="number"]:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Apply form-control class styles */
+:global(.form-control) {
+  padding: 0.625rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+:global(.form-control:focus) {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+:global(.is-invalid) {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2;
+}
+
+:global(.is-invalid:focus) {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
+} 

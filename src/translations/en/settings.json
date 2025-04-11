@@ -14,7 +14,9 @@
     "dateFormat": "Date Format",
     "enableLowStockNotifications": "Enable Low Stock Notifications",
     "maxBackups": "Max Backups to Keep",
-    "creditCardVendorFee": "Credit Card Vendor Fee (%)"
+    "creditCardVendorFee": "Credit Card Vendor Fee (%)",
+    "languageChangeSuccess": "Language changed successfully",
+    "languageChangeError": "Failed to change language"
   },
   "languages": {
     "en": "English",
@@ -77,6 +79,7 @@
       "title": "Reset Settings",
       "description": "Reset all settings to their default values. This will not affect your data.",
       "action": "Reset Settings",
+      "confirmMessage": "Are you sure you want to reset all settings to default values?",
       "success": "Settings reset successfully",
       "error": "Failed to reset settings"
     },
@@ -145,7 +148,5 @@
   },
   "saveSuccess": "Settings saved successfully",
   "saveError": "Failed to save settings",
-  "languageChangeSuccess": "Language changed successfully",
-  "languageChangeError": "Failed to change language",
   "saveButton": "Save Settings"
 }

@@ -56,10 +56,13 @@ export const useTranslation = (namespaces = ['common']) => {
 
   /**
    * Get the list of available languages
-   * @returns {string[]} - Array of available language codes
+   * @returns {Array} - Array of available language objects with code and name
    */
   const getAvailableLanguages = () => {
-    return ['en', 'tr']; // Add more languages as they become available
+    return [
+      { code: 'en', name: 'English' },
+      { code: 'tr', name: 'Türkçe' }
+    ]; // Add more languages as they become available
   };
 
   return {

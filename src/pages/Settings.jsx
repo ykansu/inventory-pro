@@ -3,7 +3,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
-import '../styles/pages/settings.css';
+import styles from './Settings.module.css';
+import Button from '../components/common/Button';
+import FormGroup from '../components/common/FormGroup';
+import TabNavigation from '../components/common/TabNavigation';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');
@@ -85,6 +88,14 @@ const Settings = () => {
     });
   };
 
+  // Tab configuration
+  const tabs = [
+    { id: 'general', label: t('settings:sections.general') },
+    { id: 'business', label: t('settings:sections.businessInformation') },
+    { id: 'receipt', label: t('settings:sections.receiptCustomization') },
+    { id: 'database', label: t('settings:sections.databaseManagement') }
+  ];
+
   const handleLanguageChange = (e) => {
     const newLanguage = e.target.value;
     
@@ -97,9 +108,9 @@ const Settings = () => {
         // Only change the language if saved successfully to DB
         changeLanguage(newLanguage);
         updateLocalStatesFromSettings();
-        toast.success(t('settings:languageChangeSuccess'));
+        toast.success(t('settings:general.languageChangeSuccess'));
       } else {
-        toast.error(t('settings:languageChangeError'));
+        toast.error(t('settings:general.languageChangeError'));
       }
     });
   };
@@ -189,9 +200,9 @@ const Settings = () => {
     
     // Show a single toast based on the result
     if (success) {
-      toast.success(t('settings:saveSuccess'));
+      toast.success(t('common:saveSuccess'));
     } else {
-      toast.error(t('settings:saveError'));
+      toast.error(t('common:saveError'));
     }
   };
   
@@ -203,12 +214,12 @@ const Settings = () => {
     const mappedSettings = {
       business_name: businessSettings.businessName,
       business_address: businessSettings.address,
-      business_phone: businessSettings.phone, 
+      business_phone: businessSettings.phone,
       business_email: businessSettings.email,
       tax_id: businessSettings.taxId
     };
     
-    // Save all business settings with correct field names
+    // Save all business settings
     for (const [key, value] of Object.entries(mappedSettings)) {
       const result = await handleSaveSetting(key, value);
       if (!result) success = false;
@@ -219,9 +230,9 @@ const Settings = () => {
     
     // Show a single toast based on the result
     if (success) {
-      toast.success(t('settings:saveSuccess'));
+      toast.success(t('common:saveSuccess'));
     } else {
-      toast.error(t('settings:saveError'));
+      toast.error(t('common:saveError'));
     }
   };
   
@@ -229,15 +240,17 @@ const Settings = () => {
     e.preventDefault();
     let success = true;
     
-    // Save receipt header/footer with correct field names
-    const result1 = await handleSaveSetting('receipt_header', receiptSettings.header);
-    const result2 = await handleSaveSetting('receipt_footer', receiptSettings.footer);
+    // Map to correct database field names
+    const mappedSettings = {
+      receipt_header: receiptSettings.header,
+      receipt_footer: receiptSettings.footer,
+      show_logo: receiptSettings.showLogo
+    };
     
-    // Save other receipt settings
-    const result3 = await handleSaveSetting('show_logo', receiptSettings.showLogo);
-    
-    if (!result1 || !result2 || !result3) {
-      success = false;
+    // Save all receipt settings
+    for (const [key, value] of Object.entries(mappedSettings)) {
+      const result = await handleSaveSetting(key, value);
+      if (!result) success = false;
     }
     
     // Refresh the settings from context to update the UI
@@ -245,502 +258,460 @@ const Settings = () => {
     
     // Show a single toast based on the result
     if (success) {
-      toast.success(t('settings:saveSuccess'));
+      toast.success(t('common:saveSuccess'));
     } else {
-      toast.error(t('settings:saveError'));
+      toast.error(t('common:saveError'));
     }
   };
   
-  // Database management
   const handleResetDatabase = async () => {
     if (window.confirm(t('settings:database.reset.confirmMessage'))) {
       try {
-        // Show loading state
-        toast.loading(t('common:processing'), { id: 'resetDb' });
+        // Check if database instance is available
+        if (!database) {
+          throw new Error('Database not initialized');
+        }
         
-        // Try resetting the database
-        const result = await database.resetDatabase();
+        // Call the reset method on the database
+        const result = await window.electron.resetDatabase();
         
-        // Clear loading toast
-        toast.dismiss('resetDb');
-        
-        // Show success/error based on result
-        if (result && result.success) {
+        if (result.success) {
           toast.success(t('settings:database.reset.success'));
           
-          // Wait a moment to ensure database connection is fully reestablished
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          window.location.reload();
+          // Refresh settings
+          updateLocalStatesFromSettings();
         } else {
-          toast.error(t('settings:database.reset.error'));
-          console.error('Database reset failed with result:', result);
+          throw new Error(result.error || 'Unknown error');
         }
       } catch (error) {
-        toast.dismiss('resetDb');
+        console.error('Database reset error:', error);
         toast.error(t('settings:database.reset.error'));
-        console.error('Database reset failed:', error);
-        
-        // If reset fails, suggest the user reload the application
-        setTimeout(() => {
-          if (window.confirm('There was an error resetting the database. Would you like to reload the application?')) {
-            window.location.reload();
-          }
-        }, 1000);
-      }
-    }
-  };
-
-  // Add handlers for JSON import/export
-  const handleExportToJson = async () => {
-    try {
-      const exportPath = await database.exportToJson();
-      toast.success(t('settings:database.exportToJson.success'));
-    } catch (error) {
-      toast.error(t('settings:database.exportToJson.error'));
-      console.error('JSON export failed:', error);
-    }
-  };
-
-  const handleImportFromJson = async () => {
-    if (window.confirm(t('settings:database.importFromJson.confirmMessage'))) {
-      try {
-        // First, select the JSON file
-        const jsonFilePath = await database.selectJsonFile();
-        
-        if (!jsonFilePath) {
-          return; // User canceled the file selection
-        }
-        
-        // Show loading state
-        toast.loading(t('common:processing'), { id: 'importJson' });
-        
-        // Import data
-        const result = await database.importFromJson(jsonFilePath);
-        
-        // Clear loading toast
-        toast.dismiss('importJson');
-        
-        // Show success message
-        toast.success(t('settings:database.importFromJson.success'));
-        
-        // Wait a moment to ensure database connection is fully reestablished
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        window.location.reload();
-      } catch (error) {
-        // Clear loading toast
-        toast.dismiss('importJson');
-        
-        toast.error(t('settings:database.importFromJson.error'));
-        console.error('JSON import failed:', error);
-        
-        // If import fails, suggest the user reload the application
-        setTimeout(() => {
-          if (window.confirm('There was an error importing the JSON data. Would you like to reload the application?')) {
-            window.location.reload();
-          }
-        }, 1000);
       }
     }
   };
   
-  // Add handlers for Excel import/export
-  const handleExportToExcel = async () => {
+  const handleExportToJson = async () => {
     try {
-      const exportPath = await database.exportToExcel();
-      toast.success(t('settings:database.exportToExcel.success'));
+      const result = await window.electron.exportDatabase('json');
+      if (result.success) {
+        toast.success(t('settings:database.exportToJson.success'));
+      } else {
+        throw new Error(result.error || 'Export failed');
+      }
     } catch (error) {
-      toast.error(t('settings:database.exportToExcel.error'));
-      console.error('Excel export failed:', error);
+      console.error('JSON export error:', error);
+      toast.error(t('settings:database.exportToJson.error'));
     }
   };
-
+  
+  const handleImportFromJson = async () => {
+    if (window.confirm(t('settings:database.importFromJson.confirmMessage'))) {
+      try {
+        // First create a backup
+        const backupResult = await window.electron.backupDatabase('pre_import');
+        if (!backupResult.success) {
+          throw new Error('Failed to create backup before import');
+        }
+        
+        // Now import the data
+        const result = await window.electron.importDatabase('json');
+        
+        if (result.success) {
+          toast.success(t('settings:database.importFromJson.success'));
+          
+          // Refresh settings since data might have changed
+          updateLocalStatesFromSettings();
+        } else {
+          throw new Error(result.error || 'Import failed');
+        }
+      } catch (error) {
+        console.error('JSON import error:', error);
+        toast.error(`${t('settings:database.importFromJson.error')}: ${error.message}`);
+      }
+    }
+  };
+  
+  const handleExportToExcel = async () => {
+    try {
+      const result = await window.electron.exportDatabase('excel');
+      if (result.success) {
+        toast.success(t('settings:database.exportToExcel.success'));
+      } else {
+        throw new Error(result.error || 'Export failed');
+      }
+    } catch (error) {
+      console.error('Excel export error:', error);
+      toast.error(t('settings:database.exportToExcel.error'));
+    }
+  };
+  
   const handleImportFromExcel = async () => {
     if (window.confirm(t('settings:database.importFromExcel.confirmMessage'))) {
       try {
-        // First, select the Excel file
-        const excelFilePath = await database.selectExcelFile();
-        
-        if (!excelFilePath) {
-          return; // User canceled the file selection
+        // First create a backup
+        const backupResult = await window.electron.backupDatabase('pre_import');
+        if (!backupResult.success) {
+          throw new Error('Failed to create backup before import');
         }
         
-        // Show loading state
-        toast.loading(t('common:processing'), { id: 'importExcel' });
+        // Now import the data
+        const result = await window.electron.importDatabase('excel');
         
-        // Import data
-        const result = await database.importFromExcel(excelFilePath);
-        
-        // Clear loading toast
-        toast.dismiss('importExcel');
-        
-        // Show success message
-        toast.success(t('settings:database.importFromExcel.success'));
-        
-        // Wait a moment to ensure database connection is fully reestablished
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        window.location.reload();
+        if (result.success) {
+          toast.success(t('settings:database.importFromExcel.success'));
+          
+          // Refresh settings since data might have changed
+          updateLocalStatesFromSettings();
+        } else {
+          throw new Error(result.error || 'Import failed');
+        }
       } catch (error) {
-        // Clear loading toast
-        toast.dismiss('importExcel');
-        
-        toast.error(t('settings:database.importFromExcel.error'));
-        console.error('Excel import failed:', error);
-        
-        // If import fails, suggest the user reload the application
-        setTimeout(() => {
-          if (window.confirm('There was an error importing the Excel data. Would you like to reload the application?')) {
-            window.location.reload();
-          }
-        }, 1000);
+        console.error('Excel import error:', error);
+        toast.error(`${t('settings:database.importFromExcel.error')}: ${error.message}`);
       }
     }
   };
-
-  // Reset settings handler
+  
   const handleResetSettings = async () => {
-    try {
-      const success = await resetSettings();
-      
-      if (success) {
-        // Update local state to reflect reset settings
+    if (window.confirm(t('settings:database.resetSettings.confirmMessage'))) {
+      try {
+        await resetSettings();
         updateLocalStatesFromSettings();
-        toast.success(t('settings:resetSettings.success'));
-      } else {
-        toast.error(t('settings:resetSettings.error'));
+        toast.success(t('settings:database.resetSettings.success'));
+      } catch (error) {
+        console.error('Settings reset error:', error);
+        toast.error(t('settings:database.resetSettings.error'));
       }
-    } catch (error) {
-      console.error('Failed to reset settings:', error);
-      toast.error(t('settings:resetSettings.error'));
     }
   };
 
   return (
-    <div className="settings-page">
-      <div className="page-header">
-        <h2>{t('settings:title')}</h2>
-      </div>
-
-      <div className="settings-container">
-        <div className="settings-sidebar">
-          <ul className="settings-tabs">
-            <li>
-              <button 
-                className={`settings-tab-button ${activeTab === 'general' ? 'active' : ''}`}
-                onClick={() => setActiveTab('general')}
-              >
-                {t('settings:sections.general')}
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`settings-tab-button ${activeTab === 'business' ? 'active' : ''}`}
-                onClick={() => setActiveTab('business')}
-              >
-                {t('settings:sections.businessInformation')}
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`settings-tab-button ${activeTab === 'receipt' ? 'active' : ''}`}
-                onClick={() => setActiveTab('receipt')}
-              >
-                {t('settings:sections.receiptCustomization')}
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`settings-tab-button ${activeTab === 'database' ? 'active' : ''}`}
-                onClick={() => setActiveTab('database')}
-              >
-                {t('settings:sections.databaseManagement')}
-              </button>
-            </li>
-          </ul>
+    <div className={styles.page}>
+      <div className={styles.container}>
+        <div className={styles.sidebar}>
+          <TabNavigation 
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
-
-        <div className="settings-content">
+        
+        <div className={styles.content}>
+          {/* General Settings */}
           {activeTab === 'general' && (
-            <div className="general-settings">
+            <>
               <h3>{t('settings:sections.general')}</h3>
-              
-              <form className="settings-form" onSubmit={handleGeneralSubmit}>
-                <div className="form-group">
-                  <label htmlFor="language">{t('settings:general.language')}</label>
-                  <select 
-                    id="language" 
-                    name="language" 
+              <form className={styles.form} onSubmit={handleGeneralSubmit}>
+                <FormGroup 
+                  label={t('settings:general.language')} 
+                  htmlFor="language"
+                >
+                  <select
+                    id="language"
+                    name="language"
                     value={generalSettings.language}
                     onChange={handleLanguageChange}
+                    className="form-control"
                   >
                     {availableLanguages.map(lang => (
-                      <option key={lang} value={lang}>
-                        {t(`settings:languages.${lang}`)}
+                      <option key={lang.code} value={lang.code}>
+                        {lang.name}
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="currency">{t('settings:general.currency')}</label>
-                  <select 
-                    id="currency" 
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:general.currency')} 
+                  htmlFor="currency"
+                >
+                  <select
+                    id="currency"
                     name="currency"
-                    value={generalSettings.currency?.toLowerCase()}
+                    value={generalSettings.currency}
                     onChange={handleGeneralChange}
+                    className="form-control"
                   >
                     <option value="usd">USD ($)</option>
                     <option value="eur">EUR (€)</option>
                     <option value="gbp">GBP (£)</option>
                     <option value="try">TRY (₺)</option>
                   </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="dateFormat">{t('settings:general.dateFormat')}</label>
-                  <select 
-                    id="dateFormat" 
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:general.dateFormat')} 
+                  htmlFor="dateFormat"
+                >
+                  <select
+                    id="dateFormat"
                     name="dateFormat"
                     value={generalSettings.dateFormat}
                     onChange={handleGeneralChange}
+                    className="form-control"
                   >
                     <option value="mm/dd/yyyy">MM/DD/YYYY</option>
                     <option value="dd/mm/yyyy">DD/MM/YYYY</option>
                     <option value="yyyy-mm-dd">YYYY-MM-DD</option>
                   </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="creditCardVendorFee">{t('settings:general.creditCardVendorFee', 'Credit Card Vendor Fee (%)')}</label>
-                  <input 
-                    type="number" 
-                    id="creditCardVendorFee" 
-                    name="creditCardVendorFee"
-                    value={generalSettings.creditCardVendorFee}
-                    onChange={handleGeneralChange}
-                    step="0.01"
-                    min="0"
-                    max="100"
-                  />
-                </div>
-
-                <div className="form-group checkbox-group">
-                  <input 
-                    type="checkbox" 
-                    id="enableNotifications" 
+                </FormGroup>
+                
+                <FormGroup 
+                  isCheckbox
+                  htmlFor="enableNotifications"
+                >
+                  <input
+                    type="checkbox"
+                    id="enableNotifications"
                     name="enableNotifications"
                     checked={generalSettings.enableNotifications}
                     onChange={handleGeneralChange}
                   />
-                  <label htmlFor="enableNotifications">{t('settings:general.enableLowStockNotifications')}</label>
-                </div>
-
-                <div className="form-actions">
-                  <button type="submit" className="button primary">
+                  <label htmlFor="enableNotifications">
+                    {t('settings:general.enableLowStockNotifications')}
+                  </label>
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:general.creditCardVendorFee')} 
+                  htmlFor="creditCardVendorFee"
+                >
+                  <input
+                    type="number"
+                    step="0.01"
+                    id="creditCardVendorFee"
+                    name="creditCardVendorFee"
+                    value={generalSettings.creditCardVendorFee}
+                    onChange={handleGeneralChange}
+                    className="form-control"
+                  />
+                </FormGroup>
+                
+                <div className={styles.formActions}>
+                  <Button type="submit" variant="primary">
                     {t('common:saveChanges')}
-                  </button>
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="danger" 
+                    onClick={handleResetSettings}
+                  >
+                    {t('settings:database.resetSettings.action')}
+                  </Button>
                 </div>
               </form>
-            </div>
+            </>
           )}
-
+          
+          {/* Business Settings */}
           {activeTab === 'business' && (
-            <div className="business-settings">
+            <>
               <h3>{t('settings:sections.businessInformation')}</h3>
-              
-              <form className="settings-form" onSubmit={handleBusinessSubmit}>
-                <div className="form-group">
-                  <label htmlFor="businessName">{t('settings:business.businessName')}</label>
-                  <input 
-                    type="text" 
-                    id="businessName" 
-                    name="businessName" 
+              <form className={styles.form} onSubmit={handleBusinessSubmit}>
+                <FormGroup 
+                  label={t('settings:business.businessName')} 
+                  htmlFor="businessName"
+                >
+                  <input
+                    type="text"
+                    id="businessName"
+                    name="businessName"
                     value={businessSettings.businessName}
                     onChange={handleBusinessChange}
-                    placeholder={t('settings:business.businessNamePlaceholder')} 
+                    className="form-control"
                   />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="address">{t('settings:business.address')}</label>
-                  <textarea 
-                    id="address" 
-                    name="address" 
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:business.address')} 
+                  htmlFor="address"
+                >
+                  <textarea
+                    id="address"
+                    name="address"
                     value={businessSettings.address}
                     onChange={handleBusinessChange}
-                    placeholder={t('settings:business.addressPlaceholder')} 
-                    rows="3"
-                  ></textarea>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="phone">{t('settings:business.phoneNumber')}</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    name="phone" 
+                    className="form-control"
+                    rows={3}
+                  />
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:business.phoneNumber')} 
+                  htmlFor="phone"
+                >
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
                     value={businessSettings.phone}
                     onChange={handleBusinessChange}
-                    placeholder={t('settings:business.phonePlaceholder')} 
+                    className="form-control"
                   />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="email">{t('settings:business.email')}</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:business.email')} 
+                  htmlFor="email"
+                >
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
                     value={businessSettings.email}
                     onChange={handleBusinessChange}
-                    placeholder={t('settings:business.emailPlaceholder')} 
+                    className="form-control"
                   />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="taxId">{t('settings:business.taxId')}</label>
-                  <input 
-                    type="text" 
-                    id="taxId" 
-                    name="taxId" 
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:business.taxId')} 
+                  htmlFor="taxId"
+                >
+                  <input
+                    type="text"
+                    id="taxId"
+                    name="taxId"
                     value={businessSettings.taxId}
                     onChange={handleBusinessChange}
-                    placeholder={t('settings:business.taxIdPlaceholder')} 
+                    className="form-control"
                   />
-                </div>
-
-                <div className="form-actions">
-                  <button type="submit" className="button primary">
+                </FormGroup>
+                
+                <div className={styles.formActions}>
+                  <Button type="submit" variant="primary">
                     {t('common:saveChanges')}
-                  </button>
+                  </Button>
                 </div>
               </form>
-            </div>
+            </>
           )}
-
+          
+          {/* Receipt Settings */}
           {activeTab === 'receipt' && (
-            <div className="receipt-settings">
+            <>
               <h3>{t('settings:sections.receiptCustomization')}</h3>
-              
-              <form className="settings-form" onSubmit={handleReceiptSubmit}>
-                <div className="form-group">
-                  <label htmlFor="header">{t('settings:receipt.header')}</label>
-                  <textarea 
-                    id="header" 
-                    name="header" 
+              <form className={styles.form} onSubmit={handleReceiptSubmit}>
+                <FormGroup 
+                  label={t('settings:receipt.header')} 
+                  htmlFor="header"
+                >
+                  <textarea
+                    id="header"
+                    name="header"
                     value={receiptSettings.header}
                     onChange={handleReceiptChange}
-                    placeholder={t('settings:receipt.headerPlaceholder')} 
-                    rows="3"
-                  ></textarea>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="footer">{t('settings:receipt.footer')}</label>
-                  <textarea 
-                    id="footer" 
-                    name="footer" 
+                    className="form-control"
+                    rows={3}
+                  />
+                </FormGroup>
+                
+                <FormGroup 
+                  label={t('settings:receipt.footer')} 
+                  htmlFor="footer"
+                >
+                  <textarea
+                    id="footer"
+                    name="footer"
                     value={receiptSettings.footer}
                     onChange={handleReceiptChange}
-                    placeholder={t('settings:receipt.footerPlaceholder')} 
-                    rows="3"
-                  ></textarea>
-                </div>
-
-                <div className="form-group checkbox-group">
-                  <input 
-                    type="checkbox" 
-                    id="showLogo" 
+                    className="form-control"
+                    rows={3}
+                  />
+                </FormGroup>
+                
+                <FormGroup 
+                  isCheckbox
+                  htmlFor="showLogo"
+                >
+                  <input
+                    type="checkbox"
+                    id="showLogo"
                     name="showLogo"
                     checked={receiptSettings.showLogo}
                     onChange={handleReceiptChange}
                   />
-                  <label htmlFor="showLogo">{t('settings:receipt.showLogo')}</label>
-                </div>
-
-                <div className="form-actions">
-                  <button type="submit" className="button primary">
+                  <label htmlFor="showLogo">
+                    {t('settings:receipt.showLogo')}
+                  </label>
+                </FormGroup>
+                
+                <div className={styles.formActions}>
+                  <Button type="submit" variant="primary">
                     {t('common:saveChanges')}
-                  </button>
+                  </Button>
                 </div>
               </form>
-            </div>
+            </>
           )}
-
+          
+          {/* Database Management */}
           {activeTab === 'database' && (
-            <div className="database-settings">
+            <>
               <h3>{t('settings:sections.databaseManagement')}</h3>
               
-              <div className="database-actions">
-                <div className="action-card">
+              <div className={styles.databaseActions}>
+                {/* Export to JSON */}
+                <div className={styles.actionCard}>
                   <h4>{t('settings:database.exportToJson.title')}</h4>
                   <p>{t('settings:database.exportToJson.description')}</p>
-                  <button 
-                    className="button secondary"
+                  <Button
+                    variant="secondary"
                     onClick={handleExportToJson}
                   >
                     {t('settings:database.exportToJson.action')}
-                  </button>
+                  </Button>
                 </div>
                 
-                <div className="action-card">
+                {/* Import from JSON */}
+                <div className={styles.actionCard}>
                   <h4>{t('settings:database.importFromJson.title')}</h4>
                   <p>{t('settings:database.importFromJson.description')}</p>
-                  <button 
-                    className="button secondary"
+                  <Button
+                    variant="secondary"
                     onClick={handleImportFromJson}
                   >
                     {t('settings:database.importFromJson.action')}
-                  </button>
+                  </Button>
                 </div>
                 
-                <div className="action-card">
+                {/* Export to Excel */}
+                <div className={styles.actionCard}>
                   <h4>{t('settings:database.exportToExcel.title')}</h4>
                   <p>{t('settings:database.exportToExcel.description')}</p>
-                  <button 
-                    className="button secondary"
+                  <Button
+                    variant="secondary"
                     onClick={handleExportToExcel}
                   >
                     {t('settings:database.exportToExcel.action')}
-                  </button>
+                  </Button>
                 </div>
                 
-                <div className="action-card">
+                {/* Import from Excel */}
+                <div className={styles.actionCard}>
                   <h4>{t('settings:database.importFromExcel.title')}</h4>
                   <p>{t('settings:database.importFromExcel.description')}</p>
-                  <button 
-                    className="button secondary"
+                  <Button
+                    variant="secondary"
                     onClick={handleImportFromExcel}
                   >
                     {t('settings:database.importFromExcel.action')}
-                  </button>
+                  </Button>
                 </div>
                 
-                <div className="action-card warning">
+                {/* Reset Database */}
+                <div className={`${styles.actionCard} ${styles.warningCard}`}>
                   <h4>{t('settings:database.reset.title')}</h4>
                   <p>{t('settings:database.reset.description')}</p>
-                  <button 
-                    className="button danger"
+                  <Button
+                    variant="danger"
                     onClick={handleResetDatabase}
                   >
                     {t('settings:database.reset.action')}
-                  </button>
-                </div>
-                
-                <div className="action-card">
-                  <h4>{t('settings:database.resetSettings.title')}</h4>
-                  <p>{t('settings:database.resetSettings.description')}</p>
-                  <button 
-                    className="button secondary"
-                    onClick={handleResetSettings}
-                  >
-                    {t('settings:database.resetSettings.action')}
-                  </button>
+                  </Button>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
