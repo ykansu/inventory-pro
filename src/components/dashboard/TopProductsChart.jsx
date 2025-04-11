@@ -52,43 +52,37 @@ const TopProductsChart = () => {
     loadSettings();
   }, [settings]);
 
-  useEffect(() => {
-    const fetchTopProducts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        console.log(`Fetching top products with period: ${period}, count: ${showCount}, sortBy: ${sortBy}`);
+  const fetchTopProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Get real data from database - passing all parameters to backend
+      const data = await dashboard.getTopSellingProducts(period, showCount, sortBy);
+      
+      if (data && data.length > 0) {
+        // Process the data to ensure it has all required fields
+        const processedData = data.map(product => ({
+          ...product,
+          // Calculate profit margin if not provided
+          profitMargin: product.profitMargin || 
+            Math.round((product.profit / product.revenue) * 100) || 0
+        }));
         
-        // Get real data from database - passing all parameters to backend
-        const data = await dashboard.getTopSellingProducts(period, showCount, sortBy);
-        
-        console.log(`Received ${data?.length || 0} products from API`);
-        
-        if (data && data.length > 0) {
-          // Process the data to ensure it has all required fields
-          const processedData = data.map(product => ({
-            ...product,
-            // Calculate profit margin if not provided
-            profitMargin: product.profitMargin || 
-              Math.round((product.profit / product.revenue) * 100) || 0
-          }));
-          
-          // The data is already sorted by the backend based on the sortBy parameter
-          setTopProducts(processedData);
-          console.log(`Set ${processedData.length} products after processing`);
-        } else {
-          setTopProducts([]);
-          console.log('No products returned, setting empty array');
-        }
-      } catch (error) {
-        console.error('Error fetching top products:', error);
-        setError(error);
+        // The data is already sorted by the backend based on the sortBy parameter
+        setTopProducts(processedData);
+      } else {
         setTopProducts([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching top products:', error);
+      setError(error);
+      setTopProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTopProducts();
   }, [dashboard, sortBy, showCount, period]);
 
@@ -271,4 +265,4 @@ const TopProductsChart = () => {
   );
 };
 
-export default TopProductsChart; 
+export default TopProductsChart;
