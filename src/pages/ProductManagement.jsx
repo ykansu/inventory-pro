@@ -3,7 +3,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
 import { toast } from 'react-hot-toast';
-import '../styles/pages/product-management.css';
+import styles from './ProductManagement.module.css';
+import Button from '../components/common/Button';
+import FormGroup from '../components/common/FormGroup';
+import Table from '../components/common/Table';
 
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', 'edit', 'categories', or 'suppliers'
@@ -255,6 +258,24 @@ const ProductManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check required fields based on the database schema plus stock-related fields
+    const requiredFields = ['name', 'selling_price', 'cost_price', 'stock_quantity', 'min_stock_threshold', 'category_id'];
+    let hasErrors = false;
+    
+    for (const field of requiredFields) {
+      if (!formData[field] && formData[field] !== 0) {
+        hasErrors = true;
+        // Force re-render to show validation messages
+        setFormData({...formData});
+        break;
+      }
+    }
+    
+    if (hasErrors) {
+      toast.error(t('common:pleaseFixErrors'));
+      return;
+    }
+    
     try {
       setLoading(true);
       
@@ -265,7 +286,7 @@ const ProductManagement = () => {
         cost_price: parseFloat(formData.cost_price),
         stock_quantity: parseFloat(formData.stock_quantity),
         min_stock_threshold: parseFloat(formData.min_stock_threshold),
-        category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
+        category_id: parseInt(formData.category_id, 10),
         supplier_id: formData.supplier_id ? parseInt(formData.supplier_id, 10) : null,
         barcode: formData.barcode.trim() || null // Set to null if empty
       };
@@ -506,8 +527,8 @@ const ProductManagement = () => {
 
   if (isLoading || loading) {
     return (
-      <div className="product-management-page">
-        <div className="loading-indicator">
+      <div className={styles.page}>
+        <div className={styles.loadingIndicator}>
           {t('common:loading')}
         </div>
       </div>
@@ -516,8 +537,8 @@ const ProductManagement = () => {
 
   if (error) {
     return (
-      <div className="product-management-page">
-        <div className="error-message">
+      <div className={styles.page}>
+        <div className={styles.errorMessage}>
           {error}
         </div>
       </div>
@@ -525,67 +546,70 @@ const ProductManagement = () => {
   }
 
   return (
-    <div className="product-management-page">
-      <div className="page-header">
+    <div className={styles.page}>
+      <div className={styles.header}>
         <h2>{t('products:title')}</h2>
-        <div className="page-tabs">
-          <button 
-            className={`tab-button ${activeTab === 'list' ? 'active' : ''}`}
-            onClick={() => setActiveTab('list')}
-          >
-            {t('products:tabs.list')}
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'add' ? 'active' : ''}`}
+        {activeTab === 'list' && (
+          <Button 
+            variant="primary" 
             onClick={() => {
-              resetForm();
+              setFormData({
+                id: null,
+                name: '',
+                barcode: '',
+                category_id: '',
+                unit: 'pcs',
+                selling_price: '',
+                cost_price: '',
+                stock_quantity: 0,
+                min_stock_threshold: 5,
+                supplier_id: '',
+                description: ''
+              });
               setActiveTab('add');
             }}
           >
             {t('products:tabs.add')}
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'categories' ? 'active' : ''}`}
-            onClick={() => {
-              resetCategoryForm();
-              setActiveTab('categories');
-            }}
-          >
-            {t('products:tabs.categories', { fallback: 'Categories' })}
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'suppliers' ? 'active' : ''}`}
-            onClick={() => {
-              resetSupplierForm();
-              setActiveTab('suppliers');
-            }}
-          >
-            {t('products:tabs.suppliers', { fallback: 'Suppliers' })}
-          </button>
-          {activeTab === 'edit' && (
-            <button 
-              className={`tab-button active`}
-            >
-              {t('products:tabs.edit')}
-            </button>
-          )}
-        </div>
+          </Button>
+        )}
       </div>
-
+      
+      <div className={styles.tabs}>
+        <button 
+          className={`${styles.tabButton} ${activeTab === 'list' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('list')}
+        >
+          {t('products:tabs.list')}
+        </button>
+        <button 
+          className={`${styles.tabButton} ${activeTab === 'categories' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('categories')}
+        >
+          {t('products:tabs.categories')}
+        </button>
+        <button 
+          className={`${styles.tabButton} ${activeTab === 'suppliers' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('suppliers')}
+        >
+          {t('products:tabs.suppliers')}
+        </button>
+      </div>
+      
       {activeTab === 'list' ? (
-        <div className="product-list-container">
-          <div className="product-filters">
-            <input 
-              type="text" 
-              placeholder={t('products:search.placeholder')} 
-              className="search-input"
+        <>
+          <div className={styles.filters}>
+            <input
+              type="text"
+              placeholder={t('products:search.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
             />
-            <select 
-              className="filter-select"
+            
+            <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
+              className={styles.filterSelect}
             >
               <option value="">{t('products:filters.allCategories')}</option>
               {categoryList.map(category => (
@@ -594,407 +618,480 @@ const ProductManagement = () => {
                 </option>
               ))}
             </select>
-            <select 
-              className="filter-select"
+            
+            <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value)}
+              className={styles.filterSelect}
             >
               <option value="">{t('products:filters.allStockLevels')}</option>
-              <option value="in-stock">{t('products:filters.inStock')}</option>
-              <option value="low-stock">{t('products:filters.lowStock')}</option>
               <option value="out-of-stock">{t('products:filters.outOfStock')}</option>
+              <option value="low-stock">{t('products:filters.lowStock')}</option>
+              <option value="in-stock">{t('products:filters.inStock')}</option>
             </select>
           </div>
-
-          <div className="product-table-container">
-            <table className="product-table">
-              <thead>
-                <tr>
-                  <th>{t('products:table.headers.name')}</th>
-                  <th>{t('products:table.headers.sku')}</th>
-                  <th>{t('products:table.headers.category')}</th>
-                  <th>{t('products:table.headers.price')}</th>
-                  <th>{t('products:table.headers.stock')}</th>
-                  <th>{t('products:table.headers.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.length === 0 ? (
-                  <tr className="empty-state">
-                    <td colSpan="6">
-                      <p>{filteredProducts.length === 0 ? t('products:emptyState') : t('products:noSearchResults')}</p>
-                    </td>
-                  </tr>
-                ) : (
-                  currentItems.map(product => (
-                    <tr key={product.id}>
-                      <td>{product.name}</td>
-                      <td>{product.barcode || '-'}</td>
-                      <td>{product.category_name || '-'}</td>
-                      <td>{formatPrice(product.selling_price)}</td>
-                      <td>
-                        <span className={
-                          product.stock_quantity <= 0 
-                            ? 'stock-level out-of-stock' 
-                            : product.stock_quantity <= product.min_stock_threshold 
-                              ? 'stock-level low-stock' 
-                              : 'stock-level in-stock'
-                        }>
-                          {product.stock_quantity}
-                        </span>
-                      </td>
-                      <td className="action-buttons">
-                        <button 
-                          className="action-button edit"
-                          onClick={() => handleEditProduct(product.id)}
-                        >
-                          {t('common:edit')}
-                        </button>
-                        <button 
-                          className="action-button delete"
-                          onClick={() => handleDeleteProduct(product.id)}
-                        >
-                          {t('common:delete')}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
           
-          {/* Pagination */}
-          {filteredProducts.length > itemsPerPage && (
-            <div className="pagination">
-              <button 
-                onClick={() => handlePageChange(1)} 
-                disabled={currentPage === 1}
-                className="pagination-button"
-              >
-                &laquo;
-              </button>
-              <button 
-                onClick={() => handlePageChange(currentPage - 1)} 
-                disabled={currentPage === 1}
-                className="pagination-button"
-              >
-                &lt;
-              </button>
-              
-              <span className="pagination-info">
-                {t('common:pagination', { current: currentPage, total: totalPages })}
-              </span>
-              
-              <button 
-                onClick={() => handlePageChange(currentPage + 1)} 
-                disabled={currentPage === totalPages}
-                className="pagination-button"
-              >
-                &gt;
-              </button>
-              <button 
-                onClick={() => handlePageChange(totalPages)} 
-                disabled={currentPage === totalPages}
-                className="pagination-button"
-              >
-                &raquo;
-              </button>
-            </div>
-          )}
-        </div>
+          <div className={styles.tableContainer}>
+            {loading ? (
+              <div className={styles.loadingSpinnerContainer}>
+                <div className={styles.loadingSpinner}></div>
+              </div>
+            ) : error ? (
+              <div className={styles.errorMessage}>
+                <p>{error}</p>
+                <Button onClick={() => loadData()} variant="primary">
+                  {t('common:retry')}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Table
+                  columns={[
+                    { key: 'name', label: t('products:table.headers.name') },
+                    { key: 'category', label: t('products:table.headers.category') },
+                    { key: 'price', label: t('products:table.headers.price') },
+                    { key: 'stock', label: t('products:table.headers.stock') },
+                    { key: 'actions', label: t('products:table.headers.actions') }
+                  ]}
+                  data={currentItems.map(product => {
+                    // Find the category name
+                    const category = categoryList.find(c => c.id === product.category_id);
+                    const categoryName = category ? category.name : '';
+                    
+                    // Determine stock level class
+                    let stockLevelClass = '';
+                    let stockLevelLabel = '';
+                    
+                    if (product.stock_quantity <= 0) {
+                      stockLevelClass = styles.outOfStock;
+                      stockLevelLabel = t('products:filters.outOfStock');
+                    } else if (product.stock_quantity <= product.min_stock_threshold) {
+                      stockLevelClass = styles.lowStock;
+                      stockLevelLabel = t('products:filters.lowStock');
+                    } else {
+                      stockLevelClass = styles.inStock;
+                      stockLevelLabel = t('products:filters.inStock');
+                    }
+                    
+                    return {
+                      name: product.name,
+                      category: categoryName,
+                      price: formatPrice(product.selling_price),
+                      stock: (
+                        <span className={`${styles.stockLevel} ${stockLevelClass}`}>
+                          {product.stock_quantity} {product.unit === 'pcs' ? t('products:units.pieces').split(' ')[0] : product.unit} ({stockLevelLabel})
+                        </span>
+                      ),
+                      actions: (
+                        <div className={styles.actionButtons}>
+                          <button 
+                            className={`${styles.actionButton} ${styles.editButton}`}
+                            onClick={() => handleEditProduct(product.id)}
+                            title={t('common:edit')}
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            className={`${styles.actionButton} ${styles.deleteButton}`}
+                            onClick={() => handleDeleteProduct(product.id)}
+                            title={t('common:delete')}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      )
+                    };
+                  })}
+                  emptyMessage={t('products:emptyState')}
+                />
+                
+                {/* Pagination */}
+                {filteredProducts.length > 0 && (
+                  <div className={styles.pagination}>
+                    <div className={styles.paginationControls}>
+                      <button
+                        className={styles.paginationButton}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        {t('common:previous')}
+                      </button>
+                      <span className={styles.pageInfo}>
+                        {t('common:pageInfo', {
+                          current: currentPage,
+                          total: Math.ceil(filteredProducts.length / itemsPerPage)
+                        })}
+                      </span>
+                      <button
+                        className={styles.paginationButton}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={indexOfLastItem >= filteredProducts.length}
+                      >
+                        {t('common:next')}
+                      </button>
+                    </div>
+                    <span className={styles.paginationInfo}>
+                      {t('common:pagination', {
+                        start: indexOfFirstItem + 1,
+                        end: Math.min(indexOfLastItem, filteredProducts.length),
+                        total: filteredProducts.length
+                      })}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </>
       ) : activeTab === 'categories' ? (
-        <div className="category-management-container">
-          <div className="category-form-container">
-            <h3>{categoryFormData.id ? t('products:categories.editCategory', { fallback: 'Edit Category' }) : t('products:categories.addCategory', { fallback: 'Add Category' })}</h3>
-            <form className="category-form" onSubmit={handleCategorySubmit}>
-              <div className="form-group">
-                <label htmlFor="name">{t('products:form.name')} *</label>
-                <input 
-                  type="text" 
-                  id="name" 
-                  name="name" 
+        <div className={styles.categoryContainer}>
+          <div className={styles.categoryForm}>
+            <h3>
+              {categoryFormData.id ? t('products:categories.editCategory') : t('products:categories.addCategory')}
+            </h3>
+            
+            <form onSubmit={handleCategorySubmit}>
+              <FormGroup
+                label={t('products:categories.name')}
+                htmlFor="category-name"
+                required
+              >
+                <input
+                  type="text"
+                  id="category-name"
+                  name="name"
                   value={categoryFormData.name}
                   onChange={handleCategoryInputChange}
-                  placeholder={t('products:categories.namePlaceholder', { fallback: 'Enter category name' })}
+                  className="form-control"
+                  placeholder={t('products:categories.namePlaceholder')}
                   required
                 />
-              </div>
+              </FormGroup>
               
-              <div className="form-group">
-                <label htmlFor="description">{t('products:form.description')}</label>
-                <textarea 
-                  id="description" 
-                  name="description" 
+              <FormGroup
+                label={t('products:categories.description')}
+                htmlFor="category-description"
+              >
+                <textarea
+                  id="category-description"
+                  name="description"
                   value={categoryFormData.description}
                   onChange={handleCategoryInputChange}
-                  placeholder={t('products:categories.descriptionPlaceholder', { fallback: 'Enter category description (optional)' })}
+                  className="form-control"
+                  placeholder={t('products:categories.descriptionPlaceholder')}
                   rows="3"
-                ></textarea>
-              </div>
+                />
+              </FormGroup>
               
-              <div className="form-actions">
-                <button type="button" className="button secondary" onClick={resetCategoryForm}>
-                  {t('common:cancel')}
-                </button>
-                <button type="submit" className="button primary" disabled={loading}>
-                  {loading ? t('common:saving') : categoryFormData.id ? t('products:categories.update', { fallback: 'Update Category' }) : t('products:categories.save', { fallback: 'Save Category' })}
-                </button>
+              <div className={styles.formActions}>
+                {categoryFormData.id && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setCategoryFormData({
+                      id: null,
+                      name: '',
+                      description: ''
+                    })}
+                  >
+                    {t('common:cancel')}
+                  </Button>
+                )}
+                <Button type="submit" variant="primary">
+                  {categoryFormData.id ? t('products:categories.update') : t('products:categories.save')}
+                </Button>
               </div>
             </form>
           </div>
           
-          <div className="category-list-container">
-            <h3>{t('products:categories.list', { fallback: 'Categories List' })}</h3>
-            <table className="category-table">
-              <thead>
-                <tr>
-                  <th>{t('products:categories.name', { fallback: 'Name' })}</th>
-                  <th>{t('products:categories.description', { fallback: 'Description' })}</th>
-                  <th>{t('products:categories.productCount', { fallback: 'Products' })}</th>
-                  <th>{t('products:table.headers.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categoryList.length === 0 ? (
-                  <tr className="empty-state">
-                    <td colSpan="4">
-                      <p>{t('products:categories.emptyState', { fallback: 'No categories found. Add your first category.' })}</p>
-                    </td>
-                  </tr>
-                ) : (
-                  categoryList.map(category => (
-                    <tr key={category.id}>
-                      <td>{category.name}</td>
-                      <td>{category.description || '-'}</td>
-                      <td>{category.product_count || 0}</td>
-                      <td className="action-buttons">
+          <div className={styles.categoryList}>
+            <h3>{t('products:categories.list')}</h3>
+            
+            {loading ? (
+              <div className={styles.loadingSpinnerContainer}>
+                <div className={styles.loadingSpinner}></div>
+              </div>
+            ) : error ? (
+              <div className={styles.errorMessage}>
+                <p>{error}</p>
+                <Button onClick={() => loadData()} variant="primary">
+                  {t('common:retry')}
+                </Button>
+              </div>
+            ) : (
+              <Table
+                columns={[
+                  { key: 'name', label: t('products:categories.name') },
+                  { key: 'productCount', label: t('products:categories.productCount') },
+                  { key: 'actions', label: t('products:table.headers.actions') }
+                ]}
+                data={categoryList.map(category => {
+                  // Count products in this category
+                  const productCount = productList.filter(
+                    product => product.category_id === category.id
+                  ).length;
+                  
+                  return {
+                    name: category.name,
+                    productCount: productCount,
+                    actions: (
+                      <div className={styles.actionButtons}>
                         <button 
-                          className="action-button edit"
+                          className={`${styles.actionButton} ${styles.editButton}`}
                           onClick={() => handleEditCategory(category)}
+                          title={t('common:edit')}
                         >
-                          {t('common:edit')}
+                          ✏️
                         </button>
                         <button 
-                          className="action-button delete" 
-                          onClick={() => handleDeleteCategory(category.id)} 
-                          disabled={category.product_count > 0}
-                          data-tooltip={category.product_count > 0 ? t('products:categories.cannotDelete', { fallback: 'Cannot delete category with products' }) : ''}
+                          className={`${styles.actionButton} ${styles.deleteButton}`}
+                          onClick={() => handleDeleteCategory(category.id)}
+                          title={t('common:delete')}
+                          disabled={productCount > 0}
+                          data-tooltip={productCount > 0 ? t('products:categories.cannotDelete') : ''}
                         >
-                          {t('common:delete')}
+                          🗑️
                         </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    )
+                  };
+                })}
+                emptyMessage={t('products:categories.emptyState')}
+              />
+            )}
           </div>
         </div>
       ) : activeTab === 'suppliers' ? (
-        <div className="supplier-management-container">
-          <div className="supplier-form-container">
-            <h3>{supplierFormData.id ? t('products:suppliers.editSupplier', { fallback: 'Edit Supplier' }) : t('products:suppliers.addSupplier', { fallback: 'Add Supplier' })}</h3>
-            <form className="supplier-form" onSubmit={handleSupplierSubmit}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="company_name">{t('products:suppliers.companyName', { fallback: 'Company Name' })} *</label>
-                  <input 
-                    type="text" 
-                    id="company_name" 
-                    name="company_name" 
-                    value={supplierFormData.company_name}
-                    onChange={handleSupplierInputChange}
-                    placeholder={t('products:suppliers.companyNamePlaceholder', { fallback: 'Enter company name' })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="contact_person">{t('products:suppliers.contactPerson', { fallback: 'Contact Person' })} *</label>
-                  <input 
-                    type="text" 
-                    id="contact_person" 
-                    name="contact_person" 
-                    value={supplierFormData.contact_person}
-                    onChange={handleSupplierInputChange}
-                    placeholder={t('products:suppliers.contactPersonPlaceholder', { fallback: 'Enter contact person name' })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="phone">{t('products:suppliers.phone', { fallback: 'Phone' })} *</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    name="phone" 
-                    value={supplierFormData.phone}
-                    onChange={handleSupplierInputChange}
-                    placeholder={t('products:suppliers.phonePlaceholder', { fallback: 'Enter phone number' })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">{t('products:suppliers.email', { fallback: 'Email' })}</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    value={supplierFormData.email}
-                    onChange={handleSupplierInputChange}
-                    placeholder={t('products:suppliers.emailPlaceholder', { fallback: 'Enter email address' })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group full-width">
-                <label htmlFor="address">{t('products:suppliers.address', { fallback: 'Address' })}</label>
-                <textarea 
-                  id="address" 
-                  name="address" 
+        <div className={styles.categoryContainer}>
+          <div className={styles.categoryForm}>
+            <h3>
+              {supplierFormData.id 
+                ? t('products:suppliers.editSupplier') 
+                : t('products:suppliers.addSupplier')
+              }
+            </h3>
+            
+            <form onSubmit={handleSupplierSubmit}>
+              <FormGroup
+                label={t('products:suppliers.companyName')}
+                htmlFor="company_name"
+                required
+              >
+                <input
+                  type="text"
+                  id="company_name"
+                  name="company_name"
+                  value={supplierFormData.company_name}
+                  onChange={handleSupplierInputChange}
+                  className="form-control"
+                  placeholder={t('products:suppliers.companyNamePlaceholder')}
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:suppliers.contactPerson')}
+                htmlFor="contact_person"
+              >
+                <input
+                  type="text"
+                  id="contact_person"
+                  name="contact_person"
+                  value={supplierFormData.contact_person}
+                  onChange={handleSupplierInputChange}
+                  className="form-control"
+                  placeholder={t('products:suppliers.contactPersonPlaceholder')}
+                />
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:suppliers.phone')}
+                htmlFor="phone"
+              >
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={supplierFormData.phone}
+                  onChange={handleSupplierInputChange}
+                  className="form-control"
+                  placeholder={t('products:suppliers.phonePlaceholder')}
+                />
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:suppliers.email')}
+                htmlFor="email"
+              >
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={supplierFormData.email}
+                  onChange={handleSupplierInputChange}
+                  className="form-control"
+                  placeholder={t('products:suppliers.emailPlaceholder')}
+                />
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:suppliers.address')}
+                htmlFor="address"
+              >
+                <textarea
+                  id="address"
+                  name="address"
                   value={supplierFormData.address}
                   onChange={handleSupplierInputChange}
-                  placeholder={t('products:suppliers.addressPlaceholder', { fallback: 'Enter address' })}
-                  rows="3"
-                ></textarea>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="tax_id">{t('products:suppliers.taxId', { fallback: 'Tax ID' })}</label>
-                  <input 
-                    type="text" 
-                    id="tax_id" 
-                    name="tax_id" 
-                    value={supplierFormData.tax_id}
-                    onChange={handleSupplierInputChange}
-                    placeholder={t('products:suppliers.taxIdPlaceholder', { fallback: 'Enter tax ID' })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="website">{t('products:suppliers.website', { fallback: 'Website' })}</label>
-                  <input 
-                    type="url" 
-                    id="website" 
-                    name="website" 
-                    value={supplierFormData.website}
-                    onChange={handleSupplierInputChange}
-                    placeholder={t('products:suppliers.websitePlaceholder', { fallback: 'Enter website URL' })}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group full-width">
-                <label htmlFor="notes">{t('products:suppliers.notes', { fallback: 'Notes' })}</label>
-                <textarea 
-                  id="notes" 
-                  name="notes" 
-                  value={supplierFormData.notes}
-                  onChange={handleSupplierInputChange}
-                  placeholder={t('products:suppliers.notesPlaceholder', { fallback: 'Enter additional notes' })}
-                  rows="3"
-                ></textarea>
-              </div>
+                  className="form-control"
+                  placeholder={t('products:suppliers.addressPlaceholder')}
+                  rows="2"
+                />
+              </FormGroup>
               
-              <div className="form-actions">
-                <button type="button" className="button secondary" onClick={resetSupplierForm}>
-                  {t('common:cancel')}
-                </button>
-                <button type="submit" className="button primary" disabled={loading}>
-                  {loading ? t('common:saving') : supplierFormData.id ? t('products:suppliers.update', { fallback: 'Update Supplier' }) : t('products:suppliers.save', { fallback: 'Save Supplier' })}
-                </button>
+              <div className={styles.formActions}>
+                {supplierFormData.id && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setSupplierFormData({
+                      id: null,
+                      company_name: '',
+                      contact_person: '',
+                      phone: '',
+                      email: '',
+                      address: '',
+                      tax_id: '',
+                      website: '',
+                      notes: ''
+                    })}
+                  >
+                    {t('common:cancel')}
+                  </Button>
+                )}
+                <Button type="submit" variant="primary">
+                  {supplierFormData.id ? t('products:suppliers.update') : t('products:suppliers.save')}
+                </Button>
               </div>
             </form>
           </div>
           
-          <div className="supplier-list-container">
-            <h3>{t('products:suppliers.list', { fallback: 'Suppliers List' })}</h3>
-            <table className="supplier-table">
-              <thead>
-                <tr>
-                  <th>{t('products:suppliers.companyName', { fallback: 'Company Name' })}</th>
-                  <th>{t('products:suppliers.contactPerson', { fallback: 'Contact Person' })}</th>
-                  <th>{t('products:suppliers.phone', { fallback: 'Phone' })}</th>
-                  <th>{t('products:suppliers.productCount', { fallback: 'Products' })}</th>
-                  <th>{t('products:table.headers.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {supplierList.length === 0 ? (
-                  <tr className="empty-state">
-                    <td colSpan="5">
-                      <p>{t('products:suppliers.emptyState', { fallback: 'No suppliers found. Add your first supplier.' })}</p>
-                    </td>
-                  </tr>
-                ) : (
-                  supplierList.map(supplier => (
-                    <tr key={supplier.id}>
-                      <td>{supplier.company_name}</td>
-                      <td>{supplier.contact_person}</td>
-                      <td>{supplier.phone}</td>
-                      <td>{supplier.product_count || 0}</td>
-                      <td className="action-buttons">
+          <div className={styles.categoryList}>
+            <h3>{t('products:suppliers.list')}</h3>
+            
+            {loading ? (
+              <div className={styles.loadingSpinnerContainer}>
+                <div className={styles.loadingSpinner}></div>
+              </div>
+            ) : error ? (
+              <div className={styles.errorMessage}>
+                <p>{error}</p>
+                <Button onClick={() => loadData()} variant="primary">
+                  {t('common:retry')}
+                </Button>
+              </div>
+            ) : (
+              <Table
+                columns={[
+                  { key: 'companyName', label: t('products:suppliers.companyName') },
+                  { key: 'contactPerson', label: t('products:suppliers.contactPerson') },
+                  { key: 'phone', label: t('products:suppliers.phone') },
+                  { key: 'actions', label: t('products:table.headers.actions') }
+                ]}
+                data={supplierList.map(supplier => {
+                  // Count products from this supplier
+                  const productCount = productList.filter(
+                    product => product.supplier_id === supplier.id
+                  ).length;
+                  
+                  return {
+                    companyName: supplier.company_name,
+                    contactPerson: supplier.contact_person,
+                    phone: supplier.phone,
+                    actions: (
+                      <div className={styles.actionButtons}>
                         <button 
-                          className="action-button edit"
+                          className={`${styles.actionButton} ${styles.editButton}`}
                           onClick={() => handleEditSupplier(supplier)}
+                          title={t('common:edit')}
                         >
-                          {t('common:edit')}
+                          ✏️
                         </button>
                         <button 
-                          className="action-button delete" 
-                          onClick={() => handleDeleteSupplier(supplier.id)} 
-                          disabled={supplier.product_count > 0}
-                          data-tooltip={supplier.product_count > 0 ? t('products:suppliers.cannotDelete', { fallback: 'Cannot delete supplier with products' }) : ''}
+                          className={`${styles.actionButton} ${styles.deleteButton}`}
+                          onClick={() => handleDeleteSupplier(supplier.id)}
+                          title={t('common:delete')}
+                          disabled={productCount > 0}
+                          data-tooltip={productCount > 0 ? t('products:suppliers.cannotDelete') : ''}
                         >
-                          {t('common:delete')}
+                          🗑️
                         </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    )
+                  };
+                })}
+                emptyMessage={t('products:suppliers.emptyState')}
+              />
+            )}
           </div>
         </div>
       ) : (
-        <div className="product-form-container">
-          <form className="product-form" onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="name">{t('products:form.name')} *</label>
-                <input 
-                  type="text" 
-                  id="name" 
-                  name="name" 
+        <div className={styles.formContainer}>
+          <h3>
+            {activeTab === 'add' 
+              ? t('products:tabs.add') 
+              : t('products:tabs.edit')}
+          </h3>
+          
+          <form className={styles.form} onSubmit={handleSubmit} noValidate>
+            <div className={styles.formRow}>
+              <FormGroup
+                label={t('products:form.name')}
+                htmlFor="name"
+                required
+                error={formData.name === '' ? t('common:fieldRequired') : ''}
+              >
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
                   value={formData.name}
                   onChange={handleInputChange}
+                  className={`form-control ${formData.name === '' && 'is-invalid'}`}
                   placeholder={t('products:form.namePlaceholder')}
                   required
                 />
-              </div>
-              <div className="form-group">
-                <label htmlFor="barcode">{t('products:form.barcode')}</label>
-                <input 
-                  type="text" 
-                  id="barcode" 
-                  name="barcode" 
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:form.barcode')}
+                htmlFor="barcode"
+              >
+                <input
+                  type="text"
+                  id="barcode"
+                  name="barcode"
                   value={formData.barcode}
                   onChange={handleInputChange}
+                  className="form-control"
                   placeholder={t('products:form.barcodePlaceholder')}
                 />
-              </div>
+              </FormGroup>
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="category_id">{t('products:form.category')} *</label>
-                <select 
-                  id="category_id" 
-                  name="category_id" 
+            
+            <div className={styles.formRow}>
+              <FormGroup
+                label={t('products:form.category')}
+                htmlFor="category_id"
+                required
+                error={!formData.category_id ? t('common:fieldRequired') : ''}
+              >
+                <select
+                  id="category_id"
+                  name="category_id"
                   value={formData.category_id}
                   onChange={handleInputChange}
+                  className={`form-control ${!formData.category_id && 'is-invalid'}`}
                   required
                 >
                   <option value="">{t('products:form.selectCategory')}</option>
@@ -1004,97 +1101,119 @@ const ProductManagement = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="unit">{t('products:form.unit')} *</label>
-                <select 
-                  id="unit" 
-                  name="unit" 
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:form.unit')}
+                htmlFor="unit"
+              >
+                <select
+                  id="unit"
+                  name="unit"
                   value={formData.unit}
                   onChange={handleInputChange}
-                  required
+                  className="form-control"
                 >
-                  <option value="">{t('products:form.selectUnit')}</option>
                   <option value="pcs">{t('products:units.pieces')}</option>
                   <option value="kg">{t('products:units.kilograms')}</option>
-                  <option value="gr">{t('products:units.grams')}</option>
+                  <option value="g">{t('products:units.grams')}</option>
                   <option value="l">{t('products:units.liters')}</option>
+                  <option value="ml">{t('products:units.liters')}</option>
                   <option value="m">{t('products:units.meters')}</option>
                   <option value="box">{t('products:units.boxes')}</option>
                 </select>
-              </div>
+              </FormGroup>
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="selling_price">{t('products:form.sellingPrice')} ({currencySymbol}) *</label>
-                <input 
-                  type="number" 
-                  id="selling_price" 
-                  name="selling_price" 
+            
+            <div className={styles.formRow}>
+              <FormGroup
+                label={t('products:form.sellingPrice')}
+                htmlFor="selling_price"
+                required
+                error={!formData.selling_price ? t('common:fieldRequired') : ''}
+              >
+                <input
+                  type="number"
+                  id="selling_price"
+                  name="selling_price"
                   value={formData.selling_price}
                   onChange={handleInputChange}
-                  placeholder="0.00"
+                  className={`form-control ${!formData.selling_price && 'is-invalid'}`}
                   min="0"
                   step="0.01"
                   required
                 />
-              </div>
-              <div className="form-group">
-                <label htmlFor="cost_price">{t('products:form.costPrice')} ({currencySymbol}) *</label>
-                <input 
-                  type="number" 
-                  id="cost_price" 
-                  name="cost_price" 
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:form.costPrice')}
+                htmlFor="cost_price"
+                required
+                error={!formData.cost_price ? t('common:fieldRequired') : ''}
+              >
+                <input
+                  type="number"
+                  id="cost_price"
+                  name="cost_price"
                   value={formData.cost_price}
                   onChange={handleInputChange}
-                  placeholder="0.00"
+                  className={`form-control ${!formData.cost_price && 'is-invalid'}`}
                   min="0"
                   step="0.01"
                   required
                 />
-              </div>
+              </FormGroup>
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="stock_quantity">{t('products:form.stockQuantity')} *</label>
-                <input 
-                  type="number" 
-                  id="stock_quantity" 
-                  name="stock_quantity" 
+            
+            <div className={styles.formRow}>
+              <FormGroup
+                label={t('products:form.stockQuantity')}
+                htmlFor="stock_quantity"
+                required
+                error={formData.stock_quantity === '' ? t('common:fieldRequired') : ''}
+              >
+                <input
+                  type="number"
+                  id="stock_quantity"
+                  name="stock_quantity"
                   value={formData.stock_quantity}
                   onChange={handleInputChange}
-                  placeholder="0"
+                  className={`form-control ${formData.stock_quantity === '' && 'is-invalid'}`}
                   min="0"
-                  step={formData.unit === 'pcs' || formData.unit === 'box' ? "1" : "0.01"}
                   required
                 />
-              </div>
-              <div className="form-group">
-                <label htmlFor="min_stock_threshold">{t('products:form.minStockThreshold')} *</label>
-                <input 
-                  type="number" 
-                  id="min_stock_threshold" 
-                  name="min_stock_threshold" 
+              </FormGroup>
+              
+              <FormGroup
+                label={t('products:form.minStockThreshold')}
+                htmlFor="min_stock_threshold"
+                required
+                error={formData.min_stock_threshold === '' ? t('common:fieldRequired') : ''}
+              >
+                <input
+                  type="number"
+                  id="min_stock_threshold"
+                  name="min_stock_threshold"
                   value={formData.min_stock_threshold}
                   onChange={handleInputChange}
-                  placeholder="5"
+                  className={`form-control ${formData.min_stock_threshold === '' && 'is-invalid'}`}
                   min="0"
-                  step={formData.unit === 'pcs' || formData.unit === 'box' ? "1" : "0.01"}
                   required
                 />
-              </div>
+              </FormGroup>
             </div>
-
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label htmlFor="supplier_id">{t('products:form.supplier')}</label>
-                <select 
-                  id="supplier_id" 
-                  name="supplier_id" 
+            
+            <div className={styles.formRow}>
+              <FormGroup
+                label={t('products:form.supplier')}
+                htmlFor="supplier_id"
+              >
+                <select
+                  id="supplier_id"
+                  name="supplier_id"
                   value={formData.supplier_id}
                   onChange={handleInputChange}
+                  className="form-control"
                 >
                   <option value="">{t('products:form.selectSupplier')}</option>
                   {supplierList.map(supplier => (
@@ -1103,31 +1222,40 @@ const ProductManagement = () => {
                     </option>
                   ))}
                 </select>
-              </div>
+              </FormGroup>
             </div>
-
-            <div className="form-group full-width">
-              <label htmlFor="description">{t('products:form.description')}</label>
-              <textarea 
-                id="description" 
-                name="description" 
+            
+            <FormGroup
+              label={t('products:form.description')}
+              htmlFor="description"
+            >
+              <textarea
+                id="description"
+                name="description"
                 value={formData.description}
                 onChange={handleInputChange}
+                className="form-control"
                 placeholder={t('products:form.descriptionPlaceholder')}
-                rows="4"
-              ></textarea>
-            </div>
-
-            <div className="form-actions">
-              <button type="button" className="button secondary" onClick={() => {
-                resetForm();
-                setActiveTab('list');
-              }}>
+                rows="3"
+              />
+            </FormGroup>
+            
+            <div className={styles.formActions}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setActiveTab('list')}
+              >
                 {t('common:cancel')}
-              </button>
-              <button type="submit" className="button primary" disabled={loading}>
-                {loading ? t('common:saving') : formData.id ? t('products:form.updateProduct') : t('products:form.saveProduct')}
-              </button>
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+              >
+                {activeTab === 'add' 
+                  ? t('products:form.saveProduct') 
+                  : t('products:form.updateProduct')}
+              </Button>
             </div>
           </form>
         </div>
