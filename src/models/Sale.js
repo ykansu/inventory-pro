@@ -932,6 +932,73 @@ class Sale extends BaseModel {
       return [];
     }
   }
+  
+  // Get sales by date range with pagination and filters
+  async getPaginatedSales(startDate, endDate, page = 1, pageSize = 10, paymentMethod = '', searchQuery = '') {
+    try {
+      const db = await this.getDb();
+      const offset = (page - 1) * pageSize;
+      
+      // Build base query with date range filtering
+      let query = db(this.tableName)
+        .where(function() {
+          if (startDate && endDate) {
+            this.whereBetween('created_at', [
+              startOfDay(new Date(startDate)).toISOString(),
+              endOfDay(new Date(endDate)).toISOString()
+            ]);
+          }
+        })
+        .orderBy('created_at', 'desc'); // Always sort newest first
+      
+      // Apply payment method filter if provided
+      if (paymentMethod) {
+        query = query.where('payment_method', paymentMethod);
+      }
+      
+      // Apply search query on receipt number if provided
+      if (searchQuery && searchQuery.trim() !== '') {
+        query = query.where('receipt_number', 'like', `%${searchQuery}%`);
+      }
+      
+      // Clone the query for the count
+      const countQuery = query.clone().count('* as total');
+      
+      // Execute the count query
+      const [countResult] = await countQuery;
+      const totalCount = parseInt(countResult.total, 10);
+      
+      // Apply pagination to the main query
+      query = query.limit(pageSize).offset(offset);
+      
+      // Execute the paginated query
+      const sales = await query;
+      
+      // Calculate total pages
+      const totalPages = Math.ceil(totalCount / pageSize);
+      
+      // For each sale, fetch the items count (optimize performance compared to joining)
+      for (let sale of sales) {
+        const [itemCountResult] = await db('sale_items')
+          .where({ sale_id: sale.id })
+          .count('* as count');
+        
+        sale.item_count = parseInt(itemCountResult.count, 10);
+      }
+      
+      return {
+        success: true,
+        sales,
+        totalCount,
+        page,
+        pageSize,
+        totalPages
+      };
+    } catch (error) {
+      console.error('Error getting paginated sales:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = Sale; 

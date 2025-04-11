@@ -29,6 +29,24 @@ function registerSaleHandlers() {
     }
   });
 
+  ipcMain.handle('sales:getPaginatedSales', async (_, startDate, endDate, page, pageSize, filters) => {
+    try {
+      const { paymentMethod, query } = filters || {};
+      return await Sale.getPaginatedSales(startDate, endDate, page, pageSize, paymentMethod, query);
+    } catch (error) {
+      console.error(`Error getting paginated sales:`, error);
+      return {
+        success: false,
+        error: error.message,
+        sales: [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+        totalPages: 0
+      };
+    }
+  });
+
   ipcMain.handle('sales:processReturn', async (_, id, returnData, items) => {
     try {
       return await Sale.processReturn(id, returnData, items);

@@ -10,13 +10,14 @@ import { useDatabase } from '../context/DatabaseContext';
 import { useSettings } from '../context/SettingsContext';
 
 // Import CSS module
-import styles from '../styles/pages/sales-history.module.css';
+import styles from './SalesHistory.module.css';
 
 // Import common components
 import Button from '../components/common/Button';
 import Table from '../components/common/Table';
 import Modal from '../components/common/Modal';
 import FormGroup from '../components/common/FormGroup';
+import Pagination from '../components/common/Pagination';
 
 // Inline styles for unit display
 const unitNameStyle = {
@@ -36,8 +37,11 @@ const SalesHistory = () => {
     paymentFilter,
     searchQuery,
     updateFilters,
-    refresh
-  } = useSalesHistory();
+    refresh,
+    pagination
+  } = useSalesHistory(1, 10); // Initial page 1, 10 items per page
+  
+  const { currentPage, pageSize, totalCount, totalPages, handlePageChange } = pagination;
   const { products } = useDatabase();
   const { 
     getCurrency, 
@@ -136,7 +140,7 @@ const SalesHistory = () => {
     setTempSearchQuery(value);
     updateFilters({ query: value });
   };
-
+  
   // Load sale details when a sale is selected
   const handleSelectSale = async (sale) => {
     try {
@@ -558,15 +562,30 @@ const SalesHistory = () => {
               {t('sales:error')}
             </div>
           ) : (
-            <Table
-              columns={columns}
-              data={sales.map(sale => ({
-                ...sale,
-                className: selectedSale && selectedSale.id === sale.id ? styles.selectedRow : '',
-                onClick: () => handleSelectSale(sale)
-              }))}
-              emptyMessage={t('sales:table.noRecords')}
-            />
+            <>
+              <Table
+                columns={columns}
+                data={sales.map(sale => ({
+                  ...sale,
+                  className: selectedSale && selectedSale.id === sale.id ? styles.selectedRow : '',
+                  onClick: () => handleSelectSale(sale)
+                }))}
+                emptyMessage={t('sales:table.noRecords')}
+              />
+              
+              {/* Pagination */}
+              {totalCount > 0 && (
+                <div className={styles.pagination}>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalCount}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
 

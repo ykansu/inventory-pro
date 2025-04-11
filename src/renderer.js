@@ -5,7 +5,6 @@ import App from './components/App';
 import './i18n';
 // Import CSS files
 import './index.css';
-import './styles/main.css';
 
 // Create root element for React
 const rootElement = document.getElementById('root');

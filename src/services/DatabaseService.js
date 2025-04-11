@@ -226,6 +226,25 @@ export const SaleService = {
       throw error;
     }
   },
+  
+  // Get paginated sales by date range
+  getPaginatedSales: async (startDate, endDate, page = 1, pageSize = 10, filters = {}) => {
+    try {
+      return await window.database.getPaginatedSales(startDate, endDate, page, pageSize, filters);
+    } catch (error) {
+      console.error('Error fetching paginated sales:', error);
+      // Return a structured error object instead of throwing
+      return {
+        success: false,
+        error: error.message || 'Failed to fetch paginated sales',
+        sales: [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+        totalPages: 0
+      };
+    }
+  },
 
   // Process sale return
   processSaleReturn: async (id, returnData, items) => {

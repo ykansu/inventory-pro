@@ -7,6 +7,7 @@ import styles from './ProductManagement.module.css';
 import Button from '../components/common/Button';
 import FormGroup from '../components/common/FormGroup';
 import Table from '../components/common/Table';
+import Pagination from '../components/common/Pagination';
 
 const ProductManagement = () => {
   const [activeTab, setActiveTab] = useState('list'); // 'list', 'add', 'edit', 'categories', or 'suppliers'
@@ -708,35 +709,13 @@ const ProductManagement = () => {
                 {/* Pagination */}
                 {filteredProducts.length > 0 && (
                   <div className={styles.pagination}>
-                    <div className={styles.paginationControls}>
-                      <button
-                        className={styles.paginationButton}
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      >
-                        {t('common:previous')}
-                      </button>
-                      <span className={styles.pageInfo}>
-                        {t('common:pageInfo', {
-                          current: currentPage,
-                          total: Math.ceil(filteredProducts.length / itemsPerPage)
-                        })}
-                      </span>
-                      <button
-                        className={styles.paginationButton}
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={indexOfLastItem >= filteredProducts.length}
-                      >
-                        {t('common:next')}
-                      </button>
-                    </div>
-                    <span className={styles.paginationInfo}>
-                      {t('common:pagination', {
-                        start: indexOfFirstItem + 1,
-                        end: Math.min(indexOfLastItem, filteredProducts.length),
-                        total: filteredProducts.length
-                      })}
-                    </span>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={Math.ceil(filteredProducts.length / itemsPerPage)}
+                      totalItems={filteredProducts.length}
+                      pageSize={itemsPerPage}
+                      onPageChange={handlePageChange}
+                    />
                   </div>
                 )}
               </>

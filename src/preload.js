@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('database', {
   createSale: (saleData, items) => ipcRenderer.invoke('sales:create', saleData, items),
   getSaleById: (id) => ipcRenderer.invoke('sales:getById', id),
   getSalesByDateRange: (startDate, endDate) => ipcRenderer.invoke('sales:getByDateRange', startDate, endDate),
+  getPaginatedSales: (startDate, endDate, page, pageSize, filters) => 
+    ipcRenderer.invoke('sales:getPaginatedSales', startDate, endDate, page, pageSize, filters),
   processSaleReturn: (id, returnData, items) => ipcRenderer.invoke('sales:processReturn', id, returnData, items),
   cancelSale: (id) => ipcRenderer.invoke('sales:cancelSale', id),
   
