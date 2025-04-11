@@ -16,22 +16,22 @@ import RevenueBySupplierChart from '../components/dashboard/RevenueBySupplierCha
 import ExpensesTrendChart from '../components/dashboard/ExpensesTrendChart';
 import InventoryValueByCategoryChart from '../components/dashboard/InventoryValueByCategoryChart';
 import InventoryValueBySupplierChart from '../components/dashboard/InventoryValueBySupplierChart';
-import '../styles/pages/dashboard.css';
+import styles from './Dashboard.module.css';
 
 const Dashboard = () => {
   const { t } = useTranslation(['dashboard', 'common']);
   const { getBusinessName } = useSettings();
   
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-header">
+    <div className={styles.dashboardPage}>
+      <div className={styles.dashboardHeader}>
         <h2>{t('dashboard:overview')}</h2>
         <p>{t('dashboard:welcome')}</p>
-        <div className="business-name">{getBusinessName()}</div>
+        <div className={styles.businessName}>{getBusinessName()}</div>
       </div>
       
       {/* Key Performance Metrics - First Row */}
-      <div className="dashboard-stats">
+      <div className={styles.dashboardStats}>
         <TotalProductsCard />
         <LowStockItemsCard />
         <TodaySalesCard />
@@ -42,7 +42,7 @@ const Dashboard = () => {
       </div>
       
       {/* Dashboard Sections - Grid Layout */}
-      <div className="dashboard-sections">
+      <div className={styles.dashboardSections}>
         <TopProductsChart />
         <RevenueBySupplierChart />
         <RevenueByPaymentChart />

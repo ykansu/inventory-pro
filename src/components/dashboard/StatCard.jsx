@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import '../../styles/components/index.css';
+import styles from './StatCard.module.css';
 
 const StatCard = ({ title, value, tooltipKey, isLoading, error, onRetry, icon, trend }) => {
   const { t } = useTranslation(['dashboard']);
@@ -8,9 +8,9 @@ const StatCard = ({ title, value, tooltipKey, isLoading, error, onRetry, icon, t
   // Handle loading state
   if (isLoading) {
     return (
-      <div className="stat-card loading">
+      <div className={`${styles.statCard} ${styles.loading}`}>
         <h3>{title}</h3>
-        <div className="stat-value">{t('dashboard:card.loading')}</div>
+        <div className={styles.statValue}>{t('dashboard:card.loading')}</div>
       </div>
     );
   }
@@ -18,11 +18,11 @@ const StatCard = ({ title, value, tooltipKey, isLoading, error, onRetry, icon, t
   // Handle error state
   if (error) {
     return (
-      <div className="stat-card error">
+      <div className={`${styles.statCard} ${styles.error}`}>
         <h3>{title}</h3>
-        <div className="stat-value">{t('dashboard:card.error')}</div>
+        <div className={styles.statValue}>{t('dashboard:card.error')}</div>
         {onRetry && (
-          <button className="retry-button" onClick={onRetry}>
+          <button className={styles.retryButton} onClick={onRetry}>
             {t('dashboard:retry')}
           </button>
         )}
@@ -34,29 +34,29 @@ const StatCard = ({ title, value, tooltipKey, isLoading, error, onRetry, icon, t
   const getTrendClass = () => {
     if (!trend) return '';
     
-    if (trend.direction === 'up') return 'trend-up';
-    if (trend.direction === 'down') return 'trend-down';
-    return 'trend-neutral';
+    if (trend.direction === 'up') return styles.trendUp;
+    if (trend.direction === 'down') return styles.trendDown;
+    return styles.trendNeutral;
   };
   
   return (
-    <div className="stat-card">
+    <div className={styles.statCard}>
       <h3>
         {title}
         {tooltipKey && (
-          <span className="info-tooltip" data-tooltip={t(`dashboard:tooltips.${tooltipKey}`)}>?</span>
+          <span className={styles.tooltip} data-tooltip={t(`dashboard:tooltips.${tooltipKey}`)}>?</span>
         )}
       </h3>
-      <div className="stat-value">{value}</div>
+      <div className={styles.statValue}>{value}</div>
       
       {trend && (
-        <div className={`stat-card-trend ${getTrendClass()}`}>
+        <div className={`${styles.statCardTrend} ${getTrendClass()}`}>
           {trend.icon} {trend.value}
         </div>
       )}
       
       {icon && (
-        <div className="stat-card-icon">{icon}</div>
+        <div className={styles.statCardIcon}>{icon}</div>
       )}
     </div>
   );
