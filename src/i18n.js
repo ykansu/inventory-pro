@@ -16,6 +16,8 @@ import enReports from './translations/en/reports.json';
 import trReports from './translations/tr/reports.json';
 import enSettings from './translations/en/settings.json';
 import trSettings from './translations/tr/settings.json';
+import enExpenses from './translations/en/expenses.json';
+import trExpenses from './translations/tr/expenses.json';
 
 // Organize resources by language and namespace
 const resources = {
@@ -26,7 +28,8 @@ const resources = {
     pos: enPOS,
     sales: enSales,
     reports: enReports,
-    settings: enSettings
+    settings: enSettings,
+    expenses: enExpenses
   },
   tr: {
     common: trCommon,
@@ -35,7 +38,8 @@ const resources = {
     pos: trPOS,
     sales: trSales,
     reports: trReports,
-    settings: trSettings
+    settings: trSettings,
+    expenses: trExpenses
   }
 };
 
@@ -57,7 +61,7 @@ i18n
     nsSeparator: ':',
     
     // Allow loading multiple namespaces
-    ns: ['common', 'dashboard', 'products', 'pos', 'sales', 'reports', 'settings'],
+    ns: ['common', 'dashboard', 'products', 'pos', 'sales', 'reports', 'settings', 'expenses'],
     defaultNS: 'common'
   });
 

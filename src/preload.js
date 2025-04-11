@@ -36,6 +36,23 @@ contextBridge.exposeInMainWorld('database', {
   processSaleReturn: (id, returnData, items) => ipcRenderer.invoke('sales:processReturn', id, returnData, items),
   cancelSale: (id) => ipcRenderer.invoke('sales:cancelSale', id),
   
+  // Expenses
+  getAllExpenses: (filters) => ipcRenderer.invoke('expenses:getAll', filters),
+  getExpenseById: (id) => ipcRenderer.invoke('expenses:getById', id),
+  createExpense: (data) => ipcRenderer.invoke('expenses:create', data),
+  updateExpense: (id, data) => ipcRenderer.invoke('expenses:update', id, data),
+  deleteExpense: (id) => ipcRenderer.invoke('expenses:delete', id),
+  getMonthlyExpenses: (year, month) => ipcRenderer.invoke('expenses:getMonthlyExpenses', year, month),
+  getExpensesByCategory: (startDate, endDate) => ipcRenderer.invoke('expenses:getByCategory', startDate, endDate),
+  
+  // Expense Categories
+  getAllExpenseCategories: () => ipcRenderer.invoke('expense-categories:getAll'),
+  getExpenseCategoryById: (id) => ipcRenderer.invoke('expense-categories:getById', id),
+  createExpenseCategory: (data) => ipcRenderer.invoke('expense-categories:create', data),
+  updateExpenseCategory: (id, data) => ipcRenderer.invoke('expense-categories:update', id, data),
+  deleteExpenseCategory: (id) => ipcRenderer.invoke('expense-categories:delete', id),
+  getExpenseCategoriesWithCount: () => ipcRenderer.invoke('expense-categories:getWithExpenseCount'),
+  
   // Profit metrics
   getMonthlyProfitMetrics: () => ipcRenderer.invoke('profits:getMonthlyMetrics'),
   getCategoryProfits: () => ipcRenderer.invoke('profits:getCategoryProfits'),

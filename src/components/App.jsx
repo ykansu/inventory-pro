@@ -14,6 +14,7 @@ import SalesHistory from '../pages/SalesHistory';
 import Reports from '../pages/Reports';
 import Settings from '../pages/Settings';
 import StockUpdate from '../pages/StockUpdate';
+import Expenses from '../pages/Expenses';
 
 // Inner component that uses hooks after providers are set up
 const AppContent = () => {
@@ -80,6 +81,11 @@ const AppContent = () => {
               </NavLink>
             </li>
             <li>
+              <NavLink to="/expenses" className={({ isActive }) => isActive ? 'active' : ''}>
+                <i className="fas fa-money-bill-wave"></i> {t('expenses')}
+              </NavLink>
+            </li>
+            <li>
               <NavLink to="/reports" className={({ isActive }) => isActive ? 'active' : ''}>
                 <i className="fas fa-chart-bar"></i> {t('reports')}
               </NavLink>
@@ -100,6 +106,7 @@ const AppContent = () => {
             <Route path="/stock-update" element={<StockUpdate />} />
             <Route path="/pos" element={<POS />} />
             <Route path="/sales" element={<SalesHistory />} />
+            <Route path="/expenses" element={<Expenses />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

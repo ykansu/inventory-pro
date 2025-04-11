@@ -14,6 +14,7 @@ const { registerDatabaseHandlers } = require('./ipcHandlers/databaseHandlers');
 const { registerDashboardHandlers } = require('./ipcHandlers/dashboardHandlers');
 const { registerConfigHandlers } = require('./ipcHandlers/configHandlers');
 const { registerLanguageHandlers } = require('./ipcHandlers/languageHandlers');
+const { registerExpenseHandlers } = require('./ipcHandlers/expenseHandlers');
 
 // Dynamically load modules with error handling
 function safeRequire(modulePath) {
@@ -304,6 +305,7 @@ app.whenReady().then(async () => {
       registerDashboardHandlers(handlerDependencies);
       registerConfigHandlers(handlerDependencies);
       registerLanguageHandlers(handlerDependencies);
+      registerExpenseHandlers();
       console.log('IPC handlers registered.');
 
     } else {

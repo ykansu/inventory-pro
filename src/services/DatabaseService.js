@@ -773,3 +773,99 @@ export const DatabaseManagementService = {
     }
   },
 };
+
+// Expense-related operations
+export const ExpenseService = {
+  // Get all expenses with optional filters
+  getAllExpenses: async (filters = {}) => {
+    try {
+      return await window.database.getAllExpenses(filters);
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      throw error;
+    }
+  },
+
+  // Get expense by ID
+  getExpenseById: async (id) => {
+    try {
+      return await window.database.getExpenseById(id);
+    } catch (error) {
+      console.error(`Error fetching expense ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Create new expense
+  createExpense: async (expenseData) => {
+    try {
+      return await window.database.createExpense(expenseData);
+    } catch (error) {
+      console.error('Error creating expense:', error);
+      throw error;
+    }
+  },
+
+  // Update expense
+  updateExpense: async (id, expenseData) => {
+    try {
+      return await window.database.updateExpense(id, expenseData);
+    } catch (error) {
+      console.error(`Error updating expense ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Delete expense
+  deleteExpense: async (id) => {
+    try {
+      return await window.database.deleteExpense(id);
+    } catch (error) {
+      console.error(`Error deleting expense ${id}:`, error);
+      throw error;
+    }
+  }
+};
+
+// Expense Category operations
+export const ExpenseCategoryService = {
+  // Get all expense categories
+  getAllCategories: async () => {
+    try {
+      return await window.database.getAllExpenseCategories();
+    } catch (error) {
+      console.error('Error fetching expense categories:', error);
+      throw error;
+    }
+  },
+
+  // Create new expense category
+  createCategory: async (categoryData) => {
+    try {
+      return await window.database.createExpenseCategory(categoryData);
+    } catch (error) {
+      console.error('Error creating expense category:', error);
+      throw error;
+    }
+  },
+
+  // Update expense category
+  updateCategory: async (id, categoryData) => {
+    try {
+      return await window.database.updateExpenseCategory(id, categoryData);
+    } catch (error) {
+      console.error(`Error updating expense category ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Delete expense category
+  deleteCategory: async (id) => {
+    try {
+      return await window.database.deleteExpenseCategory(id);
+    } catch (error) {
+      console.error(`Error deleting expense category ${id}:`, error);
+      throw error;
+    }
+  }
+};

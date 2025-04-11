@@ -29,7 +29,9 @@ async function getAllTables() {
     { name: 'sales', data: await db('sales').select('*') },
     { name: 'sale_items', data: await db('sale_items').select('*') },
     { name: 'stock_adjustments', data: await db('stock_adjustments').select('*') },
-    { name: 'settings', data: await db('settings').select('*') }
+    { name: 'settings', data: await db('settings').select('*') },
+    { name: 'expense_categories', data: await db('expense_categories').select('*') },
+    { name: 'expenses', data: await db('expenses').select('*') }
   ];
 }
 
@@ -224,6 +226,13 @@ async function importFromExcel(excelFile) {
         await trx.raw('DELETE FROM categories');
         console.log('  - Cleared categories table');
         
+        // Delete existing expense-related tables
+        await trx.raw('DELETE FROM expenses');
+        console.log('  - Cleared expenses table');
+        
+        await trx.raw('DELETE FROM expense_categories');
+        console.log('  - Cleared expense_categories table');
+        
         // Delete existing settings as well
         await trx.raw('DELETE FROM settings');
         console.log('  - Cleared settings table');
@@ -235,11 +244,12 @@ async function importFromExcel(excelFile) {
           categories: {},
           suppliers: {},
           products: {},
-          sales: {}
+          sales: {},
+          expense_categories: {}
         };
         
         // Reset SQLite sequence counters
-        await trx.raw("DELETE FROM sqlite_sequence WHERE name IN ('categories', 'suppliers', 'products', 'sales', 'sale_items', 'stock_adjustments')");
+        await trx.raw("DELETE FROM sqlite_sequence WHERE name IN ('categories', 'suppliers', 'products', 'sales', 'sale_items', 'stock_adjustments', 'expense_categories', 'expenses')");
         console.log('Sequence counters reset');
         
         // Process settings sheet (if exists)
@@ -481,6 +491,74 @@ async function importFromExcel(excelFile) {
             await trx('stock_adjustments').insert(data);
           }
           console.log(`Imported ${rows.length} stock adjustments`);
+        }
+        
+        // Process expense categories sheet (if exists)
+        const expenseCategoriesSheet = workbook.getWorksheet('expense_categories');
+        if (expenseCategoriesSheet) {
+          console.log('Importing expense categories...');
+          const expenseCategoriesRows = [];
+          expenseCategoriesSheet.eachRow((row, rowNum) => {
+            if (rowNum === 1) return; // Skip header row
+            
+            const rowData = {};
+            row.eachCell((cell, colNum) => {
+              const header = expenseCategoriesSheet.getRow(1).getCell(colNum).value;
+              rowData[header] = cell.value;
+            });
+            
+            // Store the original ID for mapping
+            const originalId = rowData.id;
+            // Remove ID to let the database auto-assign it
+            delete rowData.id;
+            
+            expenseCategoriesRows.push({
+              rowData,
+              originalId
+            });
+          });
+          
+          // Insert expense categories
+          for (const row of expenseCategoriesRows) {
+            const [newId] = await trx('expense_categories').insert(row.rowData);
+            idMappings.expense_categories[row.originalId] = newId;
+          }
+          console.log(`Imported ${expenseCategoriesRows.length} expense categories`);
+        }
+        
+        // Process expenses sheet (if exists)
+        const expensesSheet = workbook.getWorksheet('expenses');
+        if (expensesSheet) {
+          console.log('Importing expenses...');
+          const expensesRows = [];
+          expensesSheet.eachRow((row, rowNum) => {
+            if (rowNum === 1) return; // Skip header row
+            
+            const rowData = {};
+            row.eachCell((cell, colNum) => {
+              const header = expensesSheet.getRow(1).getCell(colNum).value;
+              rowData[header] = cell.value;
+            });
+            
+            // Remove ID to let the database auto-assign it
+            delete rowData.id;
+            
+            // Update category_id references
+            if (rowData.category_id && idMappings.expense_categories[rowData.category_id]) {
+              rowData.category_id = idMappings.expense_categories[rowData.category_id];
+            } else if (rowData.category_id) {
+              // If the referenced category doesn't exist, set to null
+              rowData.category_id = null;
+            }
+            
+            expensesRows.push(rowData);
+          });
+          
+          // Insert expenses
+          if (expensesRows.length > 0) {
+            await trx('expenses').insert(expensesRows);
+          }
+          console.log(`Imported ${expensesRows.length} expenses`);
         }
         
         // Re-enable foreign key constraints

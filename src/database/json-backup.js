@@ -27,7 +27,9 @@ async function getAllTables() {
     { name: 'sales', data: await db('sales').select('*') },
     { name: 'sale_items', data: await db('sale_items').select('*') },
     { name: 'stock_adjustments', data: await db('stock_adjustments').select('*') },
-    { name: 'settings', data: await db('settings').select('*') }
+    { name: 'settings', data: await db('settings').select('*') },
+    { name: 'expense_categories', data: await db('expense_categories').select('*') },
+    { name: 'expenses', data: await db('expenses').select('*') }
   ];
 }
 
@@ -121,6 +123,12 @@ async function importFromJson(jsonFile) {
         await trx.raw('DELETE FROM categories');
         console.log('  - Cleared categories table');
         
+        await trx.raw('DELETE FROM expenses');
+        console.log('  - Cleared expenses table');
+        
+        await trx.raw('DELETE FROM expense_categories');
+        console.log('  - Cleared expense_categories table');
+        
         console.log('All tables cleared successfully');
         
         // Keep settings to avoid breaking application configuration
@@ -130,11 +138,12 @@ async function importFromJson(jsonFile) {
           categories: {},
           suppliers: {},
           products: {},
-          sales: {}
+          sales: {},
+          expense_categories: {}
         };
         
         // Reset SQLite sequence counters to ensure proper ID assignment
-        await trx.raw("DELETE FROM sqlite_sequence WHERE name IN ('categories', 'suppliers', 'products', 'sales', 'sale_items', 'stock_adjustments', 'product_price_history')");
+        await trx.raw("DELETE FROM sqlite_sequence WHERE name IN ('categories', 'suppliers', 'products', 'sales', 'sale_items', 'stock_adjustments', 'product_price_history', 'expense_categories', 'expenses')");
         console.log('Sequence counters reset');
         
         // Insert data in dependency order
@@ -264,6 +273,36 @@ async function importFromJson(jsonFile) {
             }
             
             await trx('stock_adjustments').insert(data);
+          }
+        }
+        
+        if (importData.data.expense_categories && importData.data.expense_categories.length) {
+          console.log(`Importing ${importData.data.expense_categories.length} expense categories`);
+          for (const item of importData.data.expense_categories) {
+            const oldId = item.id;
+            // Remove id to let the database assign new IDs
+            const { id, ...data } = item;
+            
+            // Insert and get the new ID
+            const [newId] = await trx('expense_categories').insert(data);
+            idMappings.expense_categories[oldId] = newId;
+          }
+        }
+        
+        if (importData.data.expenses && importData.data.expenses.length) {
+          console.log(`Importing ${importData.data.expenses.length} expenses`);
+          for (const item of importData.data.expenses) {
+            const { id, ...data } = item;
+            
+            // Update foreign key references
+            if (data.category_id && idMappings.expense_categories[data.category_id]) {
+              data.category_id = idMappings.expense_categories[data.category_id];
+            } else if (data.category_id) {
+              // If category doesn't exist in the mapping, set to null
+              data.category_id = null;
+            }
+            
+            await trx('expenses').insert(data);
           }
         }
         
