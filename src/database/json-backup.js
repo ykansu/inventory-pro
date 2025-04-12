@@ -306,8 +306,25 @@ async function importFromJson(jsonFile) {
           }
         }
         
-        // Do not import settings to avoid overwriting critical app configuration
-        // unless specifically requested
+        // Import settings from the JSON file
+        if (importData.data.settings && importData.data.settings.length) {
+          console.log(`Importing ${importData.data.settings.length} settings`);
+          await trx('settings').delete();
+          console.log('  - Cleared settings table');
+          
+          for (const item of importData.data.settings) {
+            const { id, ...data } = item;
+            
+            try {
+              await trx('settings').insert(data);
+              console.log(`  - Imported setting: ${data.key}`);
+            } catch (err) {
+              console.error(`  - Error importing setting ${data.key}:`, err.message);
+            }
+          }
+        } else {
+          console.log('No settings found in JSON file');
+        }
         
         // Re-enable foreign key constraints
         await trx.raw('PRAGMA foreign_keys = ON;');

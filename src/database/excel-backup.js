@@ -257,22 +257,58 @@ async function importFromExcel(excelFile) {
         if (settingsSheet) {
           console.log('Importing settings...');
           const settingsRows = [];
-          settingsSheet.eachRow((row, rowNum) => {
-            if (rowNum > 1) { // Skip header
+          
+          // Read all rows and columns from the settings sheet
+          settingsSheet.eachRow({ includeEmpty: false }, (row, rowNum) => {
+            if (rowNum > 1) { // Skip header row
+              // Create a clean row object
               const rowData = {};
-              settingsSheet.getRow(1).values.forEach((header, index) => {
-                if (header) { // Only map if header exists
-                  rowData[header] = row.values[index];
+              
+              // Map each cell to its column header
+              row.eachCell({ includeEmpty: false }, (cell, colNum) => {
+                const header = settingsSheet.getRow(1).getCell(colNum).value;
+                if (header) {
+                  // Convert cell value to the appropriate type
+                  let value = cell.value;
+                  
+                  // Handle date values
+                  if (cell.type === ExcelJS.ValueType.Date) {
+                    value = cell.value.toISOString();
+                  }
+                  
+                  rowData[header] = value;
                 }
               });
-              settingsRows.push(rowData);
+              
+              // Skip empty rows
+              if (Object.keys(rowData).length > 0) {
+                settingsRows.push(rowData);
+              }
             }
           });
 
           if (settingsRows.length > 0) {
-            await trx('settings').insert(settingsRows);
-            console.log(`Imported ${settingsRows.length} settings`);
+            console.log(`Found ${settingsRows.length} settings to import`);
+            
+            // Process each setting
+            for (const setting of settingsRows) {
+              // Remove the ID if present to avoid conflicts
+              const { id, ...settingData } = setting;
+              
+              try {
+                await trx('settings').insert(settingData);
+                console.log(`Imported setting: ${settingData.key}`);
+              } catch (err) {
+                console.error(`Error importing setting ${settingData.key}:`, err.message);
+              }
+            }
+            
+            console.log(`Settings import completed`);
+          } else {
+            console.log('No settings found in Excel file');
           }
+        } else {
+          console.log('No settings sheet found in Excel file');
         }
         
         // Import categories

@@ -19,39 +19,7 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-  // Recreate the default tax settings if needed
-  return Promise.all([
-    knex('settings').insert({
-      key: 'enable_tax',
-      value: 'false',
-      type: 'boolean',
-      description: 'Enable tax calculation',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }),
-    knex('settings').insert({
-      key: 'tax_rate',
-      value: '0',
-      type: 'number',
-      description: 'Default tax rate percentage',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }),
-    knex('settings').insert({
-      key: 'tax_name',
-      value: 'Tax',
-      type: 'string',
-      description: 'Tax name',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }),
-    knex('settings').insert({
-      key: 'show_tax_details',
-      value: 'true',
-      type: 'boolean',
-      description: 'Show tax details on receipts',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
-  ]);
+  // Tax settings are no longer needed
+  console.log('Migration rollback: Tax settings will not be restored');
+  return Promise.resolve();
 }; 

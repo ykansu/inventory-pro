@@ -269,18 +269,113 @@ function registerDatabaseHandlers(dependencies) {
 
       console.log('Getting database connection for reset...');
       const db = await dbManager.getConnection();
+      
+      // Completely rebuild the database from scratch
+      console.log('Dropping all tables...');
+      try {
+        // Disable foreign key constraints
+        await db.raw('PRAGMA foreign_keys = OFF;');
+        
+        // Get all tables except SQLite internal tables
+        const tables = await db.raw(`
+          SELECT name FROM sqlite_master 
+          WHERE type='table' 
+          AND name NOT LIKE 'sqlite_%';
+        `);
+        
+        // Drop each table
+        for (const tableObj of tables) {
+          const tableName = tableObj.name;
+          console.log(`Dropping table: ${tableName}`);
+          await db.schema.dropTableIfExists(tableName);
+        }
+        
+        console.log('All tables dropped successfully.');
+      } catch (dropError) {
+        console.error('Error dropping tables:', dropError);
+        // Continue anyway - migrations will recreate everything
+      }
 
-      // Rollback all migrations to drop tables
-      console.log('Rolling back migrations...');
-      await db.migrate.rollback({}, true); // Second arg `all: true` rolls back everything
-      console.log('Migrations rolled back successfully.');
+      try {
+        // Create fresh migration tables
+        const hasKnexMigrationsTable = await db.schema.hasTable('knex_migrations');
+        if (!hasKnexMigrationsTable) {
+          await db.schema.createTable('knex_migrations', table => {
+            table.increments('id').primary();
+            table.string('name');
+            table.integer('batch');
+            table.timestamp('migration_time');
+          });
+        }
+        
+        const hasKnexMigrationsLockTable = await db.schema.hasTable('knex_migrations_lock');
+        if (!hasKnexMigrationsLockTable) {
+          await db.schema.createTable('knex_migrations_lock', table => {
+            table.integer('index').primary();
+            table.integer('is_locked');
+          });
+          
+          // Initialize the lock
+          await db('knex_migrations_lock').insert({ index: 1, is_locked: 0 });
+        } else {
+          // Release any migration locks
+          await db('knex_migrations_lock').delete();
+          await db('knex_migrations_lock').insert({ index: 1, is_locked: 0 });
+        }
+        
+        // Clear migration history if it exists
+        if (hasKnexMigrationsTable) {
+          await db('knex_migrations').delete();
+        }
+        
+        // Get and sort migration files
+        const migrationsDir = path.resolve(__dirname, '..', 'database', 'migrations');
+        console.log('Looking for migrations in:', migrationsDir);
+        const migrationFiles = await fs.promises.readdir(migrationsDir);
+        
+        // Sort migration files numerically by prefix
+        const sortedMigrations = migrationFiles
+          .filter(file => file.endsWith('.js'))
+          .sort((a, b) => {
+            const numA = parseInt(a.split('_')[0]);
+            const numB = parseInt(b.split('_')[0]);
+            return numA - numB;
+          });
+        
+        console.log('Will apply migrations in this order:');
+        sortedMigrations.forEach(file => console.log(`- ${file}`));
+        
+        // Run each migration manually in a single batch
+        let batchNumber = 1;
+        
+        for (const migrationFile of sortedMigrations) {
+          console.log(`Running migration: ${migrationFile}`);
+          const migrationPath = path.join(migrationsDir, migrationFile);
+          const migration = require(migrationPath);
+          
+          if (typeof migration.up === 'function') {
+            await migration.up(db);
+            
+            // Record the migration as completed
+            await db('knex_migrations').insert({
+              name: migrationFile,
+              batch: batchNumber,
+              migration_time: new Date().toISOString()
+            });
+            
+            console.log(`Migration ${migrationFile} completed successfully`);
+          } else {
+            console.warn(`Migration ${migrationFile} has no 'up' function, skipping`);
+          }
+        }
+        
+        console.log('All migrations applied successfully');
+      } catch (error) {
+        console.error('Error applying migrations:', error);
+        throw error;
+      }
 
-      // Apply latest migrations to recreate schema
-      console.log('Applying latest migrations...');
-      await db.migrate.latest();
-      console.log('Latest migrations applied successfully.');
-
-      // Reinitialize connection to ensure clean state (optional but good practice)
+      // Reinitialize connection to ensure clean state
       await dbManager.closeConnection(); // Close the old connection
       console.log('Database connection closed. It will be re-established on next use.');
 
@@ -290,9 +385,9 @@ function registerDatabaseHandlers(dependencies) {
       };
     } catch (error) {
       console.error('Error resetting database:', error);
-      // Since pre-reset backup is removed, just report the failure
       return {
         success: false,
+        error: error.message,
         message: 'Database reset failed.'
       };
     }

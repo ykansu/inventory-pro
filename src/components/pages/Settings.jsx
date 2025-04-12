@@ -273,13 +273,15 @@ const Settings = () => {
         }
         
         // Call the reset method on the database
-        const result = await window.electron.resetDatabase();
+        const result = await window.database.resetDatabase();
         
         if (result.success) {
           toast.success(t('settings:database.reset.success'));
           
-          // Refresh settings
-          updateLocalStatesFromSettings();
+          // Force a full application reload to ensure all data is refreshed
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         } else {
           throw new Error(result.error || 'Unknown error');
         }
@@ -292,11 +294,13 @@ const Settings = () => {
   
   const handleExportToJson = async () => {
     try {
-      const result = await window.electron.exportDatabase('json');
-      if (result.success) {
+      // Just use the default JSON export path from the environment config
+      const result = await window.database.exportToJson();
+      
+      if (result) {
         toast.success(t('settings:database.exportToJson.success'));
       } else {
-        throw new Error(result.error || 'Export failed');
+        throw new Error('Export failed');
       }
     } catch (error) {
       console.error('JSON export error:', error);
@@ -307,20 +311,24 @@ const Settings = () => {
   const handleImportFromJson = async () => {
     if (window.confirm(t('settings:database.importFromJson.confirmMessage'))) {
       try {
-        // First create a backup
-        const backupResult = await window.electron.backupDatabase('pre_import');
-        if (!backupResult.success) {
-          throw new Error('Failed to create backup before import');
+        // First select the JSON file to import
+        const jsonFilePath = await window.database.selectJsonFile();
+        
+        if (!jsonFilePath) {
+          // User cancelled the file selection
+          return;
         }
         
-        // Now import the data
-        const result = await window.electron.importDatabase('json');
+        // Now import the data with the selected file path
+        const result = await window.database.importFromJson(jsonFilePath);
         
         if (result.success) {
           toast.success(t('settings:database.importFromJson.success'));
           
-          // Refresh settings since data might have changed
-          updateLocalStatesFromSettings();
+          // Force a full application reload to ensure all data is refreshed
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         } else {
           throw new Error(result.error || 'Import failed');
         }
@@ -333,11 +341,13 @@ const Settings = () => {
   
   const handleExportToExcel = async () => {
     try {
-      const result = await window.electron.exportDatabase('excel');
-      if (result.success) {
+      // Just use the default Excel export path from the environment config
+      const result = await window.database.exportToExcel();
+      
+      if (result) {
         toast.success(t('settings:database.exportToExcel.success'));
       } else {
-        throw new Error(result.error || 'Export failed');
+        throw new Error('Export failed');
       }
     } catch (error) {
       console.error('Excel export error:', error);
@@ -348,20 +358,24 @@ const Settings = () => {
   const handleImportFromExcel = async () => {
     if (window.confirm(t('settings:database.importFromExcel.confirmMessage'))) {
       try {
-        // First create a backup
-        const backupResult = await window.electron.backupDatabase('pre_import');
-        if (!backupResult.success) {
-          throw new Error('Failed to create backup before import');
+        // First select the Excel file to import
+        const excelFilePath = await window.database.selectExcelFile();
+        
+        if (!excelFilePath) {
+          // User cancelled the file selection
+          return;
         }
         
-        // Now import the data
-        const result = await window.electron.importDatabase('excel');
+        // Now import the data with the selected file path
+        const result = await window.database.importFromExcel(excelFilePath);
         
         if (result.success) {
           toast.success(t('settings:database.importFromExcel.success'));
           
-          // Refresh settings since data might have changed
-          updateLocalStatesFromSettings();
+          // Force a full application reload to ensure all data is refreshed
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         } else {
           throw new Error(result.error || 'Import failed');
         }
