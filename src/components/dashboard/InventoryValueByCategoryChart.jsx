@@ -283,7 +283,7 @@ const InventoryValueByCategoryChart = () => {
                 </div>
               );
             })}
-            <div className={styles.categoryDetailsRow}>
+            <div className={styles.categoryDetailsFooter}>
               <div className={styles.detailCell}><strong>{t('dashboard:labels.total')}</strong></div>
               <div className={styles.detailCell}>
                 <strong>{categoryData.reduce((sum, cat) => sum + (cat.productCount || 0), 0)}</strong>

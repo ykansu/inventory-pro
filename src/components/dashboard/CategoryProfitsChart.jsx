@@ -187,6 +187,11 @@ const CategoryProfitsChart = () => {
     } : undefined
   };
 
+  const totalRevenue = categoryProfits.reduce((acc, curr) => acc + curr.revenue, 0);
+  const totalCost = categoryProfits.reduce((acc, curr) => acc + curr.cost, 0);
+  const totalProfit = categoryProfits.reduce((acc, curr) => acc + curr.profit, 0);
+  const totalMargin = (totalProfit / totalRevenue * 100).toFixed(1);
+
   return (
     <div className={commonStyles.dashboardSection}>
       <h3>
@@ -251,6 +256,13 @@ const CategoryProfitsChart = () => {
                 <div className={styles.detailCell}>{category.margin}%</div>
               </div>
             ))}
+            <div className={styles.categoryDetailsFooter}>
+              <div className={styles.detailCell}><strong>{t('dashboard:labels.total')}</strong></div>
+              <div className={styles.detailCell}><strong>{formatCurrency(totalRevenue, getCurrency())}</strong></div>
+              <div className={styles.detailCell}><strong>{formatCurrency(totalCost, getCurrency())}</strong></div>
+              <div className={styles.detailCell}><strong>{formatCurrency(totalProfit, getCurrency())}</strong></div>
+              <div className={styles.detailCell}><strong>{totalMargin}%</strong></div>
+            </div>
           </div>
         </div>
       )}
