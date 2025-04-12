@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import '../../styles/pages/reports.css';
+import styles from './Reports.module.css';
 
 const Reports = () => {
   const [reportType, setReportType] = useState('daily');
@@ -8,18 +8,18 @@ const Reports = () => {
   const { t } = useTranslation(['reports', 'common']);
 
   return (
-    <div className="reports-page">
+    <div className={styles.reportsPage}>
       <div className="page-header">
         <h2>{t('reports:title')}</h2>
       </div>
 
-      <div className="reports-container">
-        <div className="report-sidebar">
+      <div className={styles.reportsContainer}>
+        <div className={styles.reportSidebar}>
           <h3>{t('reports:sidebar.title')}</h3>
-          <ul className="report-types">
+          <ul className={styles.reportTypes}>
             <li>
               <button 
-                className={`report-type-button ${reportType === 'daily' ? 'active' : ''}`}
+                className={`${styles.reportTypeButton} ${reportType === 'daily' ? styles.active : ''}`}
                 onClick={() => setReportType('daily')}
               >
                 {t('reports:types.daily')}
@@ -27,7 +27,7 @@ const Reports = () => {
             </li>
             <li>
               <button 
-                className={`report-type-button ${reportType === 'inventory' ? 'active' : ''}`}
+                className={`${styles.reportTypeButton} ${reportType === 'inventory' ? styles.active : ''}`}
                 onClick={() => setReportType('inventory')}
               >
                 {t('reports:types.inventory')}
@@ -35,7 +35,7 @@ const Reports = () => {
             </li>
             <li>
               <button 
-                className={`report-type-button ${reportType === 'lowStock' ? 'active' : ''}`}
+                className={`${styles.reportTypeButton} ${reportType === 'lowStock' ? styles.active : ''}`}
                 onClick={() => setReportType('lowStock')}
               >
                 {t('reports:types.lowStock')}
@@ -43,7 +43,7 @@ const Reports = () => {
             </li>
             <li>
               <button 
-                className={`report-type-button ${reportType === 'topSelling' ? 'active' : ''}`}
+                className={`${styles.reportTypeButton} ${reportType === 'topSelling' ? styles.active : ''}`}
                 onClick={() => setReportType('topSelling')}
               >
                 {t('reports:types.topSelling')}
@@ -51,7 +51,7 @@ const Reports = () => {
             </li>
             <li>
               <button 
-                className={`report-type-button ${reportType === 'profitMargin' ? 'active' : ''}`}
+                className={`${styles.reportTypeButton} ${reportType === 'profitMargin' ? styles.active : ''}`}
                 onClick={() => setReportType('profitMargin')}
               >
                 {t('reports:types.profitMargin')}
@@ -60,10 +60,10 @@ const Reports = () => {
           </ul>
         </div>
 
-        <div className="report-content">
-          <div className="report-filters">
-            <div className="date-filters">
-              <div className="form-group">
+        <div className={styles.reportContent}>
+          <div className={styles.reportFilters}>
+            <div className={styles.dateFilters}>
+              <div className={styles.formGroup}>
                 <label htmlFor="startDate">{t('reports:filters.from')}</label>
                 <input 
                   type="date" 
@@ -72,7 +72,7 @@ const Reports = () => {
                   onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
                 />
               </div>
-              <div className="form-group">
+              <div className={styles.formGroup}>
                 <label htmlFor="endDate">{t('reports:filters.to')}</label>
                 <input 
                   type="date" 
@@ -81,43 +81,43 @@ const Reports = () => {
                   onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
                 />
               </div>
-              <button className="filter-button">{t('reports:filters.generate')}</button>
+              <button className={styles.filterButton}>{t('reports:filters.generate')}</button>
             </div>
 
-            <div className="export-options">
-              <button className="export-button">{t('reports:export.csv')}</button>
-              <button className="print-button">{t('reports:export.print')}</button>
+            <div className={styles.exportOptions}>
+              <button className={styles.exportButton}>{t('reports:export.csv')}</button>
+              <button className={styles.printButton}>{t('reports:export.print')}</button>
             </div>
           </div>
 
-          <div className="report-display">
+          <div className={styles.reportDisplay}>
             {reportType === 'daily' && (
-              <div className="daily-report">
+              <div className={styles.dailyReport}>
                 <h3>{t('reports:daily.title')}</h3>
-                <p className="report-date">{t('reports:daily.period', { start: dateRange.start || t('reports:notSelected'), end: dateRange.end || t('reports:notSelected') })}</p>
+                <p className={styles.reportDate}>{t('reports:daily.period', { start: dateRange.start || t('reports:notSelected'), end: dateRange.end || t('reports:notSelected') })}</p>
                 
-                <div className="report-summary">
-                  <div className="summary-card">
+                <div className={styles.reportSummary}>
+                  <div className={styles.summaryCard}>
                     <h4>{t('reports:daily.summary.totalSales')}</h4>
-                    <div className="summary-value">$0.00</div>
+                    <div className={styles.summaryValue}>$0.00</div>
                   </div>
-                  <div className="summary-card">
+                  <div className={styles.summaryCard}>
                     <h4>{t('reports:daily.summary.transactions')}</h4>
-                    <div className="summary-value">0</div>
+                    <div className={styles.summaryValue}>0</div>
                   </div>
-                  <div className="summary-card">
+                  <div className={styles.summaryCard}>
                     <h4>{t('reports:daily.summary.averageValue')}</h4>
-                    <div className="summary-value">$0.00</div>
+                    <div className={styles.summaryValue}>$0.00</div>
                   </div>
-                  <div className="summary-card">
+                  <div className={styles.summaryCard}>
                     <h4>{t('reports:daily.summary.grossProfit')}</h4>
-                    <div className="summary-value">$0.00</div>
+                    <div className={styles.summaryValue}>$0.00</div>
                   </div>
                 </div>
 
-                <div className="report-section">
+                <div className={styles.reportSection}>
                   <h4>{t('reports:daily.paymentBreakdown.title')}</h4>
-                  <table className="report-table">
+                  <table className={styles.reportTable}>
                     <thead>
                       <tr>
                         <th>{t('reports:daily.paymentBreakdown.headers.method')}</th>
@@ -126,7 +126,7 @@ const Reports = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="empty-state">
+                      <tr className={styles.emptyState}>
                         <td colSpan="3">
                           <p>{t('reports:noData')}</p>
                         </td>
@@ -135,9 +135,9 @@ const Reports = () => {
                   </table>
                 </div>
 
-                <div className="report-section">
+                <div className={styles.reportSection}>
                   <h4>{t('reports:daily.salesByCategory.title')}</h4>
-                  <table className="report-table">
+                  <table className={styles.reportTable}>
                     <thead>
                       <tr>
                         <th>{t('reports:daily.salesByCategory.headers.category')}</th>
@@ -146,7 +146,7 @@ const Reports = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="empty-state">
+                      <tr className={styles.emptyState}>
                         <td colSpan="3">
                           <p>{t('reports:noData')}</p>
                         </td>
@@ -158,9 +158,9 @@ const Reports = () => {
             )}
 
             {reportType !== 'daily' && (
-              <div className="placeholder-report">
+              <div className={styles.placeholderReport}>
                 <h3>{t(`reports:types.${reportType}`)}</h3>
-                <div className="placeholder-content">
+                <div className={styles.placeholderContent}>
                   <p>{t('reports:generateInstructions')}</p>
                 </div>
               </div>

@@ -1,26 +1,26 @@
 /* Reports Page Styles */
-.reports-page {
+.reportsPage {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   height: 100%;
 }
 
-.reports-container {
+.reportsContainer {
   display: grid;
   grid-template-columns: 250px 1fr;
   gap: 1.5rem;
   height: 100%;
 }
 
-.report-sidebar {
+.reportSidebar {
   background-color: white;
   border-radius: 8px;
   padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.report-sidebar h3 {
+.reportSidebar h3 {
   margin: 0 0 1rem 0;
   font-size: 1rem;
   color: #1e40af;
@@ -28,17 +28,17 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.report-types {
+.reportTypes {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.report-types li {
+.reportTypes li {
   margin-bottom: 0.5rem;
 }
 
-.report-type-button {
+.reportTypeButton {
   display: block;
   width: 100%;
   text-align: left;
@@ -50,17 +50,17 @@
   transition: all 0.2s;
 }
 
-.report-type-button:hover {
+.reportTypeButton:hover {
   background-color: #f3f4f6;
 }
 
-.report-type-button.active {
+.reportTypeButton.active {
   background-color: #2563eb;
   color: white;
   border-color: #2563eb;
 }
 
-.report-content {
+.reportContent {
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -68,7 +68,7 @@
   flex-direction: column;
 }
 
-.report-filters {
+.reportFilters {
   display: flex;
   justify-content: space-between;
   padding: 1rem;
@@ -77,13 +77,46 @@
   gap: 1rem;
 }
 
-.export-options {
+.dateFilters {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.formGroup label {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.formGroup input {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.filterButton {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.exportOptions {
   display: flex;
   gap: 0.5rem;
 }
 
-.export-button,
-.print-button {
+.exportButton,
+.printButton {
   padding: 0.5rem 1rem;
   background-color: #f3f4f6;
   border: 1px solid #e5e7eb;
@@ -91,49 +124,49 @@
   cursor: pointer;
 }
 
-.report-display {
+.reportDisplay {
   padding: 1.5rem;
   overflow-y: auto;
 }
 
-.report-date {
+.reportDate {
   color: #6b7280;
   font-size: 0.875rem;
   margin-bottom: 1.5rem;
 }
 
-.report-summary {
+.reportSummary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.summary-card {
+.summaryCard {
   background-color: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 1rem;
 }
 
-.summary-card h4 {
+.summaryCard h4 {
   margin: 0 0 0.5rem 0;
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 500;
 }
 
-.summary-value {
+.summaryValue {
   font-size: 1.25rem;
   font-weight: 600;
   color: #1e40af;
 }
 
-.report-section {
+.reportSection {
   margin-bottom: 1.5rem;
 }
 
-.report-section h4 {
+.reportSection h4 {
   margin: 0 0 1rem 0;
   font-size: 1rem;
   color: #1e40af;
@@ -141,12 +174,12 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.report-table {
+.reportTable {
   width: 100%;
   border-collapse: collapse;
 }
 
-.report-table th {
+.reportTable th {
   text-align: left;
   padding: 0.75rem;
   background-color: #f9fafb;
@@ -155,15 +188,30 @@
   color: #4b5563;
 }
 
-.report-table td {
+.reportTable td {
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.placeholder-report {
+.emptyState {
+  text-align: center;
+  color: #6b7280;
+}
+
+.dailyReport {
+  width: 100%;
+}
+
+.placeholderReport {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 300px;
+  text-align: center;
+}
+
+.placeholderContent {
+  color: #6b7280;
+  font-size: 0.875rem;
 } 
