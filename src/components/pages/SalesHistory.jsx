@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import useSalesHistory from '../../hooks/useSalesHistory';
-import { SaleService, ProductService } from '../../services/DatabaseService';
 import { calculateReturnTotal, formatCurrency } from '../../utils/calculations';
 import { printReceipt } from '../../utils/receiptPrinter';
 import { toast } from 'react-hot-toast';
@@ -42,7 +41,7 @@ const SalesHistory = () => {
   } = useSalesHistory(1, 10); // Initial page 1, 10 items per page
   
   const { currentPage, pageSize, totalCount, totalPages, handlePageChange } = pagination;
-  const { products } = useDatabase();
+  const { sales: salesService, products: productService } = useDatabase();
   const { 
     getCurrency, 
     getDateFormat, 
@@ -144,7 +143,7 @@ const SalesHistory = () => {
   // Load sale details when a sale is selected
   const handleSelectSale = async (sale) => {
     try {
-      const saleDetails = await SaleService.getSaleById(sale.id);
+      const saleDetails = await salesService.getSaleById(sale.id);
       
       if (!saleDetails) {
         return;
@@ -155,7 +154,7 @@ const SalesHistory = () => {
         saleDetails.items.map(async (item) => {
           try {
             // Try to get the product data for the unit
-            const product = await ProductService.getProductById(item.product_id);
+            const product = await productService.getProductById(item.product_id);
             return {
               ...item,
               product: product || { unit: 'units' } // Add product info with fallback unit
@@ -250,7 +249,7 @@ const SalesHistory = () => {
         }));
       
       // Process the return
-      const result = await SaleService.processSaleReturn(selectedSale.id, returnData, itemsToReturn);
+      const result = await salesService.processSaleReturn(selectedSale.id, returnData, itemsToReturn);
       
       if (result && result.success) {
         toast.success(t('sales:return.success'));
@@ -363,7 +362,7 @@ const SalesHistory = () => {
     if (!selectedSale) return;
     
     try {
-      const result = await SaleService.cancelSale(selectedSale.id);
+      const result = await salesService.cancelSale(selectedSale.id);
       
       if (result && result.is_returned) {
         toast.success(t('sales:cancel.success'));
@@ -374,7 +373,7 @@ const SalesHistory = () => {
         
         // Update the selected sale to show it's canceled
         if (selectedSale) {
-          const updatedSale = await SaleService.getSaleById(selectedSale.id);
+          const updatedSale = await salesService.getSaleById(selectedSale.id);
           setSelectedSale(updatedSale);
           setSelectedSaleDetails(updatedSale);
         }

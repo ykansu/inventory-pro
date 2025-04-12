@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
-import { ProductService, SettingService } from '../../services/DatabaseService';
 import { useDatabase } from '../../context/DatabaseContext';
 import { useSettings } from '../../context/SettingsContext';
 import { toast } from 'react-hot-toast';
@@ -269,74 +268,77 @@ const StockUpdate = () => {
       );
     }
   };
-  
-  // Handle form submission
+
+  // Handle submit - update stock with new cost price
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!selectedProduct) {
-      toast.error(t('products:errors.invalidQuantity'));
+      toast.error(t('common:errors.selectProduct'));
       return;
     }
     
-    if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
-      toast.error(t('products:errors.invalidQuantity'));
+    if (parseFloat(formData.quantity) <= 0) {
+      toast.error(t('common:errors.invalidQuantity'));
       return;
     }
-    
-    setLoading(true);
     
     try {
-      const updatedProduct = { ...selectedProduct };
+      setLoading(true);
       
-      // Update stock quantity
-      if (formData.adjustmentType === 'add') {
-        updatedProduct.stock_quantity = parseFloat(selectedProduct.stock_quantity || 0) + parseFloat(formData.quantity);
-        updatedProduct.cost_price = costCalculation.averageCostPrice;
-      } else {
-        updatedProduct.stock_quantity = Math.max(0, parseFloat(selectedProduct.stock_quantity || 0) - parseFloat(formData.quantity));
-      }
+      // Prepare data for stock update
+      const quantity = parseFloat(formData.quantity);
+      const adjustmentType = formData.adjustmentType;
+      const reason = formData.reason || 'Stock adjustment';
       
-      // Update selling price
-      if (parseFloat(formData.newSellingPrice) > 0) {
-        updatedProduct.selling_price = parseFloat(formData.newSellingPrice);
-      }
+      // Reference for the adjustment - use formatted date based on settings
+      const formattedDate = formatDate(new Date());
+      const reference = `Stock-${adjustmentType}-${formattedDate}`;
       
-      // Save changes to database
-      await products.updateProduct(updatedProduct);
-      
-      // Create stock adjustment record
-      await products.addStockAdjustment({
-        product_id: selectedProduct.id,
-        adjustment_type: formData.adjustmentType,
-        quantity: parseFloat(formData.quantity),
-        old_stock: parseFloat(selectedProduct.stock_quantity || 0),
-        new_stock: updatedProduct.stock_quantity,
-        old_cost_price: parseFloat(selectedProduct.cost_price || 0),
-        new_cost_price: parseFloat(updatedProduct.cost_price || 0),
-        reason: formData.reason,
-        date: new Date().toISOString()
-      });
-      
-      // Update product in local state
-      const updatedProducts = productsList.map(p => 
-        p.id === updatedProduct.id ? updatedProduct : p
+      // Update stock quantity first
+      await products.updateStock(
+        selectedProduct.id,
+        quantity,
+        adjustmentType,
+        reason,
+        reference
       );
       
+      // Then update the product with new cost price and selling price (if changed)
+      const productUpdateData = {
+        cost_price: formData.adjustmentType === 'add' 
+          ? costCalculation.averageCostPrice 
+          : selectedProduct.cost_price
+      };
+      
+      // Only update selling price if it has changed
+      if (formData.newSellingPrice !== selectedProduct.selling_price) {
+        productUpdateData.selling_price = formData.newSellingPrice;
+      }
+      
+      await products.updateProduct(selectedProduct.id, productUpdateData);
+      
+      // Show success message
+      toast.success(t('products:notifications.stockUpdateSuccess'));
+      
+      // Refresh product list
+      const updatedProducts = await products.getAllProducts();
       setProductsList(updatedProducts);
-      setSelectedProduct(updatedProduct);
+      setFilteredProducts(updatedProducts);
+      
+      // Reset selection and form
+      setSelectedProduct(null);
       setFormData({
         quantity: 0,
-        newCostPrice: parseFloat(updatedProduct.cost_price) || 0,
-        newSellingPrice: parseFloat(updatedProduct.selling_price) || 0,
+        newCostPrice: 0,
+        newSellingPrice: 0,
         adjustmentType: 'add',
         reason: ''
       });
       
-      toast.success(t('products:notifications.stockUpdateSuccess'));
     } catch (error) {
       console.error('Error updating stock:', error);
-      toast.error(t('products:errors.stockUpdateFailed'));
+      toast.error(t('common:errors.updateFailed'));
     } finally {
       setLoading(false);
     }
