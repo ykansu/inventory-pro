@@ -376,24 +376,11 @@ class Sale extends BaseModel {
   // Get monthly profit metrics
   async getMonthlyProfitMetrics() {
     try {
-      // Get the current date
-      const now = new Date();
-
-      // Use date-fns for start and end of the current month
-      const startDate = startOfMonth(now);
-      const endDate = endOfMonth(now);
-      
-      // Format dates for SQLite query using date-fns
-      const formattedStartDate = startDate.toISOString();
-      const formattedEndDate = endDate.toISOString();
-      
-      // Get database connection
       const db = await this.getDb();
-      
-      // Check if required tables exist
+  
       const hasSalesTable = await db.schema.hasTable(this.tableName);
       const hasSaleItemsTable = await db.schema.hasTable('sale_items');
-      
+  
       if (!hasSalesTable || !hasSaleItemsTable) {
         console.log('Required tables do not exist, returning default metrics');
         return {
@@ -402,53 +389,47 @@ class Sale extends BaseModel {
           profitMargin: 0
         };
       }
-      
-      // Get all sales for current month
-      const sales = await db(this.tableName)
-        .where('created_at', '>=', formattedStartDate)
-        .where('created_at', '<=', formattedEndDate)
-        .where('is_returned', false)
-        .select('id', 'total_amount');
-      
-      if (sales.length === 0) {
-        return {
-          monthlyRevenue: 0,
-          monthlyProfit: 0,
-          profitMargin: 0
-        };
-      }
-      
-      // Get sale IDs
-      const saleIds = sales.map(sale => sale.id);
-      
-      // Calculate monthly revenue
-      const monthlyRevenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
-      
-      // Get all sale items with historical cost information
-      const saleItemsWithCost = await db('sale_items')
-        .whereIn('sale_id', saleIds)
+  
+      const now = new Date();
+      const startDate = startOfMonth(now);
+      const endDate = endOfMonth(now);
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+  
+      // Prepare cost subquery
+      const costSubquery = db('sale_items')
+        .select('sale_id')
+        .sum({
+          total_cost: db.raw('COALESCE(historical_cost_price * quantity, 0)')
+        })
+        .groupBy('sale_id')
+        .as('costs');
+  
+      const result = await db
+        .from(`${this.tableName} as sales`)
+        .leftJoin(costSubquery, 'sales.id', 'costs.sale_id')
+        .where('sales.created_at', '>=', formattedStartDate)
+        .andWhere('sales.created_at', '<=', formattedEndDate)
+        .andWhere('sales.is_returned', false)
         .select(
-          'quantity',
-          'unit_price',
-          'total_price',
-          'historical_cost_price'
-        );
-      
-      // Calculate total cost and profit using historical cost prices
-      let totalCost = 0;
-      
-      saleItemsWithCost.forEach(item => {
-        totalCost += parseFloat(item.historical_cost_price) * parseInt(item.quantity);
-      });
-      
-      const monthlyProfit = monthlyRevenue - totalCost;
-      const profitMargin = monthlyRevenue > 0 ? (monthlyProfit / monthlyRevenue) * 100 : 0;
-      
+          db.raw('SUM(COALESCE(sales.total_amount, 0)) AS total_revenue'),
+          db.raw('SUM(COALESCE(costs.total_cost, 0)) AS total_cost')
+        )
+        .first();
+  
+      const monthlyRevenue = parseFloat(result.total_revenue || 0);
+      const monthlyCost = parseFloat(result.total_cost || 0);
+      const monthlyProfit = monthlyRevenue - monthlyCost;
+      const profitMargin = monthlyRevenue > 0
+        ? (monthlyProfit / monthlyRevenue) * 100
+        : 0;
+  
       return {
-        monthlyRevenue,
-        monthlyProfit,
-        profitMargin: Math.round(profitMargin * 10) / 10 // Round to 1 decimal place
+        monthlyRevenue: Math.round(monthlyRevenue),
+        monthlyProfit: Math.round(monthlyProfit),
+        profitMargin: Math.round(profitMargin * 10) / 10 // 1 decimal place
       };
+  
     } catch (error) {
       console.error('Error in getMonthlyProfitMetrics:', error);
       return {
@@ -819,116 +800,86 @@ class Sale extends BaseModel {
       return [];
     }
   }
-  
-  // Get profit and revenue trend for past months
+
+  // Get profit and revenue trend
   async getProfitAndRevenueTrend(months = 6) {
     try {
-      // Get database connection once
       const db = await this.getDb();
-      
-      // Check if required tables exist
+  
       const hasSalesTable = await db.schema.hasTable(this.tableName);
       const hasSaleItemsTable = await db.schema.hasTable('sale_items');
-      
+  
       if (!hasSalesTable || !hasSaleItemsTable) {
-        console.log('Required tables do not exist, returning empty trend data');
-        // Return empty month data with zero values
         const now = new Date();
-        const monthsData = [];
-        
-        for (let i = months - 1; i >= 0; i--) {
-          const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-          // Use our safe formatter instead of direct toLocaleString
-          const monthName = formatDateHelper(monthDate, { month: 'short' }, `Month-${i}`);
-          monthsData.push({
-            month: monthName,
+        return Array.from({ length: months }, (_, i) => {
+          const monthDate = subMonths(now, months - i - 1);
+          return {
+            month: format(monthDate, 'MMM'),
             revenue: 0,
-            profit: 0
-          });
-        }
-        
-        return monthsData;
+            profit: 0,
+          };
+        });
       }
-      
-      // Get current date
+  
       const now = new Date();
-      
-      // Generate data for the past N months
-      const monthsData = [];
-      
+      const startDate = startOfMonth(subMonths(now, months - 1));
+      const formattedStartDate = startDate.toISOString();
+  
+      // Subquery to get cost per sale
+      const costSubquery = db('sale_items')
+        .select('sale_id')
+        .sum({
+          total_cost: db.raw('COALESCE(historical_cost_price * quantity, 0)')
+        })
+        .groupBy('sale_id')
+        .as('costs');
+
+  
+      // Main query: sales joined with aggregated costs
+      const rows = await db
+        .from(`${this.tableName} as sales`)
+        .leftJoin(costSubquery, 'sales.id', 'costs.sale_id')
+        .where('sales.created_at', '>=', formattedStartDate)
+        .andWhere('sales.is_returned', false)
+        .select(
+          db.raw(`strftime('%Y-%m', sales.created_at, 'localtime') as month_key`),
+          db.raw(`sum(COALESCE(sales.total_amount, 0)) as total_revenue`),
+          db.raw(`sum(COALESCE(costs.total_cost, 0)) as total_cost`)
+        )
+        .groupBy('month_key');
+  
+      // Map and format data
+      const dataByMonthKey = {};
+      rows.forEach(row => {
+        const monthDate = new Date(row.month_key + '-01');
+        const monthName = format(monthDate, 'MMM');
+        const revenue = parseFloat(row.total_revenue || 0);
+        const cost = parseFloat(row.total_cost || 0);
+        dataByMonthKey[row.month_key] = {
+          month: monthName,
+          revenue: Math.round(revenue),
+          profit: Math.round(revenue - cost),
+        };
+      });
+  
+      // Ensure all months are present
+      const result = [];
       for (let i = months - 1; i >= 0; i--) {
-        try {
-          // Calculate month start and end dates using date-fns
-          const targetMonthDate = subMonths(now, i);
-          const monthStart = startOfMonth(targetMonthDate);
-          const monthEnd = endOfMonth(targetMonthDate);
-          
-          // Format dates for SQLite using date-fns
-          let formattedStartDate, formattedEndDate;
-          try {
-            formattedStartDate = monthStart.toISOString();
-            formattedEndDate = monthEnd.toISOString();
-          } catch (error) {
-            console.error("Error converting dates to ISO format:", error);
-            continue; // Skip this month if formatting fails
+        const monthDate = subMonths(now, i);
+        const monthKey = format(monthDate, 'yyyy-MM');
+        result.push(
+          dataByMonthKey[monthKey] || {
+            month: format(monthDate, 'MMM'),
+            revenue: 0,
+            profit: 0,
           }
-          
-          // Get month name (e.g., "Jan") using date-fns format
-          const monthName = format(monthStart, 'MMM'); 
-          
-          // Get all sales for this month
-          const sales = await db(this.tableName)
-            .where('created_at', '>=', formattedStartDate)
-            .where('created_at', '<=', formattedEndDate)
-            .where('is_returned', false)
-            .select('id', 'total_amount');
-          
-          // Calculate revenue
-          const revenue = sales.reduce((sum, sale) => sum + parseFloat(sale.total_amount), 0);
-          
-          // If we have sales, calculate profit
-          let profit = 0;
-          
-          if (sales.length > 0) {
-            // Get sale IDs
-            const saleIds = sales.map(sale => sale.id);
-            
-            // Get all sale items with historical cost information
-            const db2 = await this.getDb();
-            const saleItemsWithCost = await db2('sale_items')
-              .whereIn('sale_items.sale_id', saleIds)
-              .select(
-                'sale_items.quantity',
-                'sale_items.historical_cost_price'
-              );
-            
-            // Calculate total cost using historical cost price
-            const totalCost = saleItemsWithCost.reduce((sum, item) => {
-              const cost = parseFloat(item.historical_cost_price) || 0;
-              const quantity = parseInt(item.quantity) || 0;
-              return sum + (cost * quantity);
-            }, 0);
-            
-            profit = revenue - totalCost;
-          }
-          
-          // Add month data
-          monthsData.push({
-            month: monthName,
-            revenue: Math.round(revenue),
-            profit: Math.round(profit)
-          });
-        } catch (error) {
-          console.error(`Error processing month ${i}:`, error);
-          // Continue to next month
-          continue;
-        }
+        );
       }
-      
-      return monthsData;
+  
+      return result;
+  
     } catch (error) {
       console.error('Error in getProfitAndRevenueTrend:', error);
-      // Return empty array instead of throwing
       return [];
     }
   }

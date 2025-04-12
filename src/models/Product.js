@@ -247,22 +247,22 @@ class Product extends BaseModel {
       // Get current inventory values for each month
       const trendData = await db('products')
         .select(
-          db.raw("strftime('%Y-%m', date('now')) as month"),
+          db.raw("strftime('%Y-%m', date('now'), 'localtime') as month"),
           db.raw('SUM(stock_quantity * cost_price) as value')
         )
         .where('stock_quantity', '>', 0)
-        .groupBy(db.raw("strftime('%Y-%m', date('now'))"));
+        .groupBy(db.raw("strftime('%Y-%m', date('now'), 'localtime')"));
 
       // Get historical inventory values from stock adjustments
       const historicalData = await db('stock_adjustments')
         .join('products', 'stock_adjustments.product_id', 'products.id')
         .select(
-          db.raw("strftime('%Y-%m', stock_adjustments.created_at) as month"),
+          db.raw("strftime('%Y-%m', stock_adjustments.created_at, 'localtime') as month"),
           db.raw('SUM(stock_adjustments.quantity_change * products.cost_price) as value')
         )
         .where('stock_adjustments.created_at', '>=', startDateStr)
-        .groupBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at)"))
-        .orderBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at)"), 'desc')
+        .groupBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at, 'localtime')"))
+        .orderBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at, 'localtime')"), 'desc')
         .limit(months);
       
       // Combine current and historical data

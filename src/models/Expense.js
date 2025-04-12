@@ -165,12 +165,12 @@ class Expense extends BaseModel {
       // SQL query to get monthly expense totals
       const result = await db.raw(`
         SELECT 
-          strftime('%Y', expense_date) as year,
-          strftime('%m', expense_date) as month,
+          strftime('%Y', expense_date, 'localtime') as year,
+          strftime('%m', expense_date, 'localtime') as month,
           SUM(amount) as total_amount
         FROM expenses
         WHERE expense_date BETWEEN ? AND ?
-        GROUP BY strftime('%Y', expense_date), strftime('%m', expense_date)
+        GROUP BY strftime('%Y', expense_date, 'localtime'), strftime('%m', expense_date, 'localtime')
         ORDER BY year ASC, month ASC
       `, [formattedStartDate, formattedEndDate]);
       
