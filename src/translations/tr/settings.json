@@ -73,7 +73,8 @@
       "action": "Veritabanını Sıfırla",
       "confirmMessage": "Veritabanını sıfırlamak istediğinizden emin misiniz? Tüm veriler kaybolacak!",
       "success": "Veritabanı başarıyla sıfırlandı",
-      "error": "Veritabanı sıfırlanamadı"
+      "error": "Veritabanı sıfırlanamadı",
+      "loadingMessage": "Veritabanı sıfırlanıyor. Lütfen bekleyin..."
     },
     "resetSettings": {
       "title": "Ayarları Sıfırla",
@@ -88,7 +89,8 @@
       "description": "Tüm verilerinizin bir JSON yedekleme dosyasını oluşturun. Başka bir cihaza aktarmak için kullanışlıdır.",
       "action": "JSON Olarak Dışa Aktar",
       "success": "Veriler başarıyla dışa aktarıldı",
-      "error": "Veriler dışa aktarılamadı"
+      "error": "Veriler dışa aktarılamadı",
+      "loadingMessage": "Veriler JSON olarak dışa aktarılıyor. Lütfen bekleyin..."
     },
     "importFromJson": {
       "title": "JSON'dan Veri İçe Aktar",
@@ -96,14 +98,16 @@
       "action": "JSON'dan İçe Aktar",
       "confirmMessage": "Veri içe aktarmak istediğinizden emin misiniz? Mevcut verilerinizin yerini alacaktır!",
       "success": "Veriler başarıyla içe aktarıldı",
-      "error": "Veriler içe aktarılamadı"
+      "error": "Veriler içe aktarılamadı",
+      "loadingMessage": "Veriler JSON'dan içe aktarılıyor. Lütfen bekleyin..."
     },
     "exportToExcel": {
       "title": "Excel'e Dışa Aktar",
       "description": "Tüm envanter verilerinizi yedekleme veya analiz için bir Excel dosyasına aktarın.",
       "action": "Excel'e Aktar",
       "success": "Veriler Excel'e başarıyla aktarıldı",
-      "error": "Veriler Excel'e aktarılamadı"
+      "error": "Veriler Excel'e aktarılamadı",
+      "loadingMessage": "Veriler Excel'e aktarılıyor. Lütfen bekleyin..."
     },
     "importFromExcel": {
       "title": "Excel'den İçe Aktar",
@@ -111,7 +115,8 @@
       "action": "Excel'den İçe Aktar",
       "confirmMessage": "Excel'den veri içe aktarmak istediğinizden emin misiniz? Mevcut verilerinizin yerini alacaktır!",
       "success": "Veriler Excel'den başarıyla içe aktarıldı",
-      "error": "Veriler Excel'den içe aktarılamadı"
+      "error": "Veriler Excel'den içe aktarılamadı",
+      "loadingMessage": "Veriler Excel'den içe aktarılıyor. Lütfen bekleyin..."
     },
     "jsonExportSettings": {
       "title": "JSON Dışa Aktarma Ayarları",

@@ -105,42 +105,12 @@ const Expenses = () => {
       const result = await expenseCategories.getAllCategories();
       if (result.success) {
         setCategoriesList(result.data || []);
-        
-        // Check if "Other" category exists
-        const otherCategoryName = t('other');
-        const otherCategoryExists = result.data.some(
-          cat => cat.name.toLowerCase() === otherCategoryName.toLowerCase()
-        );
-        
-        // If "Other" category doesn't exist, create it
-        if (!otherCategoryExists) {
-          await createOtherCategory();
-          // After creating, reload the categories
-          const updatedResult = await expenseCategories.getAllCategories();
-          if (updatedResult.success) {
-            setCategoriesList(updatedResult.data || []);
-          }
-        }
       } else {
         toast.error(result.error || t('loadCategoriesError'));
       }
     } catch (error) {
       console.error('Error loading categories:', error);
       toast.error(t('loadCategoriesError'));
-    }
-  };
-
-  const createOtherCategory = async () => {
-    try {
-      const otherCategoryData = {
-        name: t('other'),
-        description: t('defaultCategoryDescription')
-      };
-      
-      await expenseCategories.createCategory(otherCategoryData);
-    } catch (error) {
-      console.error('Error creating Other category:', error);
-      // Don't show toast for this, as it's a background operation
     }
   };
 
@@ -161,16 +131,11 @@ const Expenses = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     
-    // Find the "Other" category from the list, if it exists
-    const otherCategory = categoriesList.find(
-      cat => cat.name.toLowerCase() === t('other').toLowerCase()
-    );
-    
     const data = {
       reference_number: formData.get('reference'),
       description: formData.get('description'),
       amount: parseFloat(formData.get('amount')),
-      category_id: formData.get('category_id') || (otherCategory ? otherCategory.id : null),
+      category_id: formData.get('category_id') || null,
       expense_date: formData.get('date'),
       payment_method: formData.get('payment_method'),
       recipient: formData.get('recipient'),
@@ -611,8 +576,7 @@ const Expenses = () => {
               <select
                 id="category_id"
                 name="category_id"
-                defaultValue={selectedExpense?.category_id || 
-                  (categoriesList.find(cat => cat.name.toLowerCase() === t('other').toLowerCase())?.id || '')}
+                defaultValue={selectedExpense?.category_id || ''}
                 className={`form-control ${styles.modalFormControl}`}
               >
                 <option value="">{t('selectCategory')}</option>

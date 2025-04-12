@@ -7,6 +7,7 @@ import styles from './Settings.module.css';
 import Button from '../common/Button';
 import FormGroup from '../common/FormGroup';
 import TabNavigation from '../common/TabNavigation';
+import LoadingOverlay from '../common/LoadingOverlay';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');
@@ -27,6 +28,9 @@ const Settings = () => {
   } = useSettings();
   
   const isLoading = dbLoading || settingsLoading;
+  
+  // Loading state for database operations
+  const [loadingOperation, setLoadingOperation] = useState(null);
   
   // Settings state
   const [generalSettings, setGeneralSettings] = useState({
@@ -267,6 +271,11 @@ const Settings = () => {
   const handleResetDatabase = async () => {
     if (window.confirm(t('settings:database.reset.confirmMessage'))) {
       try {
+        setLoadingOperation({
+          type: 'reset',
+          message: t('settings:database.reset.loadingMessage', 'Resetting database...')
+        });
+        
         // Check if database instance is available
         if (!database) {
           throw new Error('Database not initialized');
@@ -288,12 +297,18 @@ const Settings = () => {
       } catch (error) {
         console.error('Database reset error:', error);
         toast.error(t('settings:database.reset.error'));
+        setLoadingOperation(null);
       }
     }
   };
   
   const handleExportToJson = async () => {
     try {
+      setLoadingOperation({
+        type: 'exportJson',
+        message: t('settings:database.exportToJson.loadingMessage', 'Exporting data to JSON...')
+      });
+      
       // Just use the default JSON export path from the environment config
       const result = await window.database.exportToJson();
       
@@ -305,17 +320,25 @@ const Settings = () => {
     } catch (error) {
       console.error('JSON export error:', error);
       toast.error(t('settings:database.exportToJson.error'));
+    } finally {
+      setLoadingOperation(null);
     }
   };
   
   const handleImportFromJson = async () => {
     if (window.confirm(t('settings:database.importFromJson.confirmMessage'))) {
       try {
+        setLoadingOperation({
+          type: 'importJson',
+          message: t('settings:database.importFromJson.loadingMessage', 'Importing data from JSON...')
+        });
+        
         // First select the JSON file to import
         const jsonFilePath = await window.database.selectJsonFile();
         
         if (!jsonFilePath) {
           // User cancelled the file selection
+          setLoadingOperation(null);
           return;
         }
         
@@ -335,12 +358,18 @@ const Settings = () => {
       } catch (error) {
         console.error('JSON import error:', error);
         toast.error(`${t('settings:database.importFromJson.error')}: ${error.message}`);
+        setLoadingOperation(null);
       }
     }
   };
   
   const handleExportToExcel = async () => {
     try {
+      setLoadingOperation({
+        type: 'exportExcel',
+        message: t('settings:database.exportToExcel.loadingMessage', 'Exporting data to Excel...')
+      });
+      
       // Just use the default Excel export path from the environment config
       const result = await window.database.exportToExcel();
       
@@ -352,17 +381,25 @@ const Settings = () => {
     } catch (error) {
       console.error('Excel export error:', error);
       toast.error(t('settings:database.exportToExcel.error'));
+    } finally {
+      setLoadingOperation(null);
     }
   };
   
   const handleImportFromExcel = async () => {
     if (window.confirm(t('settings:database.importFromExcel.confirmMessage'))) {
       try {
+        setLoadingOperation({
+          type: 'importExcel',
+          message: t('settings:database.importFromExcel.loadingMessage', 'Importing data from Excel...')
+        });
+        
         // First select the Excel file to import
         const excelFilePath = await window.database.selectExcelFile();
         
         if (!excelFilePath) {
           // User cancelled the file selection
+          setLoadingOperation(null);
           return;
         }
         
@@ -382,6 +419,7 @@ const Settings = () => {
       } catch (error) {
         console.error('Excel import error:', error);
         toast.error(`${t('settings:database.importFromExcel.error')}: ${error.message}`);
+        setLoadingOperation(null);
       }
     }
   };
@@ -401,6 +439,9 @@ const Settings = () => {
 
   return (
     <div className={styles.page}>
+      {loadingOperation && (
+        <LoadingOverlay message={loadingOperation.message} />
+      )}
       <div className={styles.container}>
         <div className={styles.sidebar}>
           <TabNavigation 
@@ -672,6 +713,7 @@ const Settings = () => {
                   <Button
                     variant="secondary"
                     onClick={handleExportToJson}
+                    disabled={loadingOperation !== null}
                   >
                     {t('settings:database.exportToJson.action')}
                   </Button>
@@ -684,6 +726,7 @@ const Settings = () => {
                   <Button
                     variant="secondary"
                     onClick={handleImportFromJson}
+                    disabled={loadingOperation !== null}
                   >
                     {t('settings:database.importFromJson.action')}
                   </Button>
@@ -696,6 +739,7 @@ const Settings = () => {
                   <Button
                     variant="secondary"
                     onClick={handleExportToExcel}
+                    disabled={loadingOperation !== null}
                   >
                     {t('settings:database.exportToExcel.action')}
                   </Button>
@@ -708,6 +752,7 @@ const Settings = () => {
                   <Button
                     variant="secondary"
                     onClick={handleImportFromExcel}
+                    disabled={loadingOperation !== null}
                   >
                     {t('settings:database.importFromExcel.action')}
                   </Button>
@@ -720,6 +765,7 @@ const Settings = () => {
                   <Button
                     variant="danger"
                     onClick={handleResetDatabase}
+                    disabled={loadingOperation !== null}
                   >
                     {t('settings:database.reset.action')}
                   </Button>

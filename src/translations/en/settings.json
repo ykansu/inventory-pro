@@ -73,7 +73,8 @@
       "action": "Reset Database",
       "confirmMessage": "Are you sure you want to reset the database? All data will be lost!",
       "success": "Database reset successfully",
-      "error": "Failed to reset database"
+      "error": "Failed to reset database",
+      "loadingMessage": "Resetting database. Please wait..."
     },
     "resetSettings": {
       "title": "Reset Settings",
@@ -88,30 +89,34 @@
       "description": "Create a JSON backup file of all your data. Useful for transferring to another device.",
       "action": "Export to JSON",
       "success": "Data exported successfully",
-      "error": "Failed to export data"
+      "error": "Failed to export data",
+      "loadingMessage": "Exporting data to JSON. Please wait..."
     },
     "importFromJson": {
       "title": "Import Data from JSON",
-      "description": "Import data from a previously exported JSON file. Warning: This will replace your current data.",
+      "description": "Import data from a JSON backup file.",
       "action": "Import from JSON",
-      "confirmMessage": "Are you sure you want to import data? Your existing data will be replaced!",
+      "confirmMessage": "Are you sure you want to import data? This will replace your current data.",
       "success": "Data imported successfully",
-      "error": "Failed to import data"
+      "error": "Failed to import data",
+      "loadingMessage": "Importing data from JSON. Please wait..."
     },
     "exportToExcel": {
-      "title": "Export to Excel",
-      "description": "Export all your inventory data to an Excel file for backup or analysis.",
-      "action": "Export Excel",
+      "title": "Export Data to Excel",
+      "description": "Export your data to an Excel spreadsheet for external analysis or reporting.",
+      "action": "Export to Excel",
       "success": "Data exported to Excel successfully",
-      "error": "Failed to export data to Excel"
+      "error": "Failed to export data to Excel",
+      "loadingMessage": "Exporting data to Excel. Please wait..."
     },
     "importFromExcel": {
-      "title": "Import from Excel",
-      "description": "Import inventory data from an Excel file. Warning: This will replace your current data.",
-      "action": "Import Excel",
-      "confirmMessage": "Are you sure you want to import data from Excel? Your existing data will be replaced!",
+      "title": "Import Data from Excel",
+      "description": "Import data from an Excel spreadsheet.",
+      "action": "Import from Excel",
+      "confirmMessage": "Are you sure you want to import data from Excel? This will replace your current data.",
       "success": "Data imported from Excel successfully",
-      "error": "Failed to import data from Excel"
+      "error": "Failed to import data from Excel",
+      "loadingMessage": "Importing data from Excel. Please wait..."
     },
     "jsonExportSettings": {
       "title": "JSON Export Settings",
