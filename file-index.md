@@ -4,7 +4,11 @@ This document provides a comprehensive overview of the Inventory Pro project str
 
 ## Project Overview
 
-Inventory Pro is a comprehensive stock management application built with Electron.js and React, offering inventory management, POS functionality, reporting, and other business management features.
+Inventory Pro is a comprehensive stock management application built with **Electron.js** and **React**, featuring:
+- **POS functionality** with product management, discounts, and split payments.
+- **Dashboard** with sales metrics, inventory analysis, and financial reporting.
+- **Data backup/import/export** (Excel & JSON).
+- **Internationalization** (English & Turkish via `i18next`).
 
 ## Project Structure
 
@@ -30,30 +34,14 @@ inventory-pro/
 │ ├── copy-env-to-dist.js # Script to copy .env file during build
 │ └── setup-env.js # Script to set up environment variables
 ├── src/ # Source code
-│ ├── components/ # React components
-│ │ ├── App.jsx # Main React application component
+│ ├── components/ # React components (using CSS modules)
+│ │ ├── App.jsx # Root component
 │ │ ├── LanguageInitializer.jsx # Initializes i18n
-│ │ ├── common/ # Shared/reusable UI components
-│ │ │ └── LoadingSpinner.jsx # Loading indicator component
-│ │ ├── dashboard/ # Dashboard-specific components
-│ │ │ ├── CategoryProfitsChart.jsx
-│ │ │ ├── InventoryMetricsCards.jsx
-│ │ │ ├── InventoryTrendChart.jsx
-│ │ │ ├── InventoryValueByCategoryChart.jsx
-│ │ │ ├── InventoryValueBySupplierChart.jsx
-│ │ │ ├── LowStockItemsCard.jsx
-│ │ │ ├── MonthlyProfitMetricsCards.jsx
-│ │ │ ├── ProfitTrendChart.jsx
-│ │ │ ├── RevenueByPaymentChart.jsx
-│ │ │ ├── RevenueBySupplierChart.jsx
-│ │ │ ├── StatCard.jsx
-│ │ │ ├── TodaySalesCard.jsx
-│ │ │ ├── TopProductsChart.jsx
-│ │ │ └── TotalProductsCard.jsx
-│ │ └── product/ # Product-related components (Currently empty)
+│ │ ├── common/ # Shared UI (e.g., LoadingSpinner.module.css)
+│ │ └── dashboard/ # Dashboard-specific components
 │ ├── context/ # React context providers
 │ │ └── DatabaseContext.jsx # Database context provider
-│ ├── database/ # Database-related code
+│ ├── database/ # SQLite + Knex.js
 │ │ ├── backups/ # Backup storage location (contains subdirs like pre_reset/, pre_import/)
 │ │ ├── config.js # Database configuration and utility functions
 │ │ ├── dbManager.js # Database management utilities (init, backup, export)
@@ -66,7 +54,9 @@ inventory-pro/
 │ │ │ ├── 20250330_initial_schema.js
 │ │ │ ├── 20250331_add_split_payment.js
 │ │ │ ├── 20250401_add_payment_amount_fields.js
-│ │ │ └── 20250402_add_price_history.js
+│ │ │ ├── 20250402_add_price_history.js
+│ │ │ ├── 20250410_remove_tax_settings.js
+│ │ │ └── 20250411_add_expenses.js
 │ │ └── seeds/ # Seed data for the database (Currently empty)
 │ ├── hooks/ # Custom React hooks
 │ │ ├── useSalesHistory.js # Sales history data hook
@@ -96,7 +86,7 @@ inventory-pro/
 │ │ └── index.js # Exports all models
 │ ├── pages/ # Application pages/screens (React components)
 │ │ ├── Dashboard.jsx
-│ │ ├── POS.jsx # Point of Sale system
+│ │ ├── POS.jsx # Point of Sale system (with CSS modules)
 │ │ ├── ProductManagement.jsx
 │ │ ├── Reports.jsx
 │ │ ├── SalesHistory.jsx
@@ -106,36 +96,9 @@ inventory-pro/
 │ ├── renderer.js # Electron renderer process setup (obsolete/minimal content?)
 │ ├── services/ # Business logic services
 │ │ └── DatabaseService.js # Service layer for database interactions
-│ ├── styles/ # CSS styles
-│ │ ├── components/ # Component-specific styles
-│ │ │ ├── buttons.css
-│ │ │ ├── chart.css
-│ │ │ ├── charts.css
-│ │ │ ├── forms.css
-│ │ │ ├── index.css
-│ │ │ ├── loading-spinner.css
-│ │ │ ├── modal.css
-│ │ │ ├── stat-card.css
-│ │ │ └── table.css
-│ │ ├── main.css # Main application styles (imported by index.css)
-│ │ └── pages/ # Page-specific styles
-│ │ ├── dashboard.css
-│ │ ├── pos.css
-│ │ ├── product-management.css
-│ │ ├── reports.css
-│ │ ├── sales-history.css
-│ │ ├── settings.css
-│ │ └── stock-update.css
-│ ├── translations/ # Translation files (JSON format for i18next)
-│ │ ├── en/ # English translations
-│ │ │ ├── common.json
-│ │ │ ├── dashboard.json
-│ │ │ ├── pos.json
-│ │ │ ├── products.json
-│ │ │ ├── reports.json
-│ │ │ ├── sales.json
-│ │ │ └── settings.json
-│ │ └── tr/ # Turkish translations
+│ ├── styles/ # Legacy CSS (phased out for modules)
+│ └── translations/ # Translation files (JSON format for i18next)
+│ ├── en/ # English translations
 │ │ ├── common.json
 │ │ ├── dashboard.json
 │ │ ├── pos.json
@@ -143,10 +106,18 @@ inventory-pro/
 │ │ ├── reports.json
 │ │ ├── sales.json
 │ │ └── settings.json
-│ └── utils/ # Utility functions
-│ ├── calculations.js # Business calculation functions
-│ ├── formatters.js # Data formatting utilities
-│ └── receiptPrinter.js # Receipt printing functionality
+│ └── tr/ # Turkish translations
+│ ├── common.json
+│ ├── dashboard.json
+│ ├── pos.json
+│ ├── products.json
+│ ├── reports.json
+│ ├── sales.json
+│ └── settings.json
+└── utils/ # Utility functions
+├── calculations.js # Business calculation functions
+├── formatters.js # Data formatting utilities
+└── receiptPrinter.js # Receipt printing functionality
 └── webpack.config.js # Webpack bundler configuration (likely used by Electron Forge)
 33 hidden lines
 33 hidden lines
@@ -199,7 +170,7 @@ Let me know if you'd like me to try breaking the edit into smaller pieces or if 
 |---------------------------------|--------------------------------------------------------------|
 | `App.jsx`                       | Root React component, sets up routing and context providers  |
 | `LanguageInitializer.jsx`       | Initializes i18n for the React application                   |
-| `common/`                       | Shared/reusable UI components (e.g., `LoadingSpinner.jsx`)   |
+| `common/`                       | Shared UI (e.g., LoadingSpinner.module.css)   |
 | `dashboard/`                    | Components specifically used on the Dashboard page           |
 | `product/`                      | Components related to product management (currently empty)   |
 
@@ -292,29 +263,17 @@ Let me know if you'd like me to try breaking the edit into smaller pieces or if 
 
 ## Tech Stack
 
-- **Framework**: Electron
-- **Frontend**:
-  - React
-  - React Router
-  - Chart.js
-  - React Hot Toast
-  - CSS
-- **Backend/Main Process**: Node.js
-- **Database**:
-  - SQLite
-  - Knex.js (Query Builder)
-  - Objection.js (ORM built on Knex)
-- **Build Tools**:
-  - Webpack
-  - Babel
-  - Electron Forge
-- **Internationalization**:
-  - i18next
-  - react-i18next
+| Category           | Technologies                          |
+|--------------------|---------------------------------------|
+| **Framework**      | Electron                              |
+| **Frontend**       | React, React Router, Chart.js, CSS Modules |
+| **Backend**        | Node.js, Knex.js (SQLite)             |
+| **i18n**           | i18next, react-i18next                |
+| **Build Tools**    | Webpack, Babel, Electron Forge        |
 
 ## Other Important Information
 
-- The application uses SQLite as its database, managed via Knex.js and Objection.js ORM.
+- The application uses SQLite as its database, managed via Knex.js.
 - Electron enables the creation of a cross-platform desktop application.
 - Inter-Process Communication (IPC) is used between the Electron main process (`main.js`) and the renderer process (React app), facilitated by `preload.js` and handled by files in `src/ipcHandlers/`.
 - React handles the UI components and state management within the renderer process.
