@@ -11,7 +11,8 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import { useDatabase } from '../../context/DatabaseContext';
 import { useSettings } from '../../context/SettingsContext';
-import '../../styles/components/index.css';
+import styles from './DashboardCharts.module.css';
+import commonStyles from './DashboardCommon.module.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -217,75 +218,76 @@ const RevenueByPaymentChart = () => {
   };
 
   return (
-    <div className="dashboard-section">
+    <div className={commonStyles.dashboardSection}>
       <h3>
         {t('dashboard:sections.revenueByPayment')}
-        <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.revenueByPayment')}>?</span>
+        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.revenueByPayment')}>?</span>
       </h3>
       
       {loading || settingsLoading ? (
-        <div className="chart-container">
+        <div className={styles.chartContainer}>
           <LoadingSpinner />
         </div>
       ) : error ? (
-        <div className="error-container">
+        <div className={commonStyles.errorContainer}>
           <p>{t('dashboard:error')}</p>
-          <button onClick={handleRetry} className="retry-button">
+          <button onClick={handleRetry} className={commonStyles.retryButton}>
             {t('dashboard:retry')}
           </button>
         </div>
       ) : revenueByPayment.length === 0 ? (
-        <div className="placeholder-content">
+        <div className={commonStyles.placeholderContent}>
           {t('dashboard:placeholders.noPaymentData')}
         </div>
       ) : (
-        <div className="payment-chart">
-          <div className="chart-container" style={{ height: '300px' }}>
+        <div className="payment-chart-container">
+          <div className={styles.chartContainer} style={{ height: '300px' }}>
             <Doughnut data={chartData} options={chartOptions} />
           </div>
           
-          <div className="payment-summary">
-            <div className="payment-summary-header">
-              <h4>{t('dashboard:labels.paymentSummary')}</h4>
-              <div className="payment-total">
-                {t('dashboard:labels.total')}: {formatCurrency(totalRevenue, currency)}
-              </div>
+          <div className={styles.paymentSummary}>
+            <div className={styles.paymentSummaryHeaderRow}>
+              <div className={styles.detailCell}>{t('dashboard:labels.method')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.revenue')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.percentage')}</div>
             </div>
-            <div className="payment-summary-table">
-              <div className="payment-summary-header-row">
-                <div className="summary-cell">{t('dashboard:labels.method')}</div>
-                <div className="summary-cell">{t('dashboard:labels.revenue')}</div>
-                <div className="summary-cell">{t('dashboard:labels.percentage')}</div>
+            {revenueByPayment.map((item, index) => (
+              <div className={styles.paymentSummaryRow} key={index}>
+                <div className={styles.detailCell}>
+                  {t(`dashboard:paymentMethods.${item.method}`)}
+                </div>
+                <div className={styles.detailCell}>
+                  {formatCurrency(item.revenue, currency)}
+                </div>
+                <div className={styles.detailCell}>
+                  {getPercentage(item.revenue)}%
+                </div>
               </div>
-              {revenueByPayment.map((item, index) => (
-                <div key={item.method + index} className="payment-summary-row">
-                  <div className="summary-cell">
-                    <span className="payment-color-indicator" style={{ backgroundColor: getBorderColor(item.method) }}></span>
-                    {t(`dashboard:paymentMethods.${item.method}`)}
-                  </div>
-                  <div className="summary-cell">{formatCurrency(item.revenue, currency)}</div>
-                  <div className="summary-cell">{getPercentage(item.revenue)}%</div>
+            ))}
+            
+            {/* Add separate row for net card amount after fee */}
+            {revenueByPayment.some(item => item.method.toLowerCase() === 'card') && (
+              <div className={`${styles.paymentSummaryRow} ${styles.netCardRow}`}>
+                <div className={styles.detailCell}>
+                  {t('dashboard:labels.netCardAmountAfterFee')}
                 </div>
-              ))}
-              
-              {/* Add net amount row for card payments after vendor fee */}
-              {revenueByPayment.some(item => item.method.toLowerCase() === 'card') && (
-                <div className="payment-summary-row net-amount-row">
-                  <div className="summary-cell">
-                    <span className="payment-color-indicator" style={{ backgroundColor: 'rgba(33, 150, 243, 0.3)' }}></span>
-                    {t('dashboard:labels.netCardAmountAfterFee', 'Net Card Amount (After Vendor Fee)')}
-                  </div>
-                  <div className="summary-cell">
-                    {formatCurrency(
-                      getNetCardAmount(getCardRevenue()), 
-                      currency
-                    )}
-                  </div>
-                  <div className="summary-cell">
-                    <small>({t('dashboard:labels.feePercentage', { 0: creditCardVendorFee })})</small>
+                <div className={styles.detailCell}>
+                  {formatCurrency(
+                    getNetCardAmount(getCardRevenue()), 
+                    currency
+                  )}
+                  <div className={styles.feeNote}>
+                    {t('dashboard:labels.feePercentage', { 0: (creditCardVendorFee * 100).toFixed(1) })}
                   </div>
                 </div>
-              )}
+                <div className={styles.detailCell}>-</div>
+              </div>
+            )}
+            
+            <div className={styles.paymentSummaryRow}>
+              <div className={styles.detailCell}><strong>{t('dashboard:labels.total')}</strong></div>
+              <div className={styles.detailCell}><strong>{formatCurrency(totalRevenue, currency)}</strong></div>
+              <div className={styles.detailCell}><strong>100%</strong></div>
             </div>
           </div>
         </div>

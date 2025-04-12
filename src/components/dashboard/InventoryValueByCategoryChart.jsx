@@ -14,7 +14,8 @@ import { Pie, Bar } from 'react-chartjs-2';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import { useDatabase } from '../../context/DatabaseContext';
-import '../../styles/components/index.css';
+import styles from './DashboardCharts.module.css';
+import commonStyles from './DashboardCommon.module.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -106,6 +107,12 @@ const InventoryValueByCategoryChart = () => {
     setChartType(type);
   };
 
+  // Safe percentage calculation function
+  const calculatePercentage = (value, total) => {
+    if (!total || total === 0 || !value) return '0.0';
+    return ((value / total) * 100).toFixed(1);
+  };
+
   // Generate colors for chart
   const generateColors = (count) => {
     const colors = [
@@ -144,16 +151,16 @@ const InventoryValueByCategoryChart = () => {
   
   const { backgroundColors, borderColorsArray } = generateColors(categoryData.length);
 
-  // Calculate total inventory value
-  const totalInventoryValue = categoryData.reduce((sum, category) => sum + category.value, 0);
+  // Calculate total inventory value with null check
+  const totalInventoryValue = categoryData.reduce((sum, category) => sum + (category.value || 0), 0);
 
   // Prepare data for Pie chart
   const pieChartData = {
-    labels: categoryData.map(category => category.name),
+    labels: categoryData.map(category => category.name || ''),
     datasets: [
       {
         label: t('dashboard:labels.inventoryValue'),
-        data: categoryData.map(category => category.value),
+        data: categoryData.map(category => category.value || 0),
         backgroundColor: backgroundColors,
         borderColor: borderColorsArray,
         borderWidth: 1,
@@ -163,11 +170,11 @@ const InventoryValueByCategoryChart = () => {
 
   // Prepare data for Bar chart
   const barChartData = {
-    labels: categoryData.map(category => category.name),
+    labels: categoryData.map(category => category.name || ''),
     datasets: [
       {
         label: t('dashboard:labels.inventoryValue'),
-        data: categoryData.map(category => category.value),
+        data: categoryData.map(category => category.value || 0),
         backgroundColor: backgroundColors,
         borderColor: borderColorsArray,
         borderWidth: 1,
@@ -189,12 +196,13 @@ const InventoryValueByCategoryChart = () => {
             if (label) {
               label += ': ';
             }
+            let value = 0;
             if (context.parsed !== undefined && context.parsed.y !== undefined) {
-              label += formatCurrency(context.parsed.y, currency);
+              value = context.parsed.y || 0;
             } else if (context.parsed !== undefined) {
-              label += formatCurrency(context.parsed, currency);
+              value = context.parsed || 0;
             }
-            return label;
+            return label + formatCurrency(value, currency);
           }
         }
       }
@@ -203,52 +211,52 @@ const InventoryValueByCategoryChart = () => {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value) => formatCurrency(value, currency),
+          callback: (value) => formatCurrency(value || 0, currency),
         }
       }
     } : undefined
   };
 
   return (
-    <div className="dashboard-section">
+    <div className={commonStyles.dashboardSection}>
       <h3>
         {t('dashboard:sections.inventoryValueByCategory')}
-        <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.inventoryValueByCategory')}>?</span>
+        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.inventoryValueByCategory')}>?</span>
       </h3>
       
       {loading ? (
-        <div className="chart-container">
+        <div className={styles.chartContainer}>
           <LoadingSpinner />
         </div>
       ) : error ? (
-        <div className="error-container">
+        <div className={commonStyles.errorContainer}>
           <p>{t('dashboard:error')}</p>
-          <button onClick={handleRetry} className="retry-button">
+          <button onClick={handleRetry} className={commonStyles.retryButton}>
             {t('dashboard:retry')}
           </button>
         </div>
       ) : categoryData.length === 0 ? (
-        <div className="placeholder-content">
+        <div className={commonStyles.placeholderContent}>
           {t('dashboard:placeholders.noCategoryData')}
         </div>
       ) : (
         <div className="category-value-container">
-          <div className="chart-type-selector">
+          <div className={styles.chartTypeSelector}>
             <button 
-              className={`chart-type-btn ${chartType === 'pie' ? 'active' : ''}`}
+              className={`${styles.chartTypeBtn} ${chartType === 'pie' ? styles.active : ''}`}
               onClick={() => handleChartTypeChange('pie')}
             >
               {t('dashboard:labels.pieChart')}
             </button>
             <button 
-              className={`chart-type-btn ${chartType === 'bar' ? 'active' : ''}`}
+              className={`${styles.chartTypeBtn} ${chartType === 'bar' ? styles.active : ''}`}
               onClick={() => handleChartTypeChange('bar')}
             >
               {t('dashboard:labels.barChart')}
             </button>
           </div>
           
-          <div className="chart-container" style={{ height: '300px' }}>
+          <div className={styles.chartContainer} style={{ height: '300px' }}>
             {chartType === 'pie' ? (
               <Pie data={pieChartData} options={chartOptions} />
             ) : (
@@ -256,30 +264,34 @@ const InventoryValueByCategoryChart = () => {
             )}
           </div>
           
-          <div className="category-details-table">
-            <div className="category-details-header">
-              <div className="details-cell">{t('dashboard:labels.category')}</div>
-              <div className="details-cell">{t('dashboard:labels.inventoryValue')}</div>
-              <div className="details-cell">{t('dashboard:labels.quantity')}</div>
-              <div className="details-cell">{t('dashboard:labels.percentage')}</div>
+          <div className={styles.categoryDetailsTable}>
+            <div className={styles.categoryDetailsHeader}>
+              <div className={styles.detailCell}>{t('dashboard:labels.category')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.items')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.value')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.percentage')}</div>
             </div>
             {categoryData.map((category, index) => {
-              const percentage = ((category.value / totalInventoryValue) * 100).toFixed(1);
+              const percentage = calculatePercentage(category.value, totalInventoryValue);
               
               return (
-                <div key={`category-${index}-${category.name}`} className="category-details-row">
-                  <div className="details-cell">{category.name}</div>
-                  <div className="details-cell">{formatCurrency(category.value, currency)}</div>
-                  <div className="details-cell">{category.productCount}</div>
-                  <div className="details-cell">{percentage}%</div>
+                <div className={styles.categoryDetailsRow} key={index}>
+                  <div className={styles.detailCell}>{category.name}</div>
+                  <div className={styles.detailCell}>{category.productCount || 0}</div>
+                  <div className={styles.detailCell}>{formatCurrency(category.value || 0, currency)}</div>
+                  <div className={styles.detailCell}>{percentage}%</div>
                 </div>
               );
             })}
-            <div className="category-details-footer">
-              <div className="details-cell">{t('dashboard:labels.total')}</div>
-              <div className="details-cell">{formatCurrency(totalInventoryValue, currency)}</div>
-              <div className="details-cell">{categoryData.reduce((sum, item) => sum + item.productCount, 0)}</div>
-              <div className="details-cell">100%</div>
+            <div className={styles.categoryDetailsRow}>
+              <div className={styles.detailCell}><strong>{t('dashboard:labels.total')}</strong></div>
+              <div className={styles.detailCell}>
+                <strong>{categoryData.reduce((sum, cat) => sum + (cat.productCount || 0), 0)}</strong>
+              </div>
+              <div className={styles.detailCell}>
+                <strong>{formatCurrency(totalInventoryValue, currency)}</strong>
+              </div>
+              <div className={styles.detailCell}><strong>100%</strong></div>
             </div>
           </div>
         </div>

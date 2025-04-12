@@ -13,7 +13,8 @@ import { Bar } from 'react-chartjs-2';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { useDatabase } from '../../context/DatabaseContext';
 import { formatCurrency } from '../../utils/formatters';
-import '../../styles/components/index.css';
+import styles from './DashboardCharts.module.css';
+import commonStyles from './DashboardCommon.module.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -129,27 +130,27 @@ const ProfitTrendChart = () => {
   };
 
   return (
-    <div className="dashboard-section">
+    <div className={commonStyles.dashboardSection}>
       <h3>
         {t('dashboard:sections.profitTrend')}
-        <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.profitTrend')}>?</span>
+        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.profitTrend')}>?</span>
       </h3>
-      <div className="chart-container">
+      <div className={styles.chartContainer}>
         {loading ? (
           <LoadingSpinner />
         ) : error ? (
-          <div className="error-container">
+          <div className={commonStyles.errorContainer}>
             <p>{t('dashboard:error')}</p>
-            <button onClick={handleRetry} className="retry-button">
+            <button onClick={handleRetry} className={commonStyles.retryButton}>
               {t('dashboard:retry')}
             </button>
           </div>
         ) : trendData.length > 0 ? (
-          <div className="chart-container" style={{ height: '300px' }}>
+          <div className={styles.chartContainer} style={{ height: '300px' }}>
             <Bar data={chartData} options={chartOptions} />
           </div>
         ) : (
-          <p className="placeholder-content">{t('dashboard:placeholders.noTrendData')}</p>
+          <p className={commonStyles.placeholderContent}>{t('dashboard:placeholders.noTrendData')}</p>
         )}
       </div>
     </div>

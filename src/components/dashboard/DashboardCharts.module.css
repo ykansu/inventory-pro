@@ -1,0 +1,249 @@
+/* Chart styles for dashboard components */
+.chartContainer {
+  position: relative;
+  width: 100%;
+  min-height: 250px;
+  margin: 0.5rem 0;
+}
+
+/* Chart selector styles */
+.chartTypeSelector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.chartTypeBtn {
+  padding: 0.4rem 0.8rem;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin: 0 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.chartTypeBtn.active {
+  background-color: #2196F3;
+  color: white;
+  border-color: #1976D2;
+}
+
+/* Summary tables */
+.supplierSummary,
+.paymentSummary,
+.productsDetailInfo,
+.categoryDetailsTable {
+  margin-top: 1rem;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.supplierSummaryHeader,
+.paymentSummaryHeader,
+.productsDetailHeader,
+.categoryDetailsHeader,
+.paymentSummaryHeaderRow {
+  display: grid;
+  padding: 0.75rem 1rem;
+  background-color: #f5f5f5;
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+}
+
+.supplierSummaryRow,
+.paymentSummaryRow,
+.productsDetailRow,
+.categoryDetailsRow {
+  display: grid;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+  background-color: white;
+}
+
+.supplierSummaryFooter {
+  display: grid;
+  padding: 0.75rem 1rem;
+  background-color: #f9f9f9;
+  font-weight: 600;
+  border-top: 1px solid #ddd;
+}
+
+/* Grid layouts for tables */
+.supplierSummaryHeader,
+.supplierSummaryRow,
+.supplierSummaryFooter {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.paymentSummaryHeaderRow,
+.paymentSummaryRow {
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+.productsDetailHeader,
+.productsDetailRow {
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+}
+
+.categoryDetailsHeader,
+.categoryDetailsRow {
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+}
+
+/* Chart legends */
+.legendItem {
+  display: flex;
+  align-items: center;
+  margin: 0 10px;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  border-radius: 2px;
+}
+
+.legendLabel {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Generic bar chart styles */
+.trendLabel {
+  font-size: 12px;
+  margin-top: 8px;
+  color: #666;
+}
+
+/* ----------------- Profit Trend Chart ----------------- */
+.trendChart {
+  width: 100%;
+  height: 250px;
+  position: relative;
+}
+
+.profitTrendChart {
+  height: 300px;
+}
+
+.trendBars {
+  display: flex;
+  height: 220px;
+  align-items: flex-end;
+  justify-content: space-around;
+  padding-bottom: 30px;
+}
+
+.trendBarContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 12%;
+  height: 100%;
+  position: relative;
+}
+
+.trendBarStacked {
+  width: 70%;
+  height: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  position: relative;
+}
+
+.trendBar {
+  width: 100%;
+  background-color: #4caf50;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.3s ease;
+}
+
+.revenueBar {
+  background-color: #2196F3;
+  opacity: 0.4;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.profitBar {
+  background-color: #4CAF50 !important;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+}
+
+/* Controls for charts */
+.chartControls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  margin-right: 15px;
+}
+
+.controlGroup label {
+  margin-right: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.controlGroup select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: white;
+  font-size: 14px;
+}
+
+/* Detail cells for tables */
+.detailCell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Fee note styles */
+.feeNote {
+  font-size: 11px;
+  color: #777;
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+/* Net card amount row style */
+.netCardRow {
+  background-color: rgba(33, 150, 243, 0.05);
+}
+
+/* Warning note style */
+.warningNote {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-left: 3px solid #ff9800;
+  color: #5f5f5f;
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: 0 4px 4px 0;
+}
+
+.warningIcon {
+  margin-right: 6px;
+} 

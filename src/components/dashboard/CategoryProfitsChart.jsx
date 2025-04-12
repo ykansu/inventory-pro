@@ -15,7 +15,8 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import { useDatabase } from '../../context/DatabaseContext';
 import { useSettings } from '../../context/SettingsContext';
-import '../../styles/components/index.css';
+import styles from './DashboardCharts.module.css';
+import commonStyles from './DashboardCommon.module.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -187,45 +188,45 @@ const CategoryProfitsChart = () => {
   };
 
   return (
-    <div className="dashboard-section">
+    <div className={commonStyles.dashboardSection}>
       <h3>
         {t('dashboard:sections.categoryProfits')}
-        <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.categoryProfits')}>?</span>
+        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.categoryProfits')}>?</span>
       </h3>
       
       {loading ? (
-        <div className="chart-container">
+        <div className={styles.chartContainer}>
           <LoadingSpinner />
         </div>
       ) : error ? (
-        <div className="error-container">
+        <div className={commonStyles.errorContainer}>
           <p>{t('dashboard:error')}</p>
-          <button onClick={handleRetry} className="retry-button">
+          <button onClick={handleRetry} className={commonStyles.retryButton}>
             {t('dashboard:retry')}
           </button>
         </div>
       ) : categoryProfits.length === 0 ? (
-        <div className="placeholder-content">
+        <div className={commonStyles.placeholderContent}>
           {t('dashboard:placeholders.noCategoryData')}
         </div>
       ) : (
         <div className="category-profit-container">
-          <div className="chart-type-selector">
+          <div className={styles.chartTypeSelector}>
             <button 
-              className={`chart-type-btn ${chartType === 'pie' ? 'active' : ''}`}
+              className={`${styles.chartTypeBtn} ${chartType === 'pie' ? styles.active : ''}`}
               onClick={() => handleChartTypeChange('pie')}
             >
               {t('dashboard:labels.pieChart')}
             </button>
             <button 
-              className={`chart-type-btn ${chartType === 'bar' ? 'active' : ''}`}
+              className={`${styles.chartTypeBtn} ${chartType === 'bar' ? styles.active : ''}`}
               onClick={() => handleChartTypeChange('bar')}
             >
               {t('dashboard:labels.barChart')}
             </button>
           </div>
           
-          <div className="chart-container" style={{ height: '300px' }}>
+          <div className={styles.chartContainer} style={{ height: '300px' }}>
             {chartType === 'pie' ? (
               <Pie data={pieChartData} options={chartOptions} />
             ) : (
@@ -233,21 +234,21 @@ const CategoryProfitsChart = () => {
             )}
           </div>
           
-          <div className="category-details-table">
-            <div className="category-details-header">
-              <div className="details-cell">{t('dashboard:labels.category')}</div>
-              <div className="details-cell">{t('dashboard:labels.revenue')}</div>
-              <div className="details-cell">{t('dashboard:labels.cost')}</div>
-              <div className="details-cell">{t('dashboard:labels.profit')}</div>
-              <div className="details-cell">{t('dashboard:labels.margin')}</div>
+          <div className={styles.categoryDetailsTable}>
+            <div className={styles.categoryDetailsHeader}>
+              <div className={styles.detailCell}>{t('dashboard:labels.category')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.revenue')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.cost')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.profit')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.marginPct')}</div>
             </div>
             {categoryProfits.map((category, index) => (
-              <div key={`category-${index}-${category.name}`} className="category-details-row">
-                <div className="details-cell">{category.name}</div>
-                <div className="details-cell">{formatCurrency(category.revenue, getCurrency())}</div>
-                <div className="details-cell">{formatCurrency(category.cost, getCurrency())}</div>
-                <div className="details-cell">{formatCurrency(category.profit, getCurrency())}</div>
-                <div className="details-cell">{category.margin}%</div>
+              <div className={styles.categoryDetailsRow} key={index}>
+                <div className={styles.detailCell}>{category.name}</div>
+                <div className={styles.detailCell}>{formatCurrency(category.revenue, getCurrency())}</div>
+                <div className={styles.detailCell}>{formatCurrency(category.cost, getCurrency())}</div>
+                <div className={styles.detailCell}>{formatCurrency(category.profit, getCurrency())}</div>
+                <div className={styles.detailCell}>{category.margin}%</div>
               </div>
             ))}
           </div>

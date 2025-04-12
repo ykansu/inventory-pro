@@ -14,7 +14,8 @@ import { Pie, Bar } from 'react-chartjs-2';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import { useDatabase } from '../../context/DatabaseContext';
-import '../../styles/components/index.css';
+import styles from './DashboardCharts.module.css';
+import commonStyles from './DashboardCommon.module.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -144,16 +145,16 @@ const InventoryValueBySupplierChart = () => {
   
   const { backgroundColors, borderColorsArray } = generateColors(supplierData.length);
 
-  // Calculate total inventory value
-  const totalInventoryValue = supplierData.reduce((sum, supplier) => sum + supplier.value, 0);
+  // Calculate total inventory value with null check
+  const totalInventoryValue = supplierData.reduce((sum, supplier) => sum + (supplier.value || 0), 0);
 
   // Prepare data for Pie chart
   const pieChartData = {
-    labels: supplierData.map(supplier => supplier.name),
+    labels: supplierData.map(supplier => supplier.name || ''),
     datasets: [
       {
         label: t('dashboard:labels.inventoryValue'),
-        data: supplierData.map(supplier => supplier.value),
+        data: supplierData.map(supplier => supplier.value || 0),
         backgroundColor: backgroundColors,
         borderColor: borderColorsArray,
         borderWidth: 1,
@@ -163,16 +164,22 @@ const InventoryValueBySupplierChart = () => {
 
   // Prepare data for Bar chart
   const barChartData = {
-    labels: supplierData.map(supplier => supplier.name),
+    labels: supplierData.map(supplier => supplier.name || ''),
     datasets: [
       {
         label: t('dashboard:labels.inventoryValue'),
-        data: supplierData.map(supplier => supplier.value),
+        data: supplierData.map(supplier => supplier.value || 0),
         backgroundColor: backgroundColors,
         borderColor: borderColorsArray,
         borderWidth: 1,
       },
     ],
+  };
+
+  // Safe percentage calculation function
+  const calculatePercentage = (value, total) => {
+    if (!total || total === 0 || !value) return '0.0';
+    return ((value / total) * 100).toFixed(1);
   };
 
   const chartOptions = {
@@ -189,12 +196,13 @@ const InventoryValueBySupplierChart = () => {
             if (label) {
               label += ': ';
             }
+            let value = 0;
             if (context.parsed !== undefined && context.parsed.y !== undefined) {
-              label += formatCurrency(context.parsed.y, currency);
+              value = context.parsed.y || 0;
             } else if (context.parsed !== undefined) {
-              label += formatCurrency(context.parsed, currency);
+              value = context.parsed || 0;
             }
-            return label;
+            return label + formatCurrency(value, currency);
           }
         }
       }
@@ -203,52 +211,52 @@ const InventoryValueBySupplierChart = () => {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value) => formatCurrency(value, currency),
+          callback: (value) => formatCurrency(value || 0, currency),
         }
       }
     } : undefined
   };
 
   return (
-    <div className="dashboard-section">
+    <div className={commonStyles.dashboardSection}>
       <h3>
         {t('dashboard:sections.inventoryValueBySupplier')}
-        <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.inventoryValueBySupplier')}>?</span>
+        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.inventoryValueBySupplier')}>?</span>
       </h3>
       
       {loading ? (
-        <div className="chart-container">
+        <div className={styles.chartContainer}>
           <LoadingSpinner />
         </div>
       ) : error ? (
-        <div className="error-container">
+        <div className={commonStyles.errorContainer}>
           <p>{t('dashboard:error')}</p>
-          <button onClick={handleRetry} className="retry-button">
+          <button onClick={handleRetry} className={commonStyles.retryButton}>
             {t('dashboard:retry')}
           </button>
         </div>
       ) : supplierData.length === 0 ? (
-        <div className="placeholder-content">
+        <div className={commonStyles.placeholderContent}>
           {t('dashboard:placeholders.noSupplierData')}
         </div>
       ) : (
         <div className="supplier-value-container">
-          <div className="chart-type-selector">
+          <div className={styles.chartTypeSelector}>
             <button 
-              className={`chart-type-btn ${chartType === 'pie' ? 'active' : ''}`}
+              className={`${styles.chartTypeBtn} ${chartType === 'pie' ? styles.active : ''}`}
               onClick={() => handleChartTypeChange('pie')}
             >
               {t('dashboard:labels.pieChart')}
             </button>
             <button 
-              className={`chart-type-btn ${chartType === 'bar' ? 'active' : ''}`}
+              className={`${styles.chartTypeBtn} ${chartType === 'bar' ? styles.active : ''}`}
               onClick={() => handleChartTypeChange('bar')}
             >
               {t('dashboard:labels.barChart')}
             </button>
           </div>
           
-          <div className="chart-container" style={{ height: '300px' }}>
+          <div className={styles.chartContainer} style={{ height: '300px' }}>
             {chartType === 'pie' ? (
               <Pie data={pieChartData} options={chartOptions} />
             ) : (
@@ -256,30 +264,32 @@ const InventoryValueBySupplierChart = () => {
             )}
           </div>
           
-          <div className="supplier-details-table">
-            <div className="supplier-details-header">
-              <div className="details-cell">{t('dashboard:labels.supplier')}</div>
-              <div className="details-cell">{t('dashboard:labels.inventoryValue')}</div>
-              <div className="details-cell">{t('dashboard:labels.quantity')}</div>
-              <div className="details-cell">{t('dashboard:labels.percentage')}</div>
+          <div className={styles.supplierSummary}>
+            <div className={styles.supplierSummaryHeader}>
+              <div className={styles.detailCell}>{t('dashboard:labels.supplier')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.value')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.items')}</div>
+              <div className={styles.detailCell}>{t('dashboard:labels.percentage')}</div>
             </div>
             {supplierData.map((supplier, index) => {
-              const percentage = ((supplier.value / totalInventoryValue) * 100).toFixed(1);
+              const percentage = calculatePercentage(supplier.value, totalInventoryValue);
               
               return (
-                <div key={`supplier-${index}-${supplier.name}`} className="supplier-details-row">
-                  <div className="details-cell">{supplier.name}</div>
-                  <div className="details-cell">{formatCurrency(supplier.value, currency)}</div>
-                  <div className="details-cell">{supplier.productCount}</div>
-                  <div className="details-cell">{percentage}%</div>
+                <div className={styles.supplierSummaryRow} key={index}>
+                  <div className={styles.detailCell}>{supplier.name}</div>
+                  <div className={styles.detailCell}>{formatCurrency(supplier.value || 0, currency)}</div>
+                  <div className={styles.detailCell}>{supplier.productCount || 0}</div>
+                  <div className={styles.detailCell}>{percentage}%</div>
                 </div>
               );
             })}
-            <div className="supplier-details-footer">
-              <div className="details-cell">{t('dashboard:labels.total')}</div>
-              <div className="details-cell">{formatCurrency(totalInventoryValue, currency)}</div>
-              <div className="details-cell">{supplierData.reduce((sum, item) => sum + item.productCount, 0)}</div>
-              <div className="details-cell">100%</div>
+            <div className={styles.supplierSummaryFooter}>
+              <div className={styles.detailCell}><strong>{t('dashboard:labels.total')}</strong></div>
+              <div className={styles.detailCell}><strong>{formatCurrency(totalInventoryValue, currency)}</strong></div>
+              <div className={styles.detailCell}>
+                <strong>{supplierData.reduce((sum, item) => sum + (item.productCount || 0), 0)}</strong>
+              </div>
+              <div className={styles.detailCell}><strong>100%</strong></div>
             </div>
           </div>
         </div>

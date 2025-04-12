@@ -69,6 +69,9 @@
     "feePercentage": "{{0}}% fee",
     "expenses": "Expenses"
   },
+  "notes": {
+    "marginDiscrepancy": "Note: Margin calculations here may differ from the dashboard cards as discounts are not accounted for in this breakdown."
+  },
   "periods": {
     "week": "Week",
     "month": "Month",

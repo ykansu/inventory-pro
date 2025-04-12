@@ -13,7 +13,8 @@ import { Bar } from 'react-chartjs-2';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import { useDatabase } from '../../context/DatabaseContext';
-import '../../styles/components/index.css';
+import styles from './DashboardCharts.module.css';
+import commonStyles from './DashboardCommon.module.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -169,27 +170,27 @@ const TopProductsChart = () => {
   };
 
   return (
-    <div className="dashboard-section">
+    <div className={commonStyles.dashboardSection}>
       <h3>
         {t('dashboard:sections.topProducts')}
-        <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.topProducts')}>?</span>
+        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.topProducts')}>?</span>
       </h3>
       
       {loading ? (
-        <div className="chart-container">
+        <div className={styles.chartContainer}>
           <LoadingSpinner />
         </div>
       ) : error ? (
-        <div className="error-container">
+        <div className={commonStyles.errorContainer}>
           <p>{t('dashboard:error')}</p>
-          <button onClick={handleRetry} className="retry-button">
+          <button onClick={handleRetry} className={commonStyles.retryButton}>
             {t('dashboard:retry')}
           </button>
         </div>
       ) : (
         <>
-          <div className="top-products-controls">
-            <div className="sort-by-control">
+          <div className={styles.chartControls}>
+            <div className={styles.controlGroup}>
               <label htmlFor="sort-by">{t('dashboard:labels.sortBy')}:</label>
               <select 
                 id="sort-by" 
@@ -203,7 +204,7 @@ const TopProductsChart = () => {
               </select>
             </div>
             
-            <div className="show-count-control">
+            <div className={styles.controlGroup}>
               <label htmlFor="show-count">{t('dashboard:labels.show')}:</label>
               <select 
                 id="show-count" 
@@ -217,7 +218,7 @@ const TopProductsChart = () => {
               </select>
             </div>
             
-            <div className="period-control">
+            <div className={styles.controlGroup}>
               <label htmlFor="period">{t('dashboard:labels.period')}:</label>
               <select 
                 id="period" 
@@ -233,32 +234,32 @@ const TopProductsChart = () => {
           </div>
           
           {topProducts.length === 0 ? (
-            <div className="placeholder-content">
+            <div className={commonStyles.placeholderContent}>
               {t('dashboard:placeholders.noProductData')}
             </div>
           ) : (
             <>
-              <div className="chart-container" style={{ height: `${Math.max(250, 50 * topProducts.length)}px` }}>
+              <div className={styles.chartContainer} style={{ height: `${Math.max(250, 50 * topProducts.length)}px` }}>
                 <Bar data={chartData} options={chartOptions} />
               </div>
-              <div className="products-detail-info">
-                  <div className="products-detail-header">
-                    <div className="detail-cell">{t('dashboard:labels.product')}</div>
-                    <div className="detail-cell">{t('dashboard:labels.quantity')}</div>
-                    <div className="detail-cell">{t('dashboard:labels.revenue')}</div>
-                    <div className="detail-cell">{t('dashboard:labels.profit')}</div>
-                    <div className="detail-cell">{t('dashboard:labels.margin')}</div>
+              <div className={styles.productsDetailInfo}>
+                  <div className={styles.productsDetailHeader}>
+                    <div className={styles.detailCell}>{t('dashboard:labels.product')}</div>
+                    <div className={styles.detailCell}>{t('dashboard:labels.quantity')}</div>
+                    <div className={styles.detailCell}>{t('dashboard:labels.revenue')}</div>
+                    <div className={styles.detailCell}>{t('dashboard:labels.profit')}</div>
+                    <div className={styles.detailCell}>{t('dashboard:labels.margin')}</div>
                   </div>
-                  {topProducts.map((product) => (
-                    <div key={product.id} className="products-detail-row">
-                      <div className="detail-cell product-name">{product.name}</div>
-                      <div className="detail-cell">{product.quantity}</div>
-                      <div className="detail-cell">{formatCurrency(product.revenue, currency)}</div>
-                      <div className="detail-cell">{formatCurrency(product.profit, currency)}</div>
-                      <div className="detail-cell">{product.profitMargin}%</div>
+                  {topProducts.map((product, index) => (
+                    <div className={styles.productsDetailRow} key={index}>
+                      <div className={styles.detailCell}>{product.name}</div>
+                      <div className={styles.detailCell}>{product.quantity}</div>
+                      <div className={styles.detailCell}>{formatCurrency(product.revenue, currency)}</div>
+                      <div className={styles.detailCell}>{formatCurrency(product.profit, currency)}</div>
+                      <div className={styles.detailCell}>{product.profitMargin}%</div>
                     </div>
                   ))}
-                </div>
+              </div>
             </>
           )}
         </>

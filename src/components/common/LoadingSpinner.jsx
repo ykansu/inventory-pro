@@ -1,10 +1,10 @@
 import React from 'react';
-import '../../styles/components/loading-spinner.css';
+import styles from './LoadingSpinner.module.css';
 
 const LoadingSpinner = () => {
   return (
-    <div className="loading-spinner-container">
-      <div className="loading-spinner"></div>
+    <div className={styles.loadingSpinnerContainer}>
+      <div className={styles.loadingSpinner}></div>
     </div>
   );
 };

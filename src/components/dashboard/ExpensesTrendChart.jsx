@@ -14,7 +14,8 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import { useDatabase } from '../../context/DatabaseContext';
 import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
-import '../../styles/components/index.css';
+import styles from './DashboardCharts.module.css';
+import commonStyles from './DashboardCommon.module.css';
 
 // Register ChartJS components
 ChartJS.register(
@@ -133,9 +134,9 @@ const ExpensesTrendChart = ({ months = 6 }) => {
   
   if (loading) {
     return (
-      <div className="dashboard-section">
+      <div className={commonStyles.dashboardSection}>
         <h3>{t('dashboard:sections.expensesTrend')}</h3>
-        <div className="chart-container">
+        <div className={styles.chartContainer}>
           <LoadingSpinner />
         </div>
       </div>
@@ -144,12 +145,12 @@ const ExpensesTrendChart = ({ months = 6 }) => {
   
   if (error) {
     return (
-      <div className="dashboard-section">
+      <div className={commonStyles.dashboardSection}>
         <h3>{t('dashboard:sections.expensesTrend')}</h3>
-        <div className="chart-container">
-          <div className="error-container">
+        <div className={styles.chartContainer}>
+          <div className={commonStyles.errorContainer}>
             <p>{t('dashboard:error')}</p>
-            <button onClick={handleRetry} className="retry-button">
+            <button onClick={handleRetry} className={commonStyles.retryButton}>
               {t('dashboard:retry')}
             </button>
           </div>
@@ -160,22 +161,22 @@ const ExpensesTrendChart = ({ months = 6 }) => {
   
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="dashboard-section">
+      <div className={commonStyles.dashboardSection}>
         <h3>{t('dashboard:sections.expensesTrend')}</h3>
-        <div className="chart-container">
-          <p className="placeholder-content">{t('dashboard:placeholders.noTrendData')}</p>
+        <div className={styles.chartContainer}>
+          <p className={commonStyles.placeholderContent}>{t('dashboard:placeholders.noTrendData')}</p>
         </div>
       </div>
     );
   }
   
   return (
-    <div className="dashboard-section">
+    <div className={commonStyles.dashboardSection}>
       <h3>
         {t('dashboard:sections.expensesTrend')}
-        <span className="info-tooltip" data-tooltip={t('dashboard:tooltips.expensesTrend')}>?</span>
+        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.expensesTrend')}>?</span>
       </h3>
-      <div className="chart-container" style={{ height: '300px' }}>
+      <div className={styles.chartContainer} style={{ height: '300px' }}>
         <Bar data={barChartData} options={chartOptions} />
       </div>
     </div>
