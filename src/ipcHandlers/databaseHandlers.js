@@ -51,8 +51,13 @@ function registerDatabaseHandlers(dependencies) {
       const result = await importFromJson(jsonFilePath);
       console.log('JSON import completed with result:', result);
       
-      // Reload connection might be needed depending on import implementation
-      await dbManager.reinitializeConnection(); 
+      // Close and re-initialize the database connection
+      await dbManager.closeConnection();
+      console.log('Database connection closed after JSON import');
+      
+      // Re-initialize the database connection
+      await dbManager.initDatabase({ seedIfNew: false });
+      console.log('Database connection re-initialized successfully');
       
       return result;
     } catch (error) {
@@ -171,9 +176,13 @@ function registerDatabaseHandlers(dependencies) {
       if (!importFromExcel) throw new Error('Excel import function not loaded');
       const result = await importFromExcel(excelFilePath);
 
-      // Reload connection might be needed
-      await dbManager.closeConnection(); // Close the old connection
-      console.log('Database connection closed after Excel import. It will be re-established on next use.');
+      // Close and re-initialize the database connection
+      await dbManager.closeConnection();
+      console.log('Database connection closed after Excel import');
+      
+      // Re-initialize the database connection
+      await dbManager.initDatabase({ seedIfNew: false });
+      console.log('Database connection re-initialized successfully');
 
       return result;
     } catch (error) {
@@ -377,7 +386,11 @@ function registerDatabaseHandlers(dependencies) {
 
       // Reinitialize connection to ensure clean state
       await dbManager.closeConnection(); // Close the old connection
-      console.log('Database connection closed. It will be re-established on next use.');
+      console.log('Database connection closed after database reset');
+      
+      // Re-initialize the database connection
+      await dbManager.initDatabase({ seedIfNew: true });
+      console.log('Database connection re-initialized successfully');
 
       return {
         success: true,
