@@ -31,35 +31,30 @@
   flex-direction: column;
   gap: 15px;
   padding: 15px;
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
   border-radius: 8px;
   margin-bottom: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
 }
 
-.filterDateSection {
+.filtersTop {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.filtersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
 }
 
 .dateQuickFilters {
   display: flex;
   gap: 8px;
-  margin-bottom: 5px;
-}
-
-.filtersRow {
-  display: flex;
   flex-wrap: wrap;
-  gap: 15px;
-}
-
-.filterGroup {
-  display: flex;
-  flex-direction: column;
-  min-width: 180px;
-  flex: 1;
+  justify-content: center;
 }
 
 .dateRange {
@@ -87,7 +82,9 @@
   display: flex;
   gap: 10px;
   margin-top: 5px;
-  align-self: flex-end;
+  padding-top: 12px;
+  align-self: center;
+  border-top: 1px solid #e9ecef;
 }
 
 /* Summary cards */
@@ -170,6 +167,35 @@
   white-space: nowrap;
 }
 
+.actionButtons {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.actionButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: scale(1.1);
+}
+
+.editButton:hover {
+  background-color: rgba(0, 120, 255, 0.1);
+}
+
+.deleteButton:hover {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
 .descriptionCell {
   max-width: 250px;
   overflow: hidden;
@@ -247,8 +273,18 @@
 
 /* Responsive styles */
 @media (max-width: 768px) {
-  .filtersRow {
+  .filtersTop {
     flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .dateQuickFilters {
+    justify-content: center;
+  }
+  
+  .filtersGrid {
+    grid-template-columns: 1fr;
   }
   
   .formRow {

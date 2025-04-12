@@ -42,6 +42,15 @@
   order: 0;
 }
 
+.compactGroup {
+  gap: 0.25rem;
+}
+
+.compactGroup .label {
+  font-size: 0.8rem;
+  margin-bottom: 0.125rem;
+}
+
 /* Form control styles */
 .formGroup input[type="text"],
 .formGroup input[type="email"],

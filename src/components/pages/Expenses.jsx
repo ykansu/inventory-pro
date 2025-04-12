@@ -384,14 +384,22 @@ const Expenses = () => {
       className: styles.actionsColumn,
       cellClassName: styles.actionsCell,
       render: (row) => (
-        <>
-          <Button size="small" onClick={() => handleEditExpense(row)}>
-            <i className="fas fa-edit"></i>
-          </Button>
-          <Button variant="danger" size="small" onClick={() => handleDeleteExpense(row.id)}>
-            <i className="fas fa-trash"></i>
-          </Button>
-        </>
+        <div className={styles.actionButtons}>
+          <button 
+            className={`${styles.actionButton} ${styles.editButton}`}
+            onClick={() => handleEditExpense(row)}
+            title={t('edit')}
+          >
+            ✏️
+          </button>
+          <button 
+            className={`${styles.actionButton} ${styles.deleteButton}`}
+            onClick={() => handleDeleteExpense(row.id)}
+            title={t('delete')}
+          >
+            🗑️
+          </button>
+        </div>
       )
     }
   ];
@@ -422,7 +430,7 @@ const Expenses = () => {
       </div>
 
       <form onSubmit={handleFilterSubmit} className={styles.filtersContainer}>
-        <div className={styles.filterDateSection}>
+        <div className={styles.filtersTop}>
           <div className={styles.dateQuickFilters}>
             <Button size="small" onClick={() => setDateRange('today')}>
               {t('today')}
@@ -437,32 +445,30 @@ const Expenses = () => {
               {t('thisYear')}
             </Button>
           </div>
-          
-          <div className={styles.filterGroup}>
-            <FormGroup label={t('dateRange')}>
-              <div className={styles.dateRange}>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={filters.startDate}
-                  onChange={handleFilterChange}
-                  className="form-control"
-                />
-                <span className={styles.dateSeparator}>-</span>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={filters.endDate}
-                  onChange={handleFilterChange}
-                  className="form-control"
-                />
-              </div>
-            </FormGroup>
-          </div>
         </div>
+        
+        <div className={styles.filtersGrid}>
+          <FormGroup label={t('dateRange')} compact>
+            <div className={styles.dateRange}>
+              <input
+                type="date"
+                name="startDate"
+                value={filters.startDate}
+                onChange={handleFilterChange}
+                className="form-control"
+              />
+              <span className={styles.dateSeparator}>-</span>
+              <input
+                type="date"
+                name="endDate"
+                value={filters.endDate}
+                onChange={handleFilterChange}
+                className="form-control"
+              />
+            </div>
+          </FormGroup>
 
-        <div className={styles.filtersRow}>
-          <FormGroup label={t('category')} htmlFor="categoryId">
+          <FormGroup label={t('category')} htmlFor="categoryId" compact>
             <select
               id="categoryId"
               name="categoryId"
@@ -479,7 +485,7 @@ const Expenses = () => {
             </select>
           </FormGroup>
 
-          <FormGroup label={t('paymentMethod')} htmlFor="paymentMethod">
+          <FormGroup label={t('paymentMethod')} htmlFor="paymentMethod" compact>
             <select
               id="paymentMethod"
               name="paymentMethod"
@@ -496,7 +502,7 @@ const Expenses = () => {
             </select>
           </FormGroup>
 
-          <FormGroup label={t('search')} htmlFor="search">
+          <FormGroup label={t('search')} htmlFor="search" compact>
             <input
               type="text"
               id="search"
@@ -510,10 +516,10 @@ const Expenses = () => {
         </div>
 
         <div className={styles.filterActions}>
-          <Button type="submit">
+          <Button type="submit" variant="primary" size="small">
             {t('applyFilters')}
           </Button>
-          <Button variant="secondary" onClick={resetFilters}>
+          <Button variant="secondary" size="small" onClick={resetFilters}>
             {t('resetFilters')}
           </Button>
         </div>

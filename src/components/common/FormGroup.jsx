@@ -8,11 +8,13 @@ const FormGroup = ({
   className = '',
   isCheckbox = false,
   required = false,
-  error = ''
+  error = '',
+  compact = false
 }) => {
   const groupClasses = [
     styles.formGroup,
     isCheckbox ? styles.checkboxGroup : '',
+    compact ? styles.compactGroup : '',
     className
   ].filter(Boolean).join(' ');
 
