@@ -365,7 +365,7 @@ const SalesHistory = () => {
     try {
       const result = await SaleService.cancelSale(selectedSale.id);
       
-      if (result && result.success) {
+      if (result && result.is_returned) {
         toast.success(t('sales:cancel.success'));
         closeCancelConfirmModal();
         
