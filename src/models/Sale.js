@@ -642,25 +642,12 @@ class Sale extends BaseModel {
   // Get revenue and profit by supplier
   async getRevenueAndProfitBySupplier(period = 'month') {
     try {
-      // Get database connection
       const db = await this.getDb();
-      
-      // Check if required tables exist
-      const hasSalesTable = await db.schema.hasTable(this.tableName);
-      const hasSaleItemsTable = await db.schema.hasTable('sale_items');
-      const hasSuppliersTable = await db.schema.hasTable('suppliers');
-      
-      if (!hasSalesTable || !hasSaleItemsTable) {
-        console.log('Required tables do not exist, returning empty supplier profit data');
-        return [];
-      }
       
       // Calculate date range based on period using date-fns
       const now = new Date();
       let startDate, endDate;
-
-      // Assume week starts on Sunday (0)
-      const weekStartsOn = 0; 
+      const weekStartsOn = 0; // Assume week starts on Sunday (0)
             
       if (period === 'week') {
         startDate = startOfWeek(now, { weekStartsOn });
@@ -677,28 +664,19 @@ class Sale extends BaseModel {
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
       
-      // Get all sales for the period
-      const salesIds = await db(this.tableName)
-        .where('created_at', '>=', formattedStartDate)
-        .where('created_at', '<=', formattedEndDate)
-        .where('is_returned', false)
-        .pluck('id');
-      
-      if (salesIds.length === 0) {
-        return [];
-      }
-      
-      // Get all sale items with supplier and historical cost information
-      const db2 = await this.getDb();
-      const supplierData = await db2('sale_items')
+      // Single query joining all tables and filtering by date range
+      const supplierData = await db('sales')
+        .join('sale_items', 'sales.id', 'sale_items.sale_id')
         .join('products', 'sale_items.product_id', 'products.id')
         .leftJoin('suppliers', 'products.supplier_id', 'suppliers.id')
-        .whereIn('sale_items.sale_id', salesIds)
+        .where('sales.created_at', '>=', formattedStartDate)
+        .where('sales.created_at', '<=', formattedEndDate)
+        .where('sales.is_returned', false)
         .select(
           'suppliers.id as supplier_id',
           'suppliers.company_name as name',
-          db2.raw('SUM(sale_items.total_price) as revenue'),
-          db2.raw('SUM(sale_items.historical_cost_price * sale_items.quantity) as cost')
+          db.raw('SUM(sale_items.total_price) as revenue'),
+          db.raw('SUM(sale_items.historical_cost_price * sale_items.quantity) as cost')
         )
         .groupBy('suppliers.id', 'suppliers.company_name');
       
