@@ -25,7 +25,7 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 }
 
 // Load product data
-const products = [
+const base_products = [
   // Products from the database (imported from your provided list)
   { id: 1, name: 'AMİGURUMİ CIMBIZI', category_id: 6, selling_price: 35, cost_price: 19, stock_quantity: 34, min_stock_threshold: 10 },
   { id: 2, name: 'ANAHTARLIK HALKASI 4 LÜ', category_id: 8, selling_price: 10, cost_price: 6, stock_quantity: 198, min_stock_threshold: 10 },
@@ -59,6 +59,24 @@ const products = [
   { id: 334, name: 'Fatih Akrilik Boya 75cc Pastel', category_id: 32, selling_price: 40, cost_price: 25, stock_quantity: 11, min_stock_threshold: 3 },
   { id: 351, name: 'Rich Master Akrilik 120cc', category_id: 32, selling_price: 65, cost_price: 46, stock_quantity: 89, min_stock_threshold: 19 }
 ];
+
+
+let currentId = 1;
+let products = [];
+while (products.length < 500) {
+  const template = base_products[Math.floor(Math.random() * base_products.length)];
+  const newProduct = {
+    ...template,
+    id: currentId,
+    name: `${template.name} #${currentId}`, // to make names unique
+    selling_price: +(template.selling_price + Math.random() * 10).toFixed(2),
+    cost_price: +(template.cost_price + Math.random() * 5).toFixed(2),
+    stock_quantity: Math.floor(template.stock_quantity + Math.random() * 50),
+    min_stock_threshold: Math.max(1, Math.floor(template.min_stock_threshold + Math.random() * 5))
+  };
+  products.push(newProduct);
+  currentId++;
+}
 
 // Load categories (simplified based on products)
 const categories = [
