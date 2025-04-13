@@ -58,25 +58,7 @@ module.exports = {
     },
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin', 'win32'],
-    },
-    {
-      name: '@electron-forge/maker-deb',
-      config: {
-        options: {
-          maintainer: 'Yasin KANSU',
-          homepage: 'https://github.com/yasinkansu/inventory-pro',
-        },
-      },
-    },
-    {
-      name: '@electron-forge/maker-rpm',
-      config: {
-        options: {
-          maintainer: 'Yasin KANSU',
-          homepage: 'https://github.com/yasinkansu/inventory-pro',
-        },
-      },
+      platforms: ['win32'],
     },
   ],
   plugins: [
