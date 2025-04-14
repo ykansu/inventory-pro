@@ -854,6 +854,15 @@ export const ExpenseService = {
       console.error('Error fetching expenses trend:', error);
       throw error;
     }
+  },
+
+  getMonthlyExpenses: async () => {
+    try {
+      return await window.database.getMonthlyExpenses();
+    } catch (error) {
+      console.error('Error fetching monthly expenses:', error);
+      throw error;
+    }
   }
 };
 

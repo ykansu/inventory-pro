@@ -121,10 +121,11 @@ class Expense extends BaseModel {
   }
 
   // Get expenses for a specific month
-  async getMonthlyExpenses(year, month) {
+  async getMonthlyExpenses() {
     const db = await this.getDb();
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+    const now = new Date();
+    const startDate = startOfMonth(now).toISOString();
+    const endDate = endOfMonth(now).toISOString();
     
     const expenses = await db(this.tableName)
       .whereBetween('expense_date', [startDate, endDate])

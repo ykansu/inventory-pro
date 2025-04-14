@@ -16,6 +16,7 @@ import RevenueBySupplierChart from '../dashboard/RevenueBySupplierChart';
 import ExpensesTrendChart from '../dashboard/ExpensesTrendChart';
 import InventoryValueByCategoryChart from '../dashboard/InventoryValueByCategoryChart';
 import InventoryValueBySupplierChart from '../dashboard/InventoryValueBySupplierChart';
+import RevenueExpenseDifferenceCard from '../dashboard/RevenueExpenseDifference';
 import styles from './Dashboard.module.css';
 
 const Dashboard = () => {
@@ -39,6 +40,7 @@ const Dashboard = () => {
         <InventoryMetricsCards />
         <MonthlyExpensesCard />
         <TotalCashCard />
+        <RevenueExpenseDifferenceCard />
       </div>
       
       {/* Dashboard Sections - Grid Layout */}

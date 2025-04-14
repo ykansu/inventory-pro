@@ -13,7 +13,8 @@
     "stockVariance": "Stock Variance",
     "supplierPerformance": "Supplier Performance",
     "monthlyExpenses": "Monthly Expenses",
-    "totalCash": "Total Cash"
+    "totalCash": "Total Cash",
+    "revenueExpenseDifference": "Revenue Expense Difference"
   },
   "sections": {
     "recentSales": "Recent Sales",
@@ -100,7 +101,8 @@
     "revenueTrend": "6-month historical trend showing total sales revenue for each month. Helps identify sales patterns, seasonal fluctuations, and overall business growth trajectory.",
     "profitTrend": "6-month historical trend comparing total revenue (top bars) to net profit (bottom bars) for each month. This visualization helps track both top-line growth and bottom-line profitability, revealing trends in profit margin over time.",
     "monthlyExpenses": "Total expenses recorded for the current calendar month. This includes all expense transactions recorded in the expenses module, regardless of category or payment method.",
-    "totalCash": "Net cash flow for the current month, calculated as Monthly Revenue minus Monthly Expenses. A positive value indicates more income than expenses, while a negative value indicates expenses exceed income for the month."
+    "totalCash": "Net cash flow for the current month, calculated as Monthly Cash Revenue minus Monthly Expenses. A positive value indicates more income than expenses, while a negative value indicates expenses exceed income for the month.",
+    "revenueExpenseDifference": "Net flow for the current month, calculated as Monthly Revenue minus Monthly Expenses. A positive value indicates more income than expenses, while a negative value indicates expenses exceed income for the month."
   },
   "loading": "Loading data...",
   "error": "Error loading data",

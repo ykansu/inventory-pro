@@ -13,7 +13,8 @@
     "stockVariance": "Stok Farkı",
     "supplierPerformance": "Tedarikçi Performansı",
     "monthlyExpenses": "Aylık Giderler",
-    "totalCash": "Toplam Nakit"
+    "totalCash": "Toplam Nakit",
+    "revenueExpenseDifference": "Gelir Gider Farkı"
   },
   "sections": {
     "recentSales": "Son Satışlar",
@@ -100,7 +101,8 @@
     "revenueTrend": "Her ay için toplam satış gelirini gösteren 6 aylık geçmiş trend. Satış kalıplarını, mevsimsel dalgalanmaları ve genel işletme büyüme yörüngesini belirlemeye yardımcı olur.",
     "profitTrend": "Her ay için toplam geliri (üst çubuklar) net karla (alt çubuklar) karşılaştıran 6 aylık geçmiş trend. Bu görselleştirme, hem üst düzey büyümeyi hem de alt düzey karlılığı takip etmeye yardımcı olur ve zaman içinde kar marjındaki eğilimleri ortaya çıkarır.",
     "monthlyExpenses": "İçinde bulunulan takvim ayı için kaydedilen toplam giderler. Bu, kategori veya ödeme yönteminden bağımsız olarak giderler modülünde kaydedilen tüm gider işlemlerini içerir.",
-    "totalCash": "İçinde bulunulan ay için net nakit akışı, Aylık Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir."
+    "totalCash": "İçinde bulunulan ay için net nakit akışı, Aylık Nakit Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir.",
+    "revenueExpenseDifference": "İçinde bulunulan ay için net para akışı, Aylık Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir."
   },
   "loading": "Veriler yükleniyor...",
   "error": "Veri yüklenirken hata oluştu",

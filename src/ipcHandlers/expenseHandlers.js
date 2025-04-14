@@ -53,11 +53,11 @@ function registerExpenseHandlers() {
   });
 
   // Get monthly expenses
-  ipcMain.handle('expenses:getMonthlyExpenses', async (_, year, month) => {
+  ipcMain.handle('expenses:getMonthlyExpenses', async () => {
     try {
       return { 
         success: true, 
-        data: await Expense.getMonthlyExpenses(year, month) 
+        data: await Expense.getMonthlyExpenses() 
       };
     } catch (error) {
       console.error('Error getting monthly expenses:', error);
