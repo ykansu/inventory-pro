@@ -425,9 +425,9 @@ class Sale extends BaseModel {
         : 0;
   
       return {
-        monthlyRevenue: Math.round(monthlyRevenue),
-        monthlyProfit: Math.round(monthlyProfit),
-        profitMargin: Math.round(profitMargin * 10) / 10 // 1 decimal place
+        monthlyRevenue: (monthlyRevenue),
+        monthlyProfit: (monthlyProfit),
+        profitMargin:((profitMargin * 10) / 10).toFixed(1) // 1 decimal place
       };
   
     } catch (error) {
@@ -727,8 +727,8 @@ class Sale extends BaseModel {
       const now = new Date();
       let startDate, endDate;
 
-      // Assume week starts on Sunday (0)
-      const weekStartsOn = 0; 
+      // Assume week starts on Monday (1)
+      const weekStartsOn = 1; 
             
       if (period === 'week') {
         startDate = startOfWeek(now, { weekStartsOn });
