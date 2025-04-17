@@ -13,6 +13,7 @@ import { useDatabase } from '../../context/DatabaseContext';
 import { useSettings } from '../../context/SettingsContext';
 import styles from './DashboardCharts.module.css';
 import commonStyles from './DashboardCommon.module.css';
+import useRevenueByPayment from '../../hooks/useRevenueByPayment';
 
 // Register ChartJS components
 ChartJS.register(
@@ -23,20 +24,13 @@ ChartJS.register(
 
 const RevenueByPaymentChart = () => {
   const { t } = useTranslation(['dashboard']);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [revenueByPayment, setRevenueByPayment] = useState([]);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const { dashboard } = useDatabase();
-  const { 
-    getSetting,
-    isLoading: settingsLoading 
-  } = useSettings();
-  
-  // Get settings
+  const { getSetting, isLoading: settingsLoading } = useSettings();
   const currency = getSetting('currency', 'usd').toLowerCase();
   const creditCardVendorFee = getSetting('credit_card_vendor_fee', 0.68);
-
+  const { data: revenueByPayment, loading, error, refresh } = useRevenueByPayment();
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const { dashboard } = useDatabase();
+  
   // Define colors for payment methods
   const paymentMethodColors = {
     'cash': 'rgba(76, 175, 80, 0.6)',
@@ -60,109 +54,23 @@ const RevenueByPaymentChart = () => {
   };
 
   useEffect(() => {
-    const fetchRevenueByPayment = async () => {
-      if (settingsLoading) return;
-      
-      setLoading(true);
-      setError(null);
-      try {
-        // Get real data from database
-        const data = await dashboard.getRevenueByPaymentMethod();
-        
-        if (data && data.length > 0) {
-          // Find the split payment if it exists
-          const splitPaymentIndex = data.findIndex(item => 
-            item.method.toLowerCase() === 'split'
-          );
-          
-          // Process data to merge split payments with cash and card
-          let processedData = [...data];
-          
-          // If split payment exists, distribute it to card and cash
-          if (splitPaymentIndex !== -1) {
-            const splitPayment = processedData[splitPaymentIndex];
-            
-            // Remove split row
-            processedData.splice(splitPaymentIndex, 1);
-            
-            // Find cash payment or create it if it doesn't exist
-            const cashPaymentIndex = processedData.findIndex(item => 
-              item.method.toLowerCase() === 'cash'
-            );
-            
-            if (cashPaymentIndex !== -1) {
-              // Add split cash portion to existing cash
-              processedData[cashPaymentIndex].revenue += 
-                (splitPayment.revenue - splitPayment.card_amount);
-            } else {
-              // Create new cash entry with split cash portion
-              processedData.push({
-                method: 'cash',
-                revenue: splitPayment.revenue - splitPayment.card_amount,
-                count: splitPayment.count
-              });
-            }
-            
-            // Find card payment or create it if it doesn't exist
-            const cardPaymentIndex = processedData.findIndex(item => 
-              item.method.toLowerCase() === 'card'
-            );
-            
-            if (cardPaymentIndex !== -1) {
-              // Add split card portion to existing card
-              processedData[cardPaymentIndex].revenue += splitPayment.card_amount;
-              // Track card amount for fee calculation
-              processedData[cardPaymentIndex].card_amount = 
-                (processedData[cardPaymentIndex].card_amount || 0) + splitPayment.card_amount;
-            } else {
-              // Create new card entry with split card portion
-              processedData.push({
-                method: 'card',
-                revenue: splitPayment.card_amount,
-                card_amount: splitPayment.card_amount,
-                count: splitPayment.count
-              });
-            }
-          }
-          
-          // Filter out methods with zero revenue and normalize method names
-          const filteredData = processedData
-            .filter(item => item.revenue > 0)
-            .map(item => ({
-              ...item,
-              method: item.method.toLowerCase()
-            }));
-          
-          setRevenueByPayment(filteredData);
-          setTotalRevenue(filteredData.reduce((sum, method) => sum + method.revenue, 0));
-        } else {
-          setRevenueByPayment([]);
-          setTotalRevenue(0);
-        }
-      } catch (error) {
-        console.error('Error fetching revenue by payment:', error);
-        setError(error);
-        setRevenueByPayment([]);
-        setTotalRevenue(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRevenueByPayment();
-  }, [dashboard, settingsLoading]);
+    if (revenueByPayment && revenueByPayment.length > 0) {
+      setTotalRevenue(revenueByPayment.reduce((sum, method) => sum + method.revenue, 0));
+    } else {
+      setTotalRevenue(0);
+    }
+  }, [revenueByPayment]);
 
   const handleRetry = () => {
-    fetchRevenueByPayment();
+    refresh();
   };
 
   const getPercentage = (revenue) => {
     return totalRevenue > 0 ? ((revenue / totalRevenue) * 100).toFixed(1) : 0;
   };
 
-  // Get card revenue (including card portion of split payments which is now merged)
   const getCardRevenue = () => {
-    const cardPayment = revenueByPayment.find(item => item.method.toLowerCase() === 'card');
+    const cardPayment = revenueByPayment?.find(item => item.method.toLowerCase() === 'card');
     return cardPayment ? (cardPayment.card_amount || cardPayment.revenue) : 0;
   };
 
@@ -181,12 +89,12 @@ const RevenueByPaymentChart = () => {
 
   // Prepare chart data
   const chartData = {
-    labels: revenueByPayment.map(item => t(`dashboard:paymentMethods.${item.method}`)),
+    labels: revenueByPayment?.map(item => t(`dashboard:paymentMethods.${item.method}`)) || [],
     datasets: [
       {
-        data: revenueByPayment.map(item => item.revenue),
-        backgroundColor: revenueByPayment.map(item => getColor(item.method)),
-        borderColor: revenueByPayment.map(item => getBorderColor(item.method)),
+        data: revenueByPayment?.map(item => item.revenue) || [],
+        backgroundColor: revenueByPayment?.map(item => getColor(item.method)) || [],
+        borderColor: revenueByPayment?.map(item => getBorderColor(item.method)) || [],
         borderWidth: 1,
       },
     ],
