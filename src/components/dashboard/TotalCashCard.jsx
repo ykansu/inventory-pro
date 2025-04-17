@@ -25,54 +25,37 @@ const TotalCashCard = () => {
     try {
       // Get real data from database
       const data = await dashboard.getRevenueByPaymentMethod();
-      
+      let filteredData = [];
       if (data && data.length > 0) {
         // Find the split payment if it exists
         const splitPaymentIndex = data.findIndex(item => 
           item.method.toLowerCase() === 'split'
         );
-        
-        // Process data to merge split payments with cash and card
         let processedData = [...data];
-        
-        // If split payment exists, distribute it to card and cash
         if (splitPaymentIndex !== -1) {
           const splitPayment = processedData[splitPaymentIndex];
-          
-          // Remove split row
           processedData.splice(splitPaymentIndex, 1);
-          
-          // Find cash payment or create it if it doesn't exist
           const cashPaymentIndex = processedData.findIndex(item => 
             item.method.toLowerCase() === 'cash'
           );
-          
           if (cashPaymentIndex !== -1) {
-            // Add split cash portion to existing cash
             processedData[cashPaymentIndex].revenue += 
               (splitPayment.revenue - splitPayment.card_amount);
           } else {
-            // Create new cash entry with split cash portion
             processedData.push({
               method: 'cash',
               revenue: splitPayment.revenue - splitPayment.card_amount,
               count: splitPayment.count
             });
           }
-          
-          // Find card payment or create it if it doesn't exist
           const cardPaymentIndex = processedData.findIndex(item => 
             item.method.toLowerCase() === 'card'
           );
-          
           if (cardPaymentIndex !== -1) {
-            // Add split card portion to existing card
             processedData[cardPaymentIndex].revenue += splitPayment.card_amount;
-            // Track card amount for fee calculation
             processedData[cardPaymentIndex].card_amount = 
               (processedData[cardPaymentIndex].card_amount || 0) + splitPayment.card_amount;
           } else {
-            // Create new card entry with split card portion
             processedData.push({
               method: 'card',
               revenue: splitPayment.card_amount,
@@ -81,23 +64,22 @@ const TotalCashCard = () => {
             });
           }
         }
-        
-        // Filter out methods with zero revenue and normalize method names
-        const filteredData = processedData
+        filteredData = processedData
           .filter(item => item.revenue > 0)
           .map(item => ({
             ...item,
             method: item.method.toLowerCase()
           }));
-        
         setRevenueByPayment(filteredData);
       } else {
         setRevenueByPayment([]);
       }
+      return filteredData;
     } catch (error) {
       console.error('Error fetching revenue by payment:', error);
       setError(error);
       setRevenueByPayment([]);
+      return [];
     }
   };
 
@@ -105,10 +87,8 @@ const TotalCashCard = () => {
     try {
       setLoading(true);
       setError(null);
-
-      await fetchRevenueByPayment();
-      const monthlyCashRevenue = revenueByPayment.find(item => item.method === 'cash')?.revenue || 0;
-
+      const revenueData = await fetchRevenueByPayment();
+      const monthlyCashRevenue = revenueData.find(item => item.method === 'cash')?.revenue || 0;
       const monthlyExpenseResponse = await expenses.getMonthlyExpenses();
       let monthlyExpenses = 0;
       if (monthlyExpenseResponse && monthlyExpenseResponse.success) {
@@ -116,14 +96,9 @@ const TotalCashCard = () => {
       } else {
         setError(monthlyExpenseResponse.error);
       }
-      
-      // Calculate total cash (revenue - expenses)
       const cash = parseFloat(monthlyCashRevenue) - parseFloat(monthlyExpenses);
       const finalCash = isNaN(cash) ? 0 : cash;
-      
       setTotalCash(finalCash);
-      
-      // Set trend based on whether cash is positive or negative
       setTrend({
         direction: finalCash >= 0 ? 'up' : 'down',
         value: finalCash >= 0 ? t('dashboard:positive') : t('dashboard:negative'),
