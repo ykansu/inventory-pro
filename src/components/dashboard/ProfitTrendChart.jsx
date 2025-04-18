@@ -77,8 +77,19 @@ const ProfitTrendChart = () => {
     fetchData();
   };
 
+  // Helper to translate month short names
+  const getTranslatedMonth = (month) => {
+    const monthKey = (month || '').toLowerCase();
+    const monthMap = {
+      jan: 'january', feb: 'february', mar: 'march', apr: 'april', may: 'may', jun: 'june',
+      jul: 'july', aug: 'august', sep: 'september', oct: 'october', nov: 'november', dec: 'december'
+    };
+    const key = monthMap[monthKey] || monthKey;
+    return t(`dashboard:months.${key}`, month);
+  };
+
   const chartData = {
-    labels: trendData.map(point => point.month),
+    labels: trendData.map(point => getTranslatedMonth(point.month)),
     datasets: [
       {
         label: t('dashboard:labels.revenue'),
