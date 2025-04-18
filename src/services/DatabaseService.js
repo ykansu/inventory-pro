@@ -478,7 +478,27 @@ export const DashboardService = {
       console.error('Error fetching supplier performance:', error);
       throw error;
     }
-  }
+  },
+
+  // Get average sales by day of week
+  getAverageSalesByDayOfWeek: async (period = 'month') => {
+    try {
+      return await window.database.getAverageSalesByDayOfWeek(period);
+    } catch (error) {
+      console.error('Error fetching average sales by day of week:', error);
+      return [];
+    }
+  },
+
+  // Get average sales by month of year
+  getAverageSalesByMonthOfYear: async (year) => {
+    try {
+      return await window.database.getAverageSalesByMonthOfYear(year);
+    } catch (error) {
+      console.error('Error fetching average sales by month of year:', error);
+      return [];
+    }
+  },
 };
 
 // Settings-related operations

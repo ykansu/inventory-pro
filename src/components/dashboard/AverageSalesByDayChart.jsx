@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useSettings } from '../../context/SettingsContext';
+import { useDatabase } from '../../context/DatabaseContext';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import styles from './DashboardCharts.module.css';
@@ -21,6 +22,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const AverageSalesByDayChart = () => {
   const { t } = useTranslation(['dashboard']);
   const { getCurrency } = useSettings();
+  const { dashboard } = useDatabase();
   const [period, setPeriod] = useState('month');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,8 +47,7 @@ const AverageSalesByDayChart = () => {
     setLoading(true);
     setError(null);
     try {
-      // Use window.database directly for dashboard call
-      const data = await window.database.getAverageSalesByDayOfWeek(period);
+      const data = await dashboard.getAverageSalesByDayOfWeek(period);
       setAverageData(data);
     } catch (err) {
       setError(err.message || 'Error fetching data');

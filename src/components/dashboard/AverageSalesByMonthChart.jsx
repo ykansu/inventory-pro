@@ -15,6 +15,7 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
 import styles from './DashboardCharts.module.css';
 import commonStyles from './DashboardCommon.module.css';
+import { useDatabase } from '../../context/DatabaseContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -27,6 +28,7 @@ const getYearOptions = () => {
 const AverageSalesByMonthChart = () => {
   const { t } = useTranslation(['dashboard']);
   const { getCurrency } = useSettings();
+  const { dashboard } = useDatabase();
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,8 +58,7 @@ const AverageSalesByMonthChart = () => {
     setLoading(true);
     setError(null);
     try {
-      // Use window.database directly for dashboard call
-      const data = await window.database.getAverageSalesByMonthOfYear(year);
+      const data = await dashboard.getAverageSalesByMonthOfYear(year);
       setAverageData(data);
     } catch (err) {
       setError(err.message || 'Error fetching data');
