@@ -108,8 +108,8 @@
     "monthlyExpenses": "İçinde bulunulan takvim ayı için kaydedilen toplam giderler. Bu, kategori veya ödeme yönteminden bağımsız olarak giderler modülünde kaydedilen tüm gider işlemlerini içerir.",
     "totalCash": "İçinde bulunulan ay için net nakit akışı, Aylık Nakit Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir.",
     "revenueExpenseDifference": "İçinde bulunulan ay için net para akışı, Aylık Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir.",
-    "averageSalesByDay": "Haftanın gününe göre ortalama satış adedi ve geliri gösterir. Haftalık, aylık veya yıllık filtrelemek için açılır menüyü kullanın.",
-    "averageSalesByMonth": "Yılın aylarına göre ortalama satış adedi ve geliri gösterir. Yılı filtrelemek için açılır menüyü kullanın."
+    "averageSalesByDay": "Haftanın gününe göre ortalama satış adedi ve ortalama geliri gösterir. Haftalık, aylık veya yıllık filtrelemek için açılır menüyü kullanın.",
+    "averageSalesByMonth": "Yılın aylarına göre ortalama satış adedi ve ortalama geliri gösterir. Yılı filtrelemek için açılır menüyü kullanın."
   },
   "loading": "Veriler yükleniyor...",
   "error": "Veri yüklenirken hata oluştu",
