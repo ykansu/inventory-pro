@@ -80,6 +80,8 @@ contextBridge.exposeInMainWorld('database', {
   getInventoryTurnoverRate: () => ipcRenderer.invoke('dashboard:getInventoryTurnoverRate'),
   getStockVariance: () => ipcRenderer.invoke('dashboard:getStockVariance'),
   getSupplierPerformance: () => ipcRenderer.invoke('dashboard:getSupplierPerformance'),
+  getAverageSalesByDayOfWeek: (period) => ipcRenderer.invoke('dashboard:getAverageSalesByDayOfWeek', period),
+  getAverageSalesByMonthOfYear: (year) => ipcRenderer.invoke('dashboard:getAverageSalesByMonthOfYear', year),
   
   // Settings
   getAllSettings: () => ipcRenderer.invoke('settings:getAll'),

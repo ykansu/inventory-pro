@@ -17,6 +17,8 @@ import ExpensesTrendChart from '../dashboard/ExpensesTrendChart';
 import InventoryValueByCategoryChart from '../dashboard/InventoryValueByCategoryChart';
 import InventoryValueBySupplierChart from '../dashboard/InventoryValueBySupplierChart';
 import RevenueExpenseDifferenceCard from '../dashboard/RevenueExpenseDifference';
+import AverageSalesByDayChart from '../dashboard/AverageSalesByDayChart';
+import AverageSalesByMonthChart from '../dashboard/AverageSalesByMonthChart';
 import styles from './Dashboard.module.css';
 
 const Dashboard = () => {
@@ -47,6 +49,8 @@ const Dashboard = () => {
       <div className={styles.dashboardSections}>
         <TopProductsChart />
         <RevenueBySupplierChart />
+        <AverageSalesByDayChart />
+        <AverageSalesByMonthChart />
         <RevenueByPaymentChart />
         <InventoryValueBySupplierChart />
         <ExpensesTrendChart />

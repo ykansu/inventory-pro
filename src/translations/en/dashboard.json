@@ -30,7 +30,9 @@
     "supplierPerformance": "Supplier Performance",
     "revenueTrend": "Monthly Revenue Trend",
     "revenueBySupplier": "Revenue & Profit by Supplier",
-    "profitTrend": "Revenue & Profit Trend"
+    "profitTrend": "Revenue & Profit Trend",
+    "averageSalesByDay": "Average Sales by Day of Week",
+    "averageSalesByMonth": "Average Sales by Month of Year"
   },
   "placeholders": {
     "noSalesData": "No recent sales data available",
@@ -39,7 +41,8 @@
     "noCategoryData": "No category data available",
     "noTrendData": "No trend data available",
     "noSupplierData": "No supplier data available",
-    "noPaymentData": "No payment method data available"
+    "noPaymentData": "No payment method data available",
+    "noAverageSalesData": "No average sales data available for the selected period"
   },
   "labels": {
     "items": "Items",
@@ -68,7 +71,9 @@
     "period": "Time Period",
     "netCardAmountAfterFee": "Net Card Amount (After Vendor Fee)",
     "feePercentage": "{{0}}% fee",
-    "expenses": "Expenses"
+    "expenses": "Expenses",
+    "saleCount": "Sale Count",
+    "year": "Year"
   },
   "notes": {
     "marginDiscrepancy": "Note: Margin calculations here may differ from the dashboard cards as discounts are not accounted for in this breakdown."
@@ -102,7 +107,9 @@
     "profitTrend": "6-month historical trend comparing total revenue (top bars) to net profit (bottom bars) for each month. This visualization helps track both top-line growth and bottom-line profitability, revealing trends in profit margin over time.",
     "monthlyExpenses": "Total expenses recorded for the current calendar month. This includes all expense transactions recorded in the expenses module, regardless of category or payment method.",
     "totalCash": "Net cash flow for the current month, calculated as Monthly Cash Revenue minus Monthly Expenses. A positive value indicates more income than expenses, while a negative value indicates expenses exceed income for the month.",
-    "revenueExpenseDifference": "Net flow for the current month, calculated as Monthly Revenue minus Monthly Expenses. A positive value indicates more income than expenses, while a negative value indicates expenses exceed income for the month."
+    "revenueExpenseDifference": "Net flow for the current month, calculated as Monthly Revenue minus Monthly Expenses. A positive value indicates more income than expenses, while a negative value indicates expenses exceed income for the month.",
+    "averageSalesByDay": "Shows average sale count and revenue by day of the week. Use the dropdown to filter by week, month, or year.",
+    "averageSalesByMonth": "Shows average sale count and revenue by month of the year. Use the dropdown to filter by year."
   },
   "loading": "Loading data...",
   "error": "Error loading data",
@@ -128,5 +135,28 @@
     "split": "Split (Cash + Card)"
   },
   "positive": "Positive",
-  "negative": "Negative"
+  "negative": "Negative",
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "months": {
+    "january": "Jan",
+    "february": "Feb",
+    "march": "Mar",
+    "april": "Apr",
+    "may": "May",
+    "june": "Jun",
+    "july": "Jul",
+    "august": "Aug",
+    "september": "Sep",
+    "october": "Oct",
+    "november": "Nov",
+    "december": "Dec"
+  }
 }

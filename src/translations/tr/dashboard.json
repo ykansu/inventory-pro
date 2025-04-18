@@ -30,7 +30,9 @@
     "supplierPerformance": "Tedarikçi Performansı",
     "revenueTrend": "Aylık Gelir Trendi",
     "revenueBySupplier": "Tedarikçiye Göre Gelir ve Kar",
-    "profitTrend": "Gelir ve Kar Trendi"
+    "profitTrend": "Gelir ve Kar Trendi",
+    "averageSalesByDay": "Haftanın Gününe Göre Ortalama Satışlar",
+    "averageSalesByMonth": "Yılın Aylarına Göre Ortalama Satışlar"
   },
   "placeholders": {
     "noSalesData": "Mevcut satış verisi yok",
@@ -39,7 +41,8 @@
     "noCategoryData": "Kategori verisi yok",
     "noTrendData": "Trend verisi yok",
     "noSupplierData": "Tedarikçi verisi yok",
-    "noPaymentData": "Ödeme yöntemi verisi yok"
+    "noPaymentData": "Ödeme yöntemi verisi yok",
+    "noAverageSalesData": "Seçilen dönem için ortalama satış verisi yok"
   },
   "labels": {
     "items": "Ürünler",
@@ -68,7 +71,9 @@
     "period": "Zaman Dilimi",
     "netCardAmountAfterFee": "Net Kart Tutarı (Komisyon Sonrası)",
     "feePercentage": "%{{0}} komisyon",
-    "expenses": "Giderler"
+    "expenses": "Giderler",
+    "saleCount": "Satış Adedi",
+    "year": "Yıl"
   },
   "notes": {
     "marginDiscrepancy": "Not: Bu bölümdeki kar marjı hesaplamaları, indirimler burada dikkate alınmadığı için, gösterge paneli kartlarındakinden farklı olabilir."
@@ -102,7 +107,9 @@
     "profitTrend": "Her ay için toplam geliri (üst çubuklar) net karla (alt çubuklar) karşılaştıran 6 aylık geçmiş trend. Bu görselleştirme, hem üst düzey büyümeyi hem de alt düzey karlılığı takip etmeye yardımcı olur ve zaman içinde kar marjındaki eğilimleri ortaya çıkarır.",
     "monthlyExpenses": "İçinde bulunulan takvim ayı için kaydedilen toplam giderler. Bu, kategori veya ödeme yönteminden bağımsız olarak giderler modülünde kaydedilen tüm gider işlemlerini içerir.",
     "totalCash": "İçinde bulunulan ay için net nakit akışı, Aylık Nakit Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir.",
-    "revenueExpenseDifference": "İçinde bulunulan ay için net para akışı, Aylık Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir."
+    "revenueExpenseDifference": "İçinde bulunulan ay için net para akışı, Aylık Gelirden Aylık Giderlerin çıkarılmasıyla hesaplanır. Pozitif bir değer, giderlerden daha fazla gelir olduğunu, negatif bir değer ise ay için giderlerin geliri aştığını gösterir.",
+    "averageSalesByDay": "Haftanın gününe göre ortalama satış adedi ve geliri gösterir. Haftalık, aylık veya yıllık filtrelemek için açılır menüyü kullanın.",
+    "averageSalesByMonth": "Yılın aylarına göre ortalama satış adedi ve geliri gösterir. Yılı filtrelemek için açılır menüyü kullanın."
   },
   "loading": "Veriler yükleniyor...",
   "error": "Veri yüklenirken hata oluştu",
@@ -128,5 +135,28 @@
     "split": "Karma (Nakit + Kart)"
   },
   "positive": "Pozitif",
-  "negative": "Negatif"
+  "negative": "Negatif",
+  "days": {
+    "monday": "Pazartesi",
+    "tuesday": "Salı",
+    "wednesday": "Çarşamba",
+    "thursday": "Perşembe",
+    "friday": "Cuma",
+    "saturday": "Cumartesi",
+    "sunday": "Pazar"
+  },
+  "months": {
+    "january": "Oca",
+    "february": "Şub",
+    "march": "Mar",
+    "april": "Nis",
+    "may": "May",
+    "june": "Haz",
+    "july": "Tem",
+    "august": "Ağu",
+    "september": "Eyl",
+    "october": "Eki",
+    "november": "Kas",
+    "december": "Ara"
+  }
 }

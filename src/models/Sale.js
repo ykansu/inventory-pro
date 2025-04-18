@@ -928,6 +928,147 @@ class Sale extends BaseModel {
       throw error;
     }
   }
+
+  /**
+   * Get average sale count and average revenue by day of the week for a given period.
+   * @param {string} period - 'week', 'month', or 'year'
+   * @returns {Promise<Array<{day: string, averageSaleCount: number, averageRevenue: number}>>}
+   */
+  async getAverageSalesByDayOfWeek(period = 'month') {
+    try {
+      const db = await this.getDb();
+      const hasSalesTable = await db.schema.hasTable(this.tableName);
+      if (!hasSalesTable) {
+        // Return zeros for all days if table does not exist
+        return [
+          { day: 'Monday', averageSaleCount: 0, averageRevenue: 0 },
+          { day: 'Tuesday', averageSaleCount: 0, averageRevenue: 0 },
+          { day: 'Wednesday', averageSaleCount: 0, averageRevenue: 0 },
+          { day: 'Thursday', averageSaleCount: 0, averageRevenue: 0 },
+          { day: 'Friday', averageSaleCount: 0, averageRevenue: 0 },
+          { day: 'Saturday', averageSaleCount: 0, averageRevenue: 0 },
+          { day: 'Sunday', averageSaleCount: 0, averageRevenue: 0 },
+        ];
+      }
+      // Calculate date range
+      const now = new Date();
+      let startDate, endDate;
+      const weekStartsOn = 1; // Monday
+      if (period === 'week') {
+        startDate = startOfWeek(now, { weekStartsOn });
+        endDate = endOfWeek(now, { weekStartsOn });
+      } else if (period === 'year') {
+        startDate = startOfYear(now);
+        endDate = endOfYear(now);
+      } else {
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
+      }
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+      // Query sales grouped by day of week
+      const sales = await db(this.tableName)
+        .where('created_at', '>=', formattedStartDate)
+        .where('created_at', '<=', formattedEndDate)
+        .where('is_returned', false)
+        .select(
+          db.raw("strftime('%w', datetime(created_at, 'localtime')) as dayOfWeek"), // 0=Sunday, 1=Monday, ...
+          db.raw('COUNT(*) as saleCount'),
+          db.raw('SUM(total_amount) as totalRevenue')
+        )
+        .groupBy('dayOfWeek');
+      // Determine number of weeks in the period for averaging
+      let divisor = 1;
+      if (period === 'week') {
+        divisor = 1;
+      } else if (period === 'month') {
+        // Weeks in month: difference in weeks between start and end
+        divisor = Math.ceil((endDate - startDate) / (7 * 24 * 60 * 60 * 1000));
+      } else if (period === 'year') {
+        divisor = 52;
+      }
+      // Map sales data to days of week
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const result = Array(7).fill(0).map((_, i) => ({
+        day: dayNames[i],
+        averageSaleCount: 0,
+        averageRevenue: 0,
+      }));
+      for (const row of sales) {
+        const idx = parseInt(row.dayOfWeek, 10);
+        result[idx].averageSaleCount = row.saleCount ? Math.round(row.saleCount / divisor * 100) / 100 : 0;
+        result[idx].averageRevenue = row.totalRevenue ? Math.round(row.totalRevenue / divisor * 100) / 100 : 0;
+      }
+      // Reorder so Monday is first
+      return [result[1], result[2], result[3], result[4], result[5], result[6], result[0]];
+    } catch (error) {
+      console.error('Error in getAverageSalesByDayOfWeek:', error);
+      return [
+        { day: 'Monday', averageSaleCount: 0, averageRevenue: 0 },
+        { day: 'Tuesday', averageSaleCount: 0, averageRevenue: 0 },
+        { day: 'Wednesday', averageSaleCount: 0, averageRevenue: 0 },
+        { day: 'Thursday', averageSaleCount: 0, averageRevenue: 0 },
+        { day: 'Friday', averageSaleCount: 0, averageRevenue: 0 },
+        { day: 'Saturday', averageSaleCount: 0, averageRevenue: 0 },
+        { day: 'Sunday', averageSaleCount: 0, averageRevenue: 0 },
+      ];
+    }
+  }
+
+  /**
+   * Get average sale count and average revenue by month of the given year.
+   * @param {number} year - The year (e.g. 2024)
+   * @returns {Promise<Array<{month: number, averageSaleCount: number, averageRevenue: number}>>}
+   */
+  async getAverageSalesByMonthOfYear(year) {
+    try {
+      const db = await this.getDb();
+      const hasSalesTable = await db.schema.hasTable(this.tableName);
+      if (!hasSalesTable) {
+        // Return zeros for all months if table does not exist
+        return Array.from({ length: 12 }, (_, i) => ({
+          month: i + 1,
+          averageSaleCount: 0,
+          averageRevenue: 0,
+        }));
+      }
+      // Calculate date range for the year
+      const startDate = new Date(year, 0, 1);
+      const endDate = endOfYear(new Date(year, 0, 1));
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+      // Query sales grouped by month using localtime
+      const sales = await db(this.tableName)
+        .where('created_at', '>=', formattedStartDate)
+        .where('created_at', '<=', formattedEndDate)
+        .where('is_returned', false)
+        .select(
+          db.raw("CAST(strftime('%m', datetime(created_at, 'localtime')) AS INTEGER) as month"),
+          db.raw('COUNT(*) as saleCount'),
+          db.raw('SUM(total_amount) as totalRevenue')
+        )
+        .groupBy('month');
+      // Map sales data to months
+      const result = Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        averageSaleCount: 0,
+        averageRevenue: 0,
+      }));
+      for (const row of sales) {
+        const idx = (row.month || 1) - 1;
+        result[idx].averageSaleCount = row.saleCount ? Math.round(row.saleCount * 100) / 100 : 0;
+        result[idx].averageRevenue = row.totalRevenue ? Math.round(row.totalRevenue * 100) / 100 : 0;
+      }
+      return result;
+    } catch (error) {
+      console.error('Error in getAverageSalesByMonthOfYear:', error);
+      return Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        averageSaleCount: 0,
+        averageRevenue: 0,
+      }));
+    }
+  }
 }
 
 module.exports = Sale; 

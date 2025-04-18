@@ -206,6 +206,24 @@ function registerDashboardHandlers() {
       return { onTimeDelivery: 87, qualityScore: 92 }; // Default fallback
     }
   });
+
+  ipcMain.handle('dashboard:getAverageSalesByDayOfWeek', async (_, period = 'month') => {
+    try {
+      return await Sale.getAverageSalesByDayOfWeek(period);
+    } catch (error) {
+      console.error('Error getting average sales by day of week:', error);
+      return [];
+    }
+  });
+
+  ipcMain.handle('dashboard:getAverageSalesByMonthOfYear', async (_, year) => {
+    try {
+      return await Sale.getAverageSalesByMonthOfYear(year);
+    } catch (error) {
+      console.error('Error getting average sales by month of year:', error);
+      return [];
+    }
+  });
 }
 
 module.exports = { registerDashboardHandlers }; 
