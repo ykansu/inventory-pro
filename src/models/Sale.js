@@ -15,7 +15,8 @@ const {
   setYear, 
   getYear, 
   getMonth, 
-  getDay 
+  getDay,
+  addDays,
 } = require('date-fns');
 
 // Helper functions for formatting
@@ -950,10 +951,12 @@ class Sale extends BaseModel {
           { day: 'Sunday', averageSaleCount: 0, averageRevenue: 0 },
         ];
       }
+
       // Calculate date range
       const now = new Date();
       let startDate, endDate;
       const weekStartsOn = 1; // Monday
+      
       if (period === 'week') {
         startDate = startOfWeek(now, { weekStartsOn });
         endDate = endOfWeek(now, { weekStartsOn });
@@ -964,41 +967,61 @@ class Sale extends BaseModel {
         startDate = startOfMonth(now);
         endDate = endOfMonth(now);
       }
-      const formattedStartDate = startDate.toISOString();
-      const formattedEndDate = endDate.toISOString();
+
+      // First, get the count of each day in the period
+      const dayCounts = {};
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      
+      // Initialize day counts
+      for (let i = 0; i < 7; i++) {
+        dayCounts[i] = 0;
+      }
+
+      // Count actual occurrences of each day in the period
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        const dayOfWeek = currentDate.getDay(); // 0=Sunday, 1=Monday, etc.
+        dayCounts[dayOfWeek]++;
+        currentDate = addDays(currentDate, 1);
+      }
+
       // Query sales grouped by day of week
       const sales = await db(this.tableName)
-        .where('created_at', '>=', formattedStartDate)
-        .where('created_at', '<=', formattedEndDate)
+        .where('created_at', '>=', startDate.toISOString())
+        .where('created_at', '<=', endDate.toISOString())
         .where('is_returned', false)
         .select(
-          db.raw("strftime('%w', datetime(created_at, 'localtime')) as dayOfWeek"), // 0=Sunday, 1=Monday, ...
+          db.raw("strftime('%w', datetime(created_at, 'localtime')) as dayOfWeek"),
           db.raw('COUNT(*) as saleCount'),
           db.raw('SUM(total_amount) as totalRevenue')
         )
         .groupBy('dayOfWeek');
-      // Determine number of weeks in the period for averaging
-      let divisor = 1;
-      if (period === 'week') {
-        divisor = 1;
-      } else if (period === 'month') {
-        // Weeks in month: difference in weeks between start and end
-        divisor = Math.ceil((endDate - startDate) / (7 * 24 * 60 * 60 * 1000));
-      } else if (period === 'year') {
-        divisor = 52;
-      }
-      // Map sales data to days of week
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+      // Prepare result array
       const result = Array(7).fill(0).map((_, i) => ({
         day: dayNames[i],
         averageSaleCount: 0,
         averageRevenue: 0,
       }));
+
+      // Calculate averages based on actual day occurrences
       for (const row of sales) {
         const idx = parseInt(row.dayOfWeek, 10);
-        result[idx].averageSaleCount = row.saleCount ? Math.round(row.saleCount / divisor * 100) / 100 : 0;
-        result[idx].averageRevenue = row.totalRevenue ? Math.round(row.totalRevenue / divisor * 100) / 100 : 0;
+        const dayOccurrences = dayCounts[idx] || 1; // Avoid division by zero
+        
+        if (row.saleCount) {
+          result[idx].averageSaleCount = dayOccurrences > 0 
+            ? Math.round((row.saleCount / dayOccurrences) * 100) / 100 
+            : 0;
+        }
+        
+        if (row.totalRevenue) {
+          result[idx].averageRevenue = dayOccurrences > 0
+            ? Math.round((row.totalRevenue / dayOccurrences) * 100) / 100
+            : 0;
+        }
       }
+
       // Reorder so Monday is first
       return [result[1], result[2], result[3], result[4], result[5], result[6], result[0]];
     } catch (error) {
