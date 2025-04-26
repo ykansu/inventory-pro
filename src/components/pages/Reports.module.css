@@ -214,4 +214,15 @@
 .placeholderContent {
   color: #6b7280;
   font-size: 0.875rem;
+}
+
+.netCardRow {
+  background-color: #f3f4f6;
+  font-style: italic;
+}
+
+.feeNote {
+  font-size: 0.85em;
+  color: #6b7280;
+  margin-top: 2px;
 } 

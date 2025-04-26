@@ -71,15 +71,15 @@ export default function useRevenueByPayment(startDateArg, endDateArg) {
       setLoading(false);
       fetchPromise.current = null;
     }
-  }, [dashboard]);
+  }, [dashboard, startDate, endDate]);
 
   // Only fetch if not loaded
   useEffect(() => {
-    if (data.length === 0 && !loading && !fetchPromise.current) {
+    if (!loading && !fetchPromise.current) {
       fetchPromise.current = fetchRevenue();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, fetchRevenue]);
+  }, [fetchRevenue]);
 
   // Manual refresh
   const refresh = useCallback(() => {

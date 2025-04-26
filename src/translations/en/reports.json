@@ -8,7 +8,8 @@
     "inventory": "Inventory Valuation",
     "lowStock": "Low Stock Report",
     "topSelling": "Top Selling Products",
-    "profitMargin": "Profit Margin Analysis"
+    "profitMargin": "Profit Margin Analysis",
+    "revenueByPayment": "Revenue by Payment Method"
   },
   "filters": {
     "from": "From",

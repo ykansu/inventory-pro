@@ -8,7 +8,8 @@
     "inventory": "Envanter Değerlendirmesi",
     "lowStock": "Düşük Stok Raporu",
     "topSelling": "En Çok Satan Ürünler",
-    "profitMargin": "Kar Marjı Analizi"
+    "profitMargin": "Kar Marjı Analizi",
+    "revenueByPayment": "Ödeme Yöntemine Göre Gelir"
   },
   "filters": {
     "from": "Başlangıç",

@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import styles from './Reports.module.css';
+import RevenueByPaymentReport from '../reports/RevenueByPaymentReport';
+import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const Reports = () => {
   const [reportType, setReportType] = useState('daily');
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  // The dateRange state is used for the actual report; pendingDateRange is for the pickers.
+  const [dateRange, setDateRange] = useState({
+    start: startOfMonth(new Date()),
+    end: endOfMonth(new Date()),
+  });
+  const [pendingDateRange, setPendingDateRange] = useState(dateRange);
   const { t } = useTranslation(['reports', 'common']);
+
+  const handleGenerate = () => {
+    setDateRange({ ...pendingDateRange });
+  };
 
   return (
     <div className={styles.reportsPage}>
@@ -57,6 +68,14 @@ const Reports = () => {
                 {t('reports:types.profitMargin')}
               </button>
             </li>
+            <li>
+              <button 
+                className={`${styles.reportTypeButton} ${reportType === 'revenueByPayment' ? styles.active : ''}`}
+                onClick={() => setReportType('revenueByPayment')}
+              >
+                {t('reports:types.revenueByPayment')}
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -68,8 +87,8 @@ const Reports = () => {
                 <input 
                   type="date" 
                   id="startDate" 
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                  value={pendingDateRange.start ? format(pendingDateRange.start, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => setPendingDateRange({ ...pendingDateRange, start: e.target.value ? parseISO(e.target.value) : null })}
                 />
               </div>
               <div className={styles.formGroup}>
@@ -77,11 +96,11 @@ const Reports = () => {
                 <input 
                   type="date" 
                   id="endDate" 
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                  value={pendingDateRange.end ? format(pendingDateRange.end, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => setPendingDateRange({ ...pendingDateRange, end: e.target.value ? parseISO(e.target.value) : null })}
                 />
               </div>
-              <button className={styles.filterButton}>{t('reports:filters.generate')}</button>
+              <button className={styles.filterButton} onClick={handleGenerate}>{t('reports:filters.generate')}</button>
             </div>
 
             <div className={styles.exportOptions}>
@@ -157,7 +176,11 @@ const Reports = () => {
               </div>
             )}
 
-            {reportType !== 'daily' && (
+            {reportType === 'revenueByPayment' && (
+              <RevenueByPaymentReport startDate={dateRange.start} endDate={dateRange.end} />
+            )}
+
+            {reportType !== 'daily' && reportType !== 'revenueByPayment' && (
               <div className={styles.placeholderReport}>
                 <h3>{t(`reports:types.${reportType}`)}</h3>
                 <div className={styles.placeholderContent}>
