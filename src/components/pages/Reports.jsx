@@ -5,7 +5,7 @@ import RevenueByPaymentReport from '../reports/RevenueByPaymentReport';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const Reports = () => {
-  const [reportType, setReportType] = useState('daily');
+  const [reportType, setReportType] = useState('revenueByPayment');
   // The dateRange state is used for the actual report; pendingDateRange is for the pickers.
   const [dateRange, setDateRange] = useState({
     start: startOfMonth(new Date()),
@@ -32,6 +32,7 @@ const Reports = () => {
               <button 
                 className={`${styles.reportTypeButton} ${reportType === 'daily' ? styles.active : ''}`}
                 onClick={() => setReportType('daily')}
+                disabled
               >
                 {t('reports:types.daily')}
               </button>
@@ -40,6 +41,7 @@ const Reports = () => {
               <button 
                 className={`${styles.reportTypeButton} ${reportType === 'inventory' ? styles.active : ''}`}
                 onClick={() => setReportType('inventory')}
+                disabled
               >
                 {t('reports:types.inventory')}
               </button>
@@ -48,6 +50,7 @@ const Reports = () => {
               <button 
                 className={`${styles.reportTypeButton} ${reportType === 'lowStock' ? styles.active : ''}`}
                 onClick={() => setReportType('lowStock')}
+                disabled
               >
                 {t('reports:types.lowStock')}
               </button>
@@ -56,6 +59,7 @@ const Reports = () => {
               <button 
                 className={`${styles.reportTypeButton} ${reportType === 'topSelling' ? styles.active : ''}`}
                 onClick={() => setReportType('topSelling')}
+                disabled
               >
                 {t('reports:types.topSelling')}
               </button>
@@ -64,6 +68,7 @@ const Reports = () => {
               <button 
                 className={`${styles.reportTypeButton} ${reportType === 'profitMargin' ? styles.active : ''}`}
                 onClick={() => setReportType('profitMargin')}
+                disabled
               >
                 {t('reports:types.profitMargin')}
               </button>
@@ -104,8 +109,8 @@ const Reports = () => {
             </div>
 
             <div className={styles.exportOptions}>
-              <button className={styles.exportButton}>{t('reports:export.csv')}</button>
-              <button className={styles.printButton}>{t('reports:export.print')}</button>
+              <button disabled className={styles.exportButton}>{t('reports:export.csv')}</button>
+              <button disabled className={styles.printButton}>{t('reports:export.print')}</button>
             </div>
           </div>
 
