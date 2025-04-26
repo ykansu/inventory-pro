@@ -58,7 +58,6 @@ export default function useRevenueByPayment(startDateArg, endDateArg) {
           }
         }
         filteredData = processedData
-          .filter(item => item.revenue > 0)
           .map(item => ({ ...item, method: item.method.toLowerCase() }));
       }
       setData(filteredData);
@@ -75,11 +74,11 @@ export default function useRevenueByPayment(startDateArg, endDateArg) {
 
   // Only fetch if not loaded
   useEffect(() => {
-    if (!loading && !fetchPromise.current) {
+    if (data.length === 0 && !loading && !fetchPromise.current) {
       fetchPromise.current = fetchRevenue();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchRevenue]);
+  }, [data, fetchRevenue]);
 
   // Manual refresh
   const refresh = useCallback(() => {

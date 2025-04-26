@@ -726,7 +726,10 @@ class Sale extends BaseModel {
         )
         .groupBy('payment_method');
       if (paymentData.length === 0) {
-        return [];
+        return [
+          { method: 'cash', revenue: 0, card_amount: 0, count: 0 },
+          { method: 'card', revenue: 0, card_amount: 0, count: 0 },
+        ];
       }
       const formattedData = paymentData.map(item => ({
         method: item.method || 'unknown',
