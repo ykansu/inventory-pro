@@ -723,6 +723,7 @@ const SalesHistory = () => {
                   <Button 
                     variant="secondary" 
                     onClick={openReturnModal}
+                    disabled
                   >
                     {t('sales:actions.processReturn')}
                   </Button>
