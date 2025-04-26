@@ -15,6 +15,8 @@ const { registerDashboardHandlers } = require('./ipcHandlers/dashboardHandlers')
 const { registerConfigHandlers } = require('./ipcHandlers/configHandlers');
 const { registerLanguageHandlers } = require('./ipcHandlers/languageHandlers');
 const { registerExpenseHandlers } = require('./ipcHandlers/expenseHandlers');
+// Import update checker
+const { checkForUpdates } = require('./utils/updateChecker');
 
 // Dynamically load modules with error handling
 function safeRequire(modulePath) {
@@ -226,6 +228,28 @@ app.whenReady().then(async () => {
     config = safeRequire('./database/config');
     if (!config) {
       throw new Error('Failed to load configuration module');
+    }
+
+    // Check for updates silently in the background
+    if (config && config.updates && config.updates.checkOnStartup) {
+      console.log('Checking for updates...');
+      try {
+        const updateResult = await checkForUpdates();
+        if (updateResult.hasUpdates) {
+          console.log('Updates are available');
+          // Send message to renderer to show update notification
+          mainWindow.webContents.on('did-finish-load', () => {
+            mainWindow.webContents.send('updates-available');
+          });
+        } else if (updateResult.error) {
+          console.log('Update check failed:', updateResult.error);
+        } else {
+          console.log('No updates are available');
+        }
+      } catch (error) {
+        // Fail silently, just log the error
+        console.error('Error checking for updates:', error);
+      }
     }
     
     // Load database modules

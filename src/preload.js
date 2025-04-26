@@ -132,3 +132,10 @@ contextBridge.exposeInMainWorld('database', {
   getLanguage: () => ipcRenderer.invoke('language:get'),
   setLanguage: (language) => ipcRenderer.invoke('language:set', language),
 });
+
+// Expose update checking functionality to the renderer process
+contextBridge.exposeInMainWorld('updates', {
+  // Listen for update availability notifications
+  onUpdatesAvailable: (callback) => ipcRenderer.on('updates-available', callback),
+  removeUpdatesAvailableListener: () => ipcRenderer.removeAllListeners('updates-available'),
+});

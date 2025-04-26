@@ -61,6 +61,10 @@ EXCEL_BACKUP_PATH=C:/inventoryPro/backups/excel
 
 # Excel Backup on Exit
 ENABLE_EXCEL_BACKUP_ON_EXIT=false
+
+# Update Checking
+REPO_PATH=e:/inventoryPro-repo/inventoryPro
+CHECK_UPDATES_ON_STARTUP=true
 `;
 
   try {
@@ -103,6 +107,12 @@ const config = {
   
   // Database file path
   dbPath: process.env.DB_PATH || 'C:/inventoryPro/inventory-pro.db',
+  
+  // Update checking settings
+  updates: {
+    repoPath: process.env.REPO_PATH || 'e:/inventoryPro-repo/inventoryPro',
+    checkOnStartup: getBooleanEnv('CHECK_UPDATES_ON_STARTUP', true),
+  },
   
   // Get current database path
   getDbPath() {
@@ -182,6 +192,12 @@ const config = {
     
     // Update in-memory configuration
     this.dbPath = process.env.DB_PATH || 'C:/inventoryPro/inventory-pro.db';
+    
+    // Update the updates config 
+    this.updates = {
+      repoPath: process.env.REPO_PATH || 'e:/inventoryPro-repo/inventoryPro',
+      checkOnStartup: getBooleanEnv('CHECK_UPDATES_ON_STARTUP', true),
+    };
     
     this.backup = {
       enabled: getBooleanEnv('BACKUP_ENABLED', true),

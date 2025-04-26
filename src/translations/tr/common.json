@@ -91,5 +91,10 @@
   "notifications": {
     "genericSuccess": "İşlem başarılı",
     "genericError": "Bir hata oluştu"
+  },
+  "updates": {
+    "title": "Güncellemeler Mevcut",
+    "message": "Envanter Pro için yeni güncellemeler mevcut.",
+    "instructions": "Uygulamayı güncellemek için güncelleme aracını kullanabilirsiniz."
   }
 }

@@ -92,5 +92,10 @@
   "notifications": {
     "genericSuccess": "Operation successful",
     "genericError": "An error occurred"
+  },
+  "updates": {
+    "title": "Updates Available",
+    "message": "New updates are available for Inventory Pro.",
+    "instructions": "You can use the update utility to update the application."
   }
 }

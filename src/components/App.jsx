@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
 import { DatabaseProvider } from '../context/DatabaseContext';
 import { SettingsProvider } from '../context/SettingsContext';
 import { Toaster } from 'react-hot-toast';
 import LanguageInitializer from './LanguageInitializer';
+import UpdateNotification from './common/UpdateNotification';
 
 // Import page components
 import Dashboard from './pages/Dashboard';
@@ -19,10 +20,32 @@ import Expenses from './pages/Expenses';
 // Inner component that uses hooks after providers are set up
 const AppContent = () => {
   const { t } = useTranslation(['common']);
+  const [showUpdateNotification, setShowUpdateNotification] = useState(false);
+  
+  // Listen for update availability notifications
+  useEffect(() => {
+    // Event handler for updates-available event
+    const handleUpdatesAvailable = () => {
+      setShowUpdateNotification(true);
+    };
+    
+    // Register event listener
+    window.updates.onUpdatesAvailable(handleUpdatesAvailable);
+    
+    // Cleanup function to remove event listener
+    return () => {
+      window.updates.removeUpdatesAvailableListener();
+    };
+  }, []);
   
   return (
     <Router>
       <div className="app-container">
+        {/* Update notification */}
+        {showUpdateNotification && (
+          <UpdateNotification onClose={() => setShowUpdateNotification(false)} />
+        )}
+        
         {/* Toast notifications */}
         <Toaster 
           position="top-right"
