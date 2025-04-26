@@ -141,9 +141,9 @@ function registerDashboardHandlers() {
     }
   });
 
-  ipcMain.handle('dashboard:getRevenueByPaymentMethod', async () => {
+  ipcMain.handle('dashboard:getRevenueByPaymentMethod', async (_, startDate, endDate) => {
     try {
-      return await Sale.getRevenueByPaymentMethod();
+      return await Sale.getRevenueByPaymentMethod(startDate, endDate);
     } catch (error) {
       console.error('Error getting revenue by payment method:', error);
       return []; // Return empty array instead of throwing

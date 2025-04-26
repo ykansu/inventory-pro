@@ -706,47 +706,14 @@ class Sale extends BaseModel {
   }
   
   // Get revenue by payment method
-  async getRevenueByPaymentMethod(period = 'month') {
+  async getRevenueByPaymentMethod(startDate, endDate) {
     try {
-      // Get database connection
       const db = await this.getDb();
-      
-      // Check if the sales table exists
-      const hasSalesTable = await db.schema.hasTable(this.tableName);
-      
-      if (!hasSalesTable) {
-        console.log('sales table does not exist, returning default payment method data');
-        // Return sample data for UI development
-        return [
-          { method: 'cash', revenue: 0 },
-          { method: 'card', revenue: 0 },
-          { method: 'bank_transfer', revenue: 0 }
-        ];
+      if (!startDate || !endDate) {
+        throw new Error('startDate and endDate are required');
       }
-      
-      // Calculate date range based on period using date-fns
-      const now = new Date();
-      let startDate, endDate;
-
-      // Assume week starts on Monday (1)
-      const weekStartsOn = 1; 
-            
-      if (period === 'week') {
-        startDate = startOfWeek(now, { weekStartsOn });
-        endDate = endOfWeek(now, { weekStartsOn });
-      } else if (period === 'year') {
-        startDate = startOfYear(now);
-        endDate = endOfYear(now);
-      } else { // Default to month
-        startDate = startOfMonth(now);
-        endDate = endOfMonth(now);
-      }
-      
-      // Format dates for SQLite query using date-fns
-      const formattedStartDate = startDate.toISOString();
-      const formattedEndDate = endDate.toISOString();
-      
-      // Get all sales for the period
+      const formattedStartDate = new Date(startDate).toISOString();
+      const formattedEndDate = new Date(endDate).toISOString();
       const paymentData = await db(this.tableName)
         .where('created_at', '>=', formattedStartDate)
         .where('created_at', '<=', formattedEndDate)
@@ -758,24 +725,18 @@ class Sale extends BaseModel {
           db.raw('COUNT(*) as count')
         )
         .groupBy('payment_method');
-      
       if (paymentData.length === 0) {
         return [];
       }
-      
-      // Format data - ensure method property exists
       const formattedData = paymentData.map(item => ({
         method: item.method || 'unknown',
         revenue: parseFloat(item.revenue) || 0,
         card_amount: parseFloat(item.card_amount) || 0,
         count: parseInt(item.count) || 0
       }));
-      
-      // Sort by revenue (highest first)
       return formattedData.sort((a, b) => b.revenue - a.revenue);
     } catch (error) {
       console.error('Error in getRevenueByPaymentMethod:', error);
-      // Return empty array instead of throwing
       return [];
     }
   }

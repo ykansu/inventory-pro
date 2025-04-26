@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDatabase } from '../context/DatabaseContext';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 /**
  * useRevenueByPayment - Shared dashboard hook for revenue by payment data.
  * Fetches, processes, and caches the result. Only one DB call per dashboard session unless refresh is called.
  * Usage:
- *   const { data, loading, error, refresh } = useRevenueByPayment();
+ *   const { data, loading, error, refresh } = useRevenueByPayment(startDate, endDate);
  */
-export default function useRevenueByPayment() {
+export default function useRevenueByPayment(startDateArg, endDateArg) {
   const { dashboard } = useDatabase();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,11 +16,16 @@ export default function useRevenueByPayment() {
   // Prevent double fetches
   const fetchPromise = useRef(null);
 
+  // Default to current month if not provided
+  const now = new Date();
+  const startDate = startDateArg || startOfMonth(now);
+  const endDate = endDateArg || endOfMonth(now);
+
   const fetchRevenue = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const raw = await dashboard.getRevenueByPaymentMethod();
+      const raw = await dashboard.getRevenueByPaymentMethod(startDate, endDate);
       let filteredData = [];
       if (raw && raw.length > 0) {
         // Split logic

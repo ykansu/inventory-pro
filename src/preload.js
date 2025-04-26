@@ -72,7 +72,7 @@ contextBridge.exposeInMainWorld('database', {
   getInventoryValueBySupplier: () => ipcRenderer.invoke('dashboard:getInventoryValueBySupplier'),
   getTopSellingProducts: (period, limit, sortBy) => ipcRenderer.invoke('dashboard:getTopSellingProducts', period, limit, sortBy),
   getRevenueAndProfitBySupplier: () => ipcRenderer.invoke('dashboard:getRevenueAndProfitBySupplier'),
-  getRevenueByPaymentMethod: () => ipcRenderer.invoke('dashboard:getRevenueByPaymentMethod'),
+  getRevenueByPaymentMethod: (startDate, endDate) => ipcRenderer.invoke('dashboard:getRevenueByPaymentMethod', startDate, endDate),
   getProfitByCategory: () => ipcRenderer.invoke('dashboard:getProfitByCategory'),
   getInventoryTrend: (months) => ipcRenderer.invoke('dashboard:getInventoryTrend', months),
   getProfitAndRevenueTrend: (months) => ipcRenderer.invoke('dashboard:getProfitAndRevenueTrend', months),

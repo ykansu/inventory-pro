@@ -400,9 +400,9 @@ export const DashboardService = {
   },
   
   // Get revenue by payment method
-  getRevenueByPaymentMethod: async () => {
+  getRevenueByPaymentMethod: async (startDate, endDate) => {
     try {
-      return await window.database.getRevenueByPaymentMethod();
+      return await window.database.getRevenueByPaymentMethod(startDate, endDate);
     } catch (error) {
       console.error('Error fetching revenue by payment method:', error);
       throw error;
