@@ -72,7 +72,7 @@ const RevenueByPaymentReport = ({ startDate, endDate }) => {
 
   return (
     <div className={styles.reportSection}>
-      <h4>{t('reports:revenueByPayment.title', 'Revenue by Payment Method')}</h4>
+      <h4>{t('reports:types.revenueByPayment', 'Revenue by Payment Method')}</h4>
       <table className={styles.reportTable}>
         <thead>
           <tr>
