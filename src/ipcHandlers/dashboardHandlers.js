@@ -159,6 +159,15 @@ function registerDashboardHandlers() {
     }
   });
 
+  ipcMain.handle('dashboard:getCategoryProfits', async (_, period = 'month', startDate = null, endDate = null) => {
+    try {
+      return await Sale.getProfitByCategory(period, startDate, endDate);
+    } catch (error) {
+      console.error('Error getting profit by category with date range:', error);
+      return []; // Return empty array instead of throwing
+    }
+  });
+
   ipcMain.handle('dashboard:getInventoryTrend', async (_, months = 6) => {
     try {
       return await Product.getInventoryTrend(months);

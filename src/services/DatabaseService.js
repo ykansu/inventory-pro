@@ -419,6 +419,16 @@ export const DashboardService = {
     }
   },
   
+  // Get profit and revenue by category with custom date range
+  getCategoryProfits: async (period = 'month', startDate = null, endDate = null) => {
+    try {
+      return await window.database.getCategoryProfits(period, startDate, endDate);
+    } catch (error) {
+      console.error('Error fetching category profits with date range:', error);
+      return []; // Return empty array instead of throwing
+    }
+  },
+  
   // Get inventory trend data for the past months
   getInventoryTrend: async (months = 6) => {
     try {

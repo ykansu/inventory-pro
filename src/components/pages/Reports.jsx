@@ -4,6 +4,7 @@ import styles from './Reports.module.css';
 import RevenueByPaymentReport from '../reports/RevenueByPaymentReport';
 import BestSellingProductsReport from '../reports/BestSellingProductsReport';
 import RevenueBySupplierReport from '../reports/RevenueBySupplierReport';
+import CategoryProfitsChart from '../reports/CategoryProfitsChart';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const Reports = () => {
@@ -54,6 +55,14 @@ const Reports = () => {
                 {t('reports:types.revenueBySupplier', 'Revenue by Supplier')}
               </button>
             </li>
+            <li>
+              <button 
+                className={`${styles.reportTypeButton} ${reportType === 'categoryProfits' ? styles.active : ''}`}
+                onClick={() => setReportType('categoryProfits')}
+              >
+                {t('reports:types.categoryProfits', 'Category Profits')}
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -93,6 +102,10 @@ const Reports = () => {
             
             {reportType === 'revenueBySupplier' && (
               <RevenueBySupplierReport startDate={dateRange.start} endDate={dateRange.end} />
+            )}
+            
+            {reportType === 'categoryProfits' && (
+              <CategoryProfitsChart startDate={dateRange.start} endDate={dateRange.end} />
             )}
           </div>
         </div>

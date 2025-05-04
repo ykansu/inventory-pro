@@ -10,7 +10,8 @@
     "topSelling": "En Çok Satan Ürünler",
     "profitMargin": "Kar Marjı Analizi",
     "revenueByPayment": "Ödeme Yöntemine Göre Gelir",
-    "revenueBySupplier": "Tedarikçiye Göre Gelir"
+    "revenueBySupplier": "Tedarikçiye Göre Gelir",
+    "categoryProfits": "Kategori Kar Analizi"
   },
   "filters": {
     "from": "Başlangıç",

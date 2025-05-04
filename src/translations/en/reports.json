@@ -10,7 +10,8 @@
     "topSelling": "Top Selling Products",
     "profitMargin": "Profit Margin Analysis",
     "revenueByPayment": "Revenue by Payment Method",
-    "revenueBySupplier": "Revenue by Supplier"
+    "revenueBySupplier": "Revenue by Supplier",
+    "categoryProfits": "Category Profit Analysis"
   },
   "filters": {
     "from": "From",
