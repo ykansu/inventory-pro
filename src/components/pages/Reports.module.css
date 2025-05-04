@@ -113,20 +113,6 @@
   align-self: flex-end;
 }
 
-.exportOptions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.exportButton,
-.printButton {
-  padding: 0.5rem 1rem;
-  background-color: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 .reportDisplay {
   padding: 1.5rem;
   overflow-y: auto;

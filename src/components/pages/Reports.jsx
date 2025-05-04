@@ -80,11 +80,6 @@ const Reports = () => {
               </div>
               <button className={styles.filterButton} onClick={handleGenerate}>{t('reports:filters.generate')}</button>
             </div>
-
-            <div className={styles.exportOptions}>
-              <button disabled className={styles.exportButton}>{t('reports:export.csv')}</button>
-              <button disabled className={styles.printButton}>{t('reports:export.print')}</button>
-            </div>
           </div>
 
           <div className={styles.reportDisplay}>
