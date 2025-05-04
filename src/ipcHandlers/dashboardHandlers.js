@@ -132,9 +132,9 @@ function registerDashboardHandlers() {
     }
   });
 
-  ipcMain.handle('dashboard:getRevenueAndProfitBySupplier', async () => {
+  ipcMain.handle('dashboard:getRevenueAndProfitBySupplier', async (_, period = 'month', startDate = null, endDate = null) => {
     try {
-      return await Sale.getRevenueAndProfitBySupplier();
+      return await Sale.getRevenueAndProfitBySupplier(period, startDate, endDate);
     } catch (error) {
       console.error('Error getting revenue and profit by supplier:', error);
       return []; // Return empty array instead of throwing

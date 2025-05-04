@@ -20,8 +20,6 @@ const useTopSellingProducts = (startDate, endDate, sortBy = 'revenue', limit = 1
         console.warn('Date range is incomplete, report may not show correct data');
       }
       
-      console.log(`Fetching top selling products with dates: ${startDateStr} to ${endDateStr}`);
-      
       // Call the API with the custom date range
       const productsData = await dashboard.getTopSellingProducts(
         period,

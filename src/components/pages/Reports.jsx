@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import styles from './Reports.module.css';
 import RevenueByPaymentReport from '../reports/RevenueByPaymentReport';
 import BestSellingProductsReport from '../reports/BestSellingProductsReport';
+import RevenueBySupplierReport from '../reports/RevenueBySupplierReport';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const Reports = () => {
@@ -45,6 +46,14 @@ const Reports = () => {
                 {t('reports:types.revenueByPayment')}
               </button>
             </li>
+            <li>
+              <button 
+                className={`${styles.reportTypeButton} ${reportType === 'revenueBySupplier' ? styles.active : ''}`}
+                onClick={() => setReportType('revenueBySupplier')}
+              >
+                {t('reports:types.revenueBySupplier', 'Revenue by Supplier')}
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -85,6 +94,10 @@ const Reports = () => {
 
             {reportType === 'revenueByPayment' && (
               <RevenueByPaymentReport startDate={dateRange.start} endDate={dateRange.end} />
+            )}
+            
+            {reportType === 'revenueBySupplier' && (
+              <RevenueBySupplierReport startDate={dateRange.start} endDate={dateRange.end} />
             )}
           </div>
         </div>

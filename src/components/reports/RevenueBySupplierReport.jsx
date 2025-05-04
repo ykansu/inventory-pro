@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
+import useRevenueBySupplier from '../../hooks/useRevenueBySupplier';
+import { useSettings } from '../../context/SettingsContext';
 import {
   Chart as ChartJS,
-  ArcElement,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -13,71 +14,28 @@ import {
 import { Bar } from 'react-chartjs-2';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { formatCurrency } from '../../utils/formatters';
-import { useDatabase } from '../../context/DatabaseContext';
-import useRevenueBySupplier from '../../hooks/useRevenueBySupplier';
-import { startOfMonth, endOfMonth } from 'date-fns';
-import styles from './DashboardCharts.module.css';
-import commonStyles from './DashboardCommon.module.css';
+import styles from './RevenueBySupplierReport.module.css';
 
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  ArcElement,
   Title,
   Tooltip,
   Legend
 );
 
-const RevenueBySupplierChart = () => {
-  const { t } = useTranslation(['dashboard']);
-  const [error, setError] = useState(null);
-  const [currency, setCurrency] = useState('usd');
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [totalProfit, setTotalProfit] = useState(0);
-  const { settings } = useDatabase();
+const RevenueBySupplierReport = ({ startDate, endDate }) => {
+  const { t } = useTranslation(['reports', 'dashboard']);
+  const { getSetting, isLoading: settingsLoading } = useSettings();
+  const currency = getSetting('currency', 'usd').toLowerCase();
+  const { data: supplierData, loading, error, refresh } = useRevenueBySupplier(startDate, endDate);
   
-  // Use useMemo for date calculation to ensure stability
-  const dateRange = useMemo(() => {
-    return {
-      start: startOfMonth(new Date()),
-      end: endOfMonth(new Date())
-    };
-  }, []);
-  
-  // Use the shared hook for data fetching with memoized date values
-  const { data: supplierData, loading, refresh } = useRevenueBySupplier(
-    dateRange.start,
-    dateRange.end
-  );
-
-  // Calculate totals when data changes
+  // Force a refresh when date range changes
   useEffect(() => {
-    if (supplierData && supplierData.length > 0) {
-      setTotalRevenue(supplierData.reduce((sum, supplier) => sum + supplier.revenue, 0));
-      setTotalProfit(supplierData.reduce((sum, supplier) => sum + supplier.profit, 0));
-    } else {
-      setTotalRevenue(0);
-      setTotalProfit(0);
-    }
-  }, [supplierData]);
-
-  useEffect(() => {
-    // Get currency from settings
-    const loadSettings = async () => {
-      try {
-        if (settings) {
-          const settingsObj = await settings.getAllSettings();
-          setCurrency(settingsObj.currency?.toLowerCase() || 'usd');
-        }
-      } catch (error) {
-        console.error('Error fetching currency settings:', error);
-      }
-    };
-
-    loadSettings();
-  }, [settings]);
+    refresh();
+  }, [startDate, endDate, refresh]);
 
   const handleRetry = () => {
     refresh();
@@ -143,32 +101,39 @@ const RevenueBySupplierChart = () => {
     return ((profit / revenue) * 100).toFixed(1);
   };
 
+  const totalRevenue = supplierData.reduce((acc, curr) => acc + curr.revenue, 0);
+  const totalProfit = supplierData.reduce((acc, curr) => acc + curr.profit, 0);
+
+  
+  if (loading || settingsLoading) {
+    return <div className={styles.chartContainer}><LoadingSpinner /></div>;
+  }
+
+  if (error) {
+    return (
+      <div className={styles.errorContainer}>
+        <p>{t('dashboard:error')}</p>
+        <button onClick={handleRetry} className={styles.retryButton}>
+          {t('dashboard:retry')}
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className={commonStyles.dashboardSection}>
-      <h3>
-        {t('dashboard:sections.revenueBySupplier')}
-        <span className={commonStyles.infoTooltip} data-tooltip={t('dashboard:tooltips.revenueBySupplier')}>?</span>
-      </h3>
+    <div className={styles.reportSection}>
+      <h4>{t('reports:types.revenueBySupplier', 'Revenue by Supplier')}</h4>
       
-      {loading ? (
-        <div className={styles.chartContainer}>
-          <LoadingSpinner />
-        </div>
-      ) : error ? (
-        <div className={commonStyles.errorContainer}>
-          <p>{t('dashboard:error')}</p>
-          <button onClick={handleRetry} className={commonStyles.retryButton}>
-            {t('dashboard:retry')}
-          </button>
-        </div>
-      ) : supplierData.length === 0 ? (
-        <div className={commonStyles.placeholderContent}>
-          {t('dashboard:placeholders.noSupplierData')}
+      {supplierData.length === 0 ? (
+        <div className={styles.noDataContainer}>
+          {t('reports:noData')}
         </div>
       ) : (
-        <div className="supplier-revenue-container">
-          <div className={styles.chartContainer} style={{ height: `${Math.max(250, 50 * supplierData.length)}px` }}>
-            <Bar data={chartData} options={chartOptions} />
+        <>
+          <div className={styles.chartContainer}>
+            <div className={styles.chartWrapper}>
+              <Bar data={chartData} options={chartOptions} />
+            </div>
           </div>
           
           <div className={styles.supplierSummary}>
@@ -178,33 +143,33 @@ const RevenueBySupplierChart = () => {
               <div className={styles.detailCell}>{t('dashboard:labels.profit')}</div>
               <div className={styles.detailCell}>{t('dashboard:labels.marginPct')}</div>
             </div>
-            {supplierData.map((supplier, index) => {
-              const marginPct = calculateMarginPct(supplier.profit, supplier.revenue);
-              
-              return (
+            
+            <div>
+              {supplierData.map((supplier, index) => (
                 <div className={styles.supplierSummaryRow} key={index}>
                   <div className={styles.detailCell}>{supplier.name}</div>
                   <div className={styles.detailCell}>{formatCurrency(supplier.revenue || 0, currency)}</div>
                   <div className={styles.detailCell}>{formatCurrency(supplier.profit || 0, currency)}</div>
-                  <div className={styles.detailCell}>{marginPct}%</div>
+                  <div className={styles.detailCell}>{calculateMarginPct(supplier.profit, supplier.revenue)}%</div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            
             <div className={styles.supplierSummaryFooter}>
               <div className={styles.detailCell}><strong>{t('dashboard:labels.total')}</strong></div>
               <div className={styles.detailCell}><strong>{formatCurrency(totalRevenue, currency)}</strong></div>
               <div className={styles.detailCell}><strong>{formatCurrency(totalProfit, currency)}</strong></div>
               <div className={styles.detailCell}><strong>{calculateMarginPct(totalProfit, totalRevenue)}%</strong></div>
             </div>
-            
-            <div className={styles.warningNote}>
-              <span className={styles.warningIcon}>⚠️</span> {t('dashboard:notes.marginDiscrepancy', 'Note: Margin calculations here may differ from the dashboard card as discounts are not accounted for in this breakdown.')}
-            </div>
           </div>
-        </div>
+          
+          <div className={styles.warningNote}>
+            <span className={styles.warningIcon}>⚠️</span> {t('dashboard:notes.marginDiscrepancy', 'Note: Margin calculations here may differ from the dashboard card as discounts are not accounted for in this breakdown.')}
+          </div>
+        </>
       )}
     </div>
   );
 };
 
-export default RevenueBySupplierChart; 
+export default RevenueBySupplierReport; 

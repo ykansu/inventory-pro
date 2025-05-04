@@ -390,9 +390,9 @@ export const DashboardService = {
   },
   
   // Get revenue and profit by supplier
-  getRevenueAndProfitBySupplier: async () => {
+  getRevenueAndProfitBySupplier: async (period = 'month', startDate = null, endDate = null) => {
     try {
-      return await window.database.getRevenueAndProfitBySupplier();
+      return await window.database.getRevenueAndProfitBySupplier(period, startDate, endDate);
     } catch (error) {
       console.error('Error fetching revenue and profit by supplier:', error);
       throw error;

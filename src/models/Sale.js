@@ -650,7 +650,7 @@ class Sale extends BaseModel {
   }
   
   // Get revenue and profit by supplier
-  async getRevenueAndProfitBySupplier(period = 'month') {
+  async getRevenueAndProfitBySupplier(period = 'month', customStartDate = null, customEndDate = null) {
     try {
       const db = await this.getDb();
       
@@ -659,7 +659,22 @@ class Sale extends BaseModel {
       let startDate, endDate;
       const weekStartsOn = 0; // Assume week starts on Sunday (0)
             
-      if (period === 'week') {
+      if (period === 'custom' && customStartDate && customEndDate) {
+        try {
+          // Use custom date range if provided
+          startDate = new Date(customStartDate);
+          endDate = new Date(customEndDate);
+          
+          // Validate dates
+          if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            startDate = startOfMonth(now);
+            endDate = endOfMonth(now);
+          }
+        } catch (err) {
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+        }
+      } else if (period === 'week') {
         startDate = startOfWeek(now, { weekStartsOn });
         endDate = endOfWeek(now, { weekStartsOn });
       } else if (period === 'year') {

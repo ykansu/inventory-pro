@@ -200,7 +200,7 @@ const BestSellingProductsReport = ({ startDate, endDate }) => {
               <div className={styles.detailCell}>{t('dashboard:labels.margin')}</div>
             </div>
             
-            <div className={styles.productsDetailBody}>
+            <div>
               {topProducts.map((product, index) => (
                 <div className={styles.productsDetailRow} key={index}>
                   <div className={styles.detailCell}>{product.name}</div>

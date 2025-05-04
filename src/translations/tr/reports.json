@@ -9,7 +9,8 @@
     "lowStock": "Düşük Stok Raporu",
     "topSelling": "En Çok Satan Ürünler",
     "profitMargin": "Kar Marjı Analizi",
-    "revenueByPayment": "Ödeme Yöntemine Göre Gelir"
+    "revenueByPayment": "Ödeme Yöntemine Göre Gelir",
+    "revenueBySupplier": "Tedarikçiye Göre Gelir"
   },
   "filters": {
     "from": "Başlangıç",

@@ -9,7 +9,8 @@
     "lowStock": "Low Stock Report",
     "topSelling": "Top Selling Products",
     "profitMargin": "Profit Margin Analysis",
-    "revenueByPayment": "Revenue by Payment Method"
+    "revenueByPayment": "Revenue by Payment Method",
+    "revenueBySupplier": "Revenue by Supplier"
   },
   "filters": {
     "from": "From",

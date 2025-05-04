@@ -107,11 +107,6 @@
   border-bottom: 1px solid #eaeaea;
 }
 
-.productsDetailBody {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
 .productsDetailRow {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
