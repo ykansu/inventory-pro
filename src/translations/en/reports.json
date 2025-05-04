@@ -11,7 +11,8 @@
     "profitMargin": "Profit Margin Analysis",
     "revenueByPayment": "Revenue by Payment Method",
     "revenueBySupplier": "Revenue by Supplier",
-    "categoryProfits": "Category Profit Analysis"
+    "categoryProfits": "Category Profit Analysis",
+    "financialMetrics": "Financial Metrics"
   },
   "filters": {
     "from": "From",
@@ -22,6 +23,12 @@
     "csv": "Export to CSV",
     "print": "Print Report"
   },
+  "financialMetrics": {
+    "title": "Financial Metrics Report",
+    "description": "Overview of key financial metrics for the selected period"
+  },
+  "period": "For period: {{start}} to {{end}}",
+  "currentMonth": "Current Month",
   "daily": {
     "title": "Daily Sales Report (Z-Report)",
     "period": "For period: {{start}} to {{end}}",

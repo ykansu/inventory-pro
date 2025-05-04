@@ -11,7 +11,8 @@
     "profitMargin": "Kar Marjı Analizi",
     "revenueByPayment": "Ödeme Yöntemine Göre Gelir",
     "revenueBySupplier": "Tedarikçiye Göre Gelir",
-    "categoryProfits": "Kategori Kar Analizi"
+    "categoryProfits": "Kategori Kar Analizi",
+    "financialMetrics": "Finansal Metrikler"
   },
   "filters": {
     "from": "Başlangıç",
@@ -22,6 +23,12 @@
     "csv": "CSV Olarak Dışa Aktar",
     "print": "Raporu Yazdır"
   },
+  "financialMetrics": {
+    "title": "Finansal Metrikler Raporu",
+    "description": "Seçilen dönem için temel finansal metriklerin genel görünümü"
+  },
+  "period": "Dönem: {{start}} - {{end}}",
+  "currentMonth": "Mevcut Ay",
   "daily": {
     "title": "Günlük Satış Raporu (Z-Raporu)",
     "period": "Dönem: {{start}} - {{end}}",

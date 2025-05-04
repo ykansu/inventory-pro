@@ -120,18 +120,54 @@ class Expense extends BaseModel {
     }
   }
 
+  // Private method to get expenses for a date range
+  async _getExpensesByDateRange(startDate, endDate) {
+    try {
+      const db = await this.getDb();
+      
+      // Format dates for SQLite query
+      const formattedStartDate = startDate.toISOString();
+      const formattedEndDate = endDate.toISOString();
+      
+      const expenses = await db(this.tableName)
+        .whereBetween('expense_date', [formattedStartDate, formattedEndDate])
+        .sum('amount as total');
+        
+      return expenses[0].total || 0;
+    } catch (error) {
+      console.error('Error in _getExpensesByDateRange:', error);
+      return 0;
+    }
+  }
+
   // Get expenses for a specific month
   async getMonthlyExpenses() {
-    const db = await this.getDb();
-    const now = new Date();
-    const startDate = startOfMonth(now).toISOString();
-    const endDate = endOfMonth(now).toISOString();
-    
-    const expenses = await db(this.tableName)
-      .whereBetween('expense_date', [startDate, endDate])
-      .sum('amount as total');
+    try {
+      const now = new Date();
+      const startDate = startOfMonth(now);
+      const endDate = endOfMonth(now);
       
-    return expenses[0].total || 0;
+      const total = await this._getExpensesByDateRange(startDate, endDate);
+      return total;
+    } catch (error) {
+      console.error('Error in getMonthlyExpenses:', error);
+      return 0;
+    }
+  }
+
+  // Get expenses for a specific date range
+  async getMonthlyExpensesByDate(startDate, endDate) {
+    try {
+      // Parse dates if they are strings
+      const parsedStartDate = typeof startDate === 'string' ? new Date(startDate) : startDate;
+      const parsedEndDate = typeof endDate === 'string' ? new Date(endDate) : endDate;
+      
+      const total = await this._getExpensesByDateRange(parsedStartDate, parsedEndDate);
+      return { success: true, data: total };
+    } catch (error) {
+      console.error('Error in getMonthlyExpensesByDate:', error);
+      return { success: false, error: error.message, data: 0 };
+    }
   }
 
   // Get expenses by category

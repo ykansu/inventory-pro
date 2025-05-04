@@ -460,6 +460,20 @@ export const DashboardService = {
     }
   },
   
+  // Get monthly profit metrics by date range
+  getMonthlyProfitMetricsByDate: async (startDate, endDate) => {
+    try {
+      return await window.database.getMonthlyMetricsByDate(startDate, endDate);
+    } catch (error) {
+      console.error('Error fetching monthly profit metrics by date:', error);
+      return {
+        monthlyRevenue: 0,
+        monthlyProfit: 0,
+        profitMargin: 0
+      };
+    }
+  },
+  
   // Get inventory turnover rate
   getInventoryTurnoverRate: async () => {
     try {
@@ -892,6 +906,19 @@ export const ExpenseService = {
     } catch (error) {
       console.error('Error fetching monthly expenses:', error);
       throw error;
+    }
+  },
+
+  // Get monthly expenses by date range
+  getMonthlyExpensesByDate: async (startDate, endDate) => {
+    try {
+      return await window.database.getMonthlyExpensesByDate(startDate, endDate);
+    } catch (error) {
+      console.error('Error fetching monthly expenses by date:', error);
+      return {
+        monthlyExpenses: 0,
+        monthlyExpensesByCategory: []
+      };
     }
   }
 };

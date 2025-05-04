@@ -65,6 +65,16 @@ function registerExpenseHandlers() {
     }
   });
 
+  // Get monthly expenses by date range
+  ipcMain.handle('expenses:getMonthlyExpensesByDate', async (_, startDate, endDate) => {
+    try {
+      return await Expense.getMonthlyExpensesByDate(startDate, endDate);
+    } catch (error) {
+      console.error('Error getting monthly expenses by date:', error);
+      return { success: false, error: error.message, data: 0 };
+    }
+  });
+
   // Get expenses by category
   ipcMain.handle('expenses:getByCategory', async (_, startDate, endDate) => {
     try {

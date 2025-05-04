@@ -80,6 +80,21 @@ function registerSaleHandlers() {
     }
   });
 
+  // New handler for monthly profit metrics with date range
+  ipcMain.handle('profits:getMonthlyMetricsByDate', async (_, startDate, endDate) => {
+    try {
+      const metrics = await Sale.getMonthlyProfitMetricsByDate(startDate, endDate);
+      return metrics;
+    } catch (error) {
+      console.error('Error getting monthly profit metrics by date:', error);
+      return {
+        monthlyRevenue: 0,
+        monthlyProfit: 0,
+        profitMargin: 0
+      };
+    }
+  });
+
   ipcMain.handle('profits:getCategoryProfits', async () => {
     try {
       return await Sale.getCategoryProfits(); // Assuming this exists or should be moved to Sale model

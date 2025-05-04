@@ -374,8 +374,8 @@ class Sale extends BaseModel {
     }
   }
   
-  // Get monthly profit metrics
-  async getMonthlyProfitMetrics() {
+  // Private method to calculate profit metrics for a given date range
+  async _getProfitMetricsByDateRange(startDate, endDate) {
     try {
       const db = await this.getDb();
   
@@ -391,9 +391,7 @@ class Sale extends BaseModel {
         };
       }
   
-      const now = new Date();
-      const startDate = startOfMonth(now);
-      const endDate = endOfMonth(now);
+      // Format dates for SQLite query
       const formattedStartDate = startDate.toISOString();
       const formattedEndDate = endDate.toISOString();
   
@@ -418,21 +416,57 @@ class Sale extends BaseModel {
         )
         .first();
   
-      const monthlyRevenue = parseFloat(result.total_revenue || 0);
-      const monthlyCost = parseFloat(result.total_cost || 0);
-      const monthlyProfit = monthlyRevenue - monthlyCost;
-      const profitMargin = monthlyRevenue > 0
-        ? (monthlyProfit / monthlyRevenue) * 100
+      const totalRevenue = parseFloat(result.total_revenue || 0);
+      const totalCost = parseFloat(result.total_cost || 0);
+      const totalProfit = totalRevenue - totalCost;
+      const profitMargin = totalRevenue > 0
+        ? (totalProfit / totalRevenue) * 100
         : 0;
   
       return {
-        monthlyRevenue: (monthlyRevenue),
-        monthlyProfit: (monthlyProfit),
-        profitMargin:((profitMargin * 10) / 10).toFixed(1) // 1 decimal place
+        monthlyRevenue: totalRevenue,
+        monthlyProfit: totalProfit,
+        profitMargin: ((profitMargin * 10) / 10).toFixed(1) // 1 decimal place
       };
   
     } catch (error) {
+      console.error('Error in _getProfitMetricsByDateRange:', error);
+      return {
+        monthlyRevenue: 0,
+        monthlyProfit: 0,
+        profitMargin: 0
+      };
+    }
+  }
+  
+  // Get monthly profit metrics
+  async getMonthlyProfitMetrics() {
+    try {
+      const now = new Date();
+      const startDate = startOfMonth(now);
+      const endDate = endOfMonth(now);
+      
+      return await this._getProfitMetricsByDateRange(startDate, endDate);
+    } catch (error) {
       console.error('Error in getMonthlyProfitMetrics:', error);
+      return {
+        monthlyRevenue: 0,
+        monthlyProfit: 0,
+        profitMargin: 0
+      };
+    }
+  }
+  
+  // Get profit metrics by date range
+  async getMonthlyProfitMetricsByDate(startDate, endDate) {
+    try {
+      // Parse dates if they are strings
+      const parsedStartDate = typeof startDate === 'string' ? new Date(startDate) : startDate;
+      const parsedEndDate = typeof endDate === 'string' ? new Date(endDate) : endDate;
+      
+      return await this._getProfitMetricsByDateRange(parsedStartDate, parsedEndDate);
+    } catch (error) {
+      console.error('Error in getMonthlyProfitMetricsByDate:', error);
       return {
         monthlyRevenue: 0,
         monthlyProfit: 0,

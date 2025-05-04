@@ -3,7 +3,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import useRevenueByPayment from '../../hooks/useRevenueByPayment';
 import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
-
+import { startOfDay, endOfDay } from 'date-fns';
 import { useEffect } from 'react';
 import styles from './RevenueByPaymentReport.module.css';
 
@@ -13,7 +13,7 @@ const RevenueByPaymentReport = ({ startDate, endDate }) => {
   const currency = getSetting('currency', 'usd').toLowerCase();
   const creditCardVendorFee = getSetting('credit_card_vendor_fee', 0.68);
 
-  const { data: revenueByPayment, loading, error, refresh } = useRevenueByPayment(startDate, endDate);
+  const { data: revenueByPayment, loading, error, refresh } = useRevenueByPayment(startOfDay(startDate), endOfDay(endDate));
 
 
   useEffect(() => {

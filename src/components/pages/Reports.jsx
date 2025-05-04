@@ -5,10 +5,11 @@ import RevenueByPaymentReport from '../reports/RevenueByPaymentReport';
 import BestSellingProductsReport from '../reports/BestSellingProductsReport';
 import RevenueBySupplierReport from '../reports/RevenueBySupplierReport';
 import CategoryProfitsChart from '../reports/CategoryProfitsChart';
+import FinancialMetricsReport from '../reports/FinancialMetricsReport';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const Reports = () => {
-  const [reportType, setReportType] = useState('topSelling');
+  const [reportType, setReportType] = useState('financialMetrics');
   // The dateRange state is used for the actual report; pendingDateRange is for the pickers.
   const [dateRange, setDateRange] = useState({
     start: startOfMonth(new Date()),
@@ -31,6 +32,14 @@ const Reports = () => {
         <div className={styles.reportSidebar}>
           <h3>{t('reports:sidebar.title')}</h3>
           <ul className={styles.reportTypes}>
+            <li>
+              <button 
+                className={`${styles.reportTypeButton} ${reportType === 'financialMetrics' ? styles.active : ''}`}
+                onClick={() => setReportType('financialMetrics')}
+              >
+                {t('reports:types.financialMetrics', 'Financial Metrics')}
+              </button>
+            </li>
             <li>
               <button 
                 className={`${styles.reportTypeButton} ${reportType === 'topSelling' ? styles.active : ''}`}
@@ -92,6 +101,10 @@ const Reports = () => {
           </div>
 
           <div className={styles.reportDisplay}>
+            {reportType === 'financialMetrics' && (
+              <FinancialMetricsReport startDate={dateRange.start} endDate={dateRange.end} />
+            )}
+            
             {reportType === 'topSelling' && (
               <BestSellingProductsReport startDate={dateRange.start} endDate={dateRange.end} />
             )}

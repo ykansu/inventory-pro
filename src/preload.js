@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('database', {
   updateExpense: (id, data) => ipcRenderer.invoke('expenses:update', id, data),
   deleteExpense: (id) => ipcRenderer.invoke('expenses:delete', id),
   getMonthlyExpenses: () => ipcRenderer.invoke('expenses:getMonthlyExpenses'),
+  getMonthlyExpensesByDate: (startDate, endDate) => ipcRenderer.invoke('expenses:getMonthlyExpensesByDate', startDate, endDate),
   getExpensesByCategory: (startDate, endDate) => ipcRenderer.invoke('expenses:getByCategory', startDate, endDate),
   getExpensesTrend: (months) => ipcRenderer.invoke('expenses:getExpensesTrend', months),
   
@@ -58,6 +59,7 @@ contextBridge.exposeInMainWorld('database', {
   
   // Profit metrics
   getMonthlyProfitMetrics: () => ipcRenderer.invoke('profits:getMonthlyMetrics'),
+  getMonthlyMetricsByDate: (startDate, endDate) => ipcRenderer.invoke('profits:getMonthlyMetricsByDate', startDate, endDate),
   getCategoryProfits: () => ipcRenderer.invoke('profits:getCategoryProfits'),
   getProfitValueTrend: () => ipcRenderer.invoke('profits:getProfitValueTrend'),
   
@@ -78,6 +80,7 @@ contextBridge.exposeInMainWorld('database', {
   getInventoryTrend: (months) => ipcRenderer.invoke('dashboard:getInventoryTrend', months),
   getProfitAndRevenueTrend: (months) => ipcRenderer.invoke('dashboard:getProfitAndRevenueTrend', months),
   getMonthlyProfitMetrics: () => ipcRenderer.invoke('dashboard:getMonthlyProfitMetrics'),
+  getMonthlyProfitMetricsByDate: (startDate, endDate) => ipcRenderer.invoke('dashboard:getMonthlyProfitMetricsByDate', startDate, endDate),
   getInventoryTurnoverRate: () => ipcRenderer.invoke('dashboard:getInventoryTurnoverRate'),
   getStockVariance: () => ipcRenderer.invoke('dashboard:getStockVariance'),
   getSupplierPerformance: () => ipcRenderer.invoke('dashboard:getSupplierPerformance'),
