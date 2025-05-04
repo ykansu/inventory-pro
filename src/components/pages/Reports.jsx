@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import styles from './Reports.module.css';
 import RevenueByPaymentReport from '../reports/RevenueByPaymentReport';
+import BestSellingProductsReport from '../reports/BestSellingProductsReport';
 import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 const Reports = () => {
-  const [reportType, setReportType] = useState('revenueByPayment');
+  const [reportType, setReportType] = useState('topSelling');
   // The dateRange state is used for the actual report; pendingDateRange is for the pickers.
   const [dateRange, setDateRange] = useState({
     start: startOfMonth(new Date()),
@@ -30,47 +31,10 @@ const Reports = () => {
           <ul className={styles.reportTypes}>
             <li>
               <button 
-                className={`${styles.reportTypeButton} ${reportType === 'daily' ? styles.active : ''}`}
-                onClick={() => setReportType('daily')}
-                disabled
-              >
-                {t('reports:types.daily')}
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`${styles.reportTypeButton} ${reportType === 'inventory' ? styles.active : ''}`}
-                onClick={() => setReportType('inventory')}
-                disabled
-              >
-                {t('reports:types.inventory')}
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`${styles.reportTypeButton} ${reportType === 'lowStock' ? styles.active : ''}`}
-                onClick={() => setReportType('lowStock')}
-                disabled
-              >
-                {t('reports:types.lowStock')}
-              </button>
-            </li>
-            <li>
-              <button 
                 className={`${styles.reportTypeButton} ${reportType === 'topSelling' ? styles.active : ''}`}
                 onClick={() => setReportType('topSelling')}
-                disabled
               >
                 {t('reports:types.topSelling')}
-              </button>
-            </li>
-            <li>
-              <button 
-                className={`${styles.reportTypeButton} ${reportType === 'profitMargin' ? styles.active : ''}`}
-                onClick={() => setReportType('profitMargin')}
-                disabled
-              >
-                {t('reports:types.profitMargin')}
               </button>
             </li>
             <li>
@@ -115,83 +79,12 @@ const Reports = () => {
           </div>
 
           <div className={styles.reportDisplay}>
-            {reportType === 'daily' && (
-              <div className={styles.dailyReport}>
-                <h3>{t('reports:daily.title')}</h3>
-                <p className={styles.reportDate}>{t('reports:daily.period', { start: dateRange.start || t('reports:notSelected'), end: dateRange.end || t('reports:notSelected') })}</p>
-                
-                <div className={styles.reportSummary}>
-                  <div className={styles.summaryCard}>
-                    <h4>{t('reports:daily.summary.totalSales')}</h4>
-                    <div className={styles.summaryValue}>$0.00</div>
-                  </div>
-                  <div className={styles.summaryCard}>
-                    <h4>{t('reports:daily.summary.transactions')}</h4>
-                    <div className={styles.summaryValue}>0</div>
-                  </div>
-                  <div className={styles.summaryCard}>
-                    <h4>{t('reports:daily.summary.averageValue')}</h4>
-                    <div className={styles.summaryValue}>$0.00</div>
-                  </div>
-                  <div className={styles.summaryCard}>
-                    <h4>{t('reports:daily.summary.grossProfit')}</h4>
-                    <div className={styles.summaryValue}>$0.00</div>
-                  </div>
-                </div>
-
-                <div className={styles.reportSection}>
-                  <h4>{t('reports:daily.paymentBreakdown.title')}</h4>
-                  <table className={styles.reportTable}>
-                    <thead>
-                      <tr>
-                        <th>{t('reports:daily.paymentBreakdown.headers.method')}</th>
-                        <th>{t('reports:daily.paymentBreakdown.headers.amount')}</th>
-                        <th>{t('reports:daily.paymentBreakdown.headers.percentage')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className={styles.emptyState}>
-                        <td colSpan="3">
-                          <p>{t('reports:noData')}</p>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className={styles.reportSection}>
-                  <h4>{t('reports:daily.salesByCategory.title')}</h4>
-                  <table className={styles.reportTable}>
-                    <thead>
-                      <tr>
-                        <th>{t('reports:daily.salesByCategory.headers.category')}</th>
-                        <th>{t('reports:daily.salesByCategory.headers.itemsSold')}</th>
-                        <th>{t('reports:daily.salesByCategory.headers.totalSales')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className={styles.emptyState}>
-                        <td colSpan="3">
-                          <p>{t('reports:noData')}</p>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            {reportType === 'topSelling' && (
+              <BestSellingProductsReport startDate={dateRange.start} endDate={dateRange.end} />
             )}
 
             {reportType === 'revenueByPayment' && (
               <RevenueByPaymentReport startDate={dateRange.start} endDate={dateRange.end} />
-            )}
-
-            {reportType !== 'daily' && reportType !== 'revenueByPayment' && (
-              <div className={styles.placeholderReport}>
-                <h3>{t(`reports:types.${reportType}`)}</h3>
-                <div className={styles.placeholderContent}>
-                  <p>{t('reports:generateInstructions')}</p>
-                </div>
-              </div>
             )}
           </div>
         </div>

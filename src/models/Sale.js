@@ -530,22 +530,14 @@ class Sale extends BaseModel {
   }
   
   // Get top selling products
-  async getTopSellingProducts(period = 'month', limit = 5, sortBy = 'quantity') {
+  async getTopSellingProducts(period = 'month', limit = 5, sortBy = 'quantity', customStartDate = null, customEndDate = null) {
     try {
       // Get database connection
       const db = await this.getDb();
       
       // Ensure limit is a number
       const numericLimit = parseInt(limit, 10) || 5;
-      
-      // Check if required tables exist
-      const hasSalesTable = await db.schema.hasTable(this.tableName);
-      const hasSaleItemsTable = await db.schema.hasTable('sale_items');
-      
-      if (!hasSalesTable || !hasSaleItemsTable) {
-        return [];
-      }
-      
+
       // Calculate date range based on period using date-fns
       const now = new Date();
       let startDate, endDate;
@@ -553,7 +545,24 @@ class Sale extends BaseModel {
       // Assume week starts on Sunday (0)
       const weekStartsOn = 0; 
             
-      if (period === 'week') {
+      // If custom dates are provided and period is 'custom', use those
+      if (period === 'custom' && customStartDate && customEndDate) {
+        try {
+          startDate = startOfDay(new Date(customStartDate));
+          endDate = endOfDay(new Date(customEndDate));
+          
+          // Check if dates are valid
+          if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            console.error('Invalid date range for custom period, falling back to current month');
+            startDate = startOfMonth(now);
+            endDate = endOfMonth(now);
+          }
+        } catch (err) {
+          console.error('Error parsing custom date range:', err);
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+        }
+      } else if (period === 'week') {
         startDate = startOfWeek(now, { weekStartsOn });
         endDate = endOfWeek(now, { weekStartsOn });
       } else if (period === 'year') {
