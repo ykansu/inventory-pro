@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('database', {
   createProduct: (data) => ipcRenderer.invoke('products:create', data),
   updateProduct: (id, data) => ipcRenderer.invoke('products:update', id, data),
   deleteProduct: (id) => ipcRenderer.invoke('products:delete', id),
+  restoreProduct: (id) => ipcRenderer.invoke('products:restore', id),
+  getDeletedProducts: () => ipcRenderer.invoke('products:getDeleted'),
   getProductByBarcode: (barcode) => ipcRenderer.invoke('products:getByBarcode', barcode),
   getLowStockProducts: () => ipcRenderer.invoke('products:getLowStock'),
   updateProductStock: (id, quantity, type, reason, reference) => 

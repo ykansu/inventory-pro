@@ -37,10 +37,50 @@ class BaseModel {
     return this.getById(id);
   }
   
-  // Delete a record
+  // Delete a record (soft delete for products, hard delete for others)
   async delete(id) {
     const db = await this.getDb();
+    
+    // For products table, use soft delete
+    if (this.tableName === 'products') {
+      return db(this.tableName)
+        .where({ id })
+        .where('is_deleted', false) // Ensure we're not deleting an already deleted product
+        .update({ 
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+    }
+    
+    // For other tables, use hard delete
     return db(this.tableName).where({ id }).del();
+  }
+  
+  // Hard delete a record (for maintenance)
+  async hardDelete(id) {
+    const db = await this.getDb();
+    return db(this.tableName).where({ id }).del();
+  }
+  
+  // Restore a soft deleted record (for products)
+  async restore(id) {
+    const db = await this.getDb();
+    
+    // Only applicable for products table
+    if (this.tableName === 'products') {
+      return db(this.tableName)
+        .where({ id })
+        .where('is_deleted', true) // Ensure we're only restoring a deleted product
+        .update({ 
+          is_deleted: false,
+          deleted_at: null,
+          updated_at: new Date().toISOString()
+        });
+    }
+    
+    // For other tables, this operation is not supported
+    throw new Error(`Restore operation not supported for table: ${this.tableName}`);
   }
 }
 

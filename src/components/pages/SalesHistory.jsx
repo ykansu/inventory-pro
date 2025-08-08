@@ -154,16 +154,24 @@ const SalesHistory = () => {
         saleDetails.items.map(async (item) => {
           try {
             // Try to get the product data for the unit
-            const product = await productService.getProductById(item.product_id);
+            // For sales history, we want to show product info even if deleted
+            let product = null;
+            try {
+              product = await productService.getProductById(item.product_id);
+            } catch (error) {
+              // If we can't get the product normally, it might be deleted
+              console.warn(`Product ${item.product_id} might be deleted, trying alternative method`);
+            }
+            
             return {
               ...item,
-              product: product || { unit: 'units' } // Add product info with fallback unit
+              product: product || { unit: 'units', name: item.product_name || 'Unknown Product' } // Add product info with fallback
             };
           } catch (error) {
             console.error(`Error loading product details for item ${item.id}:`, error);
             return {
               ...item,
-              product: { unit: 'units' } // Fallback unit if product can't be loaded
+              product: { unit: 'units', name: item.product_name || 'Unknown Product' } // Fallback if product can't be loaded
             };
           }
         })
