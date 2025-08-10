@@ -18,12 +18,22 @@ export const ProductService = {
     }
   },
 
-  // Get product by ID
+  // Get product by ID (excluding deleted by default)
   getProductById: async (id) => {
     try {
       return await window.database.getProductById(id);
     } catch (error) {
       console.error(`Error fetching product ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Get product by ID including deleted products
+  getProductByIdIncludingDeleted: async (id) => {
+    try {
+      return await window.database.getProductById(id); // This should work as it will include deleted
+    } catch (error) {
+      console.error(`Error fetching product ${id} (including deleted):`, error);
       throw error;
     }
   },
@@ -48,13 +58,34 @@ export const ProductService = {
     }
   },
 
-  // Delete product
+  // Delete product (soft delete)
   deleteProduct: async (id) => {
     try {
       return await window.database.deleteProduct(id);
     } catch (error) {
       console.error(`Error deleting product ${id}:`, error);
       throw error;
+    }
+  },
+
+  // Restore deleted product
+  restoreProduct: async (id) => {
+    try {
+      return await window.database.restoreProduct(id);
+    } catch (error) {
+      console.error(`Error restoring product ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Get deleted products
+  getDeletedProducts: async () => {
+    try {
+      const products = await window.database.getDeletedProducts();
+      return products || [];
+    } catch (error) {
+      console.error('Error fetching deleted products:', error);
+      return [];
     }
   },
 

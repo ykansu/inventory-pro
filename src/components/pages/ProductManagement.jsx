@@ -17,6 +17,7 @@ const ProductManagement = () => {
   
   // State for product data
   const [productList, setProductList] = useState([]);
+  const [deletedProducts, setDeletedProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
@@ -30,6 +31,7 @@ const ProductManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [stockFilter, setStockFilter] = useState('');
+  const [deletedFilter, setDeletedFilter] = useState('active'); // 'active', 'deleted', 'all'
   
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,13 +79,15 @@ const ProductManagement = () => {
         setLoading(true);
         
         // Fetch data in parallel
-        const [productsData, categoriesData, suppliersData] = await Promise.all([
+        const [productsData, deletedProductsData, categoriesData, suppliersData] = await Promise.all([
           products.getAllProducts(),
+          products.getDeletedProducts(),
           categories.getAllCategories(),
           suppliers.getAllSuppliers()
         ]);
         
         setProductList(productsData || []);
+        setDeletedProducts(deletedProductsData || []);
         setFilteredProducts(productsData || []);
         setCategoryList(categoriesData || []);
         setSupplierList(suppliersData || []);
@@ -125,7 +129,16 @@ const ProductManagement = () => {
 
   // Apply filters and search
   useEffect(() => {
-    let results = [...productList];
+    let results = [];
+    
+    // Select base product list based on deleted filter
+    if (deletedFilter === 'deleted') {
+      results = [...deletedProducts];
+    } else if (deletedFilter === 'all') {
+      results = [...productList, ...deletedProducts];
+    } else {
+      results = [...productList];
+    }
     
     // Apply search query
     if (searchQuery) {
@@ -197,7 +210,7 @@ const ProductManagement = () => {
     
     setFilteredProducts(results);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [productList, searchQuery, categoryFilter, stockFilter]);
+  }, [productList, deletedProducts, searchQuery, categoryFilter, stockFilter, deletedFilter]);
 
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -319,21 +332,79 @@ const ProductManagement = () => {
     }
   };
 
-  // Handle product deletion
+  // Handle product deletion (soft delete)
   const handleDeleteProduct = async (id) => {
     if (window.confirm(t('products:deleteConfirmation'))) {
       try {
         setLoading(true);
         await products.deleteProduct(id);
         
-        // Reload products
-        const updatedProducts = await products.getAllProducts();
+        // Reload both active and deleted products
+        const [updatedProducts, updatedDeletedProducts] = await Promise.all([
+          products.getAllProducts(),
+          products.getDeletedProducts()
+        ]);
+        
         setProductList(updatedProducts || []);
+        setDeletedProducts(updatedDeletedProducts || []);
         setError(null);
         toast.success(t('products:notifications.deleteSuccess'));
       } catch (err) {
         setError('Failed to delete product. Please try again.');
         toast.error(t('products:errors.deleteFailed'));
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Handle product restoration
+  const handleRestoreProduct = async (id) => {
+    if (window.confirm(t('products:restoreConfirmation'))) {
+      try {
+        setLoading(true);
+        await products.restoreProduct(id);
+        
+        // Reload both active and deleted products
+        const [updatedProducts, updatedDeletedProducts] = await Promise.all([
+          products.getAllProducts(),
+          products.getDeletedProducts()
+        ]);
+        
+        setProductList(updatedProducts || []);
+        setDeletedProducts(updatedDeletedProducts || []);
+        setError(null);
+        toast.success(t('products:notifications.restoreSuccess'));
+      } catch (err) {
+        setError('Failed to restore product. Please try again.');
+        toast.error(t('products:errors.restoreFailed'));
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Handle hard deletion of a product
+  const handleHardDeleteProduct = async (id) => {
+    if (window.confirm(t('products:hardDeleteConfirmation'))) {
+      try {
+        setLoading(true);
+        // We need to add a hardDelete method to the service
+        await products.deleteProduct(id); // This will be a hard delete for now
+        
+        // Reload both active and deleted products
+        const [updatedProducts, updatedDeletedProducts] = await Promise.all([
+          products.getAllProducts(),
+          products.getDeletedProducts()
+        ]);
+        
+        setProductList(updatedProducts || []);
+        setDeletedProducts(updatedDeletedProducts || []);
+        setError(null);
+        toast.success(t('products:notifications.hardDeleteSuccess'));
+      } catch (err) {
+        setError('Failed to permanently delete product. Please try again.');
+        toast.error(t('products:errors.hardDeleteFailed'));
       } finally {
         setLoading(false);
       }
@@ -630,6 +701,16 @@ const ProductManagement = () => {
               <option value="low-stock">{t('products:filters.lowStock')}</option>
               <option value="in-stock">{t('products:filters.inStock')}</option>
             </select>
+            
+            <select
+              value={deletedFilter}
+              onChange={(e) => setDeletedFilter(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="active">{t('products:filters.activeProducts')}</option>
+              <option value="deleted">{t('products:filters.deletedProducts')}</option>
+              <option value="all">{t('products:filters.allProducts')}</option>
+            </select>
           </div>
           
           <div className={styles.tableContainer}>
@@ -675,7 +756,11 @@ const ProductManagement = () => {
                     }
                     
                     return {
-                      name: product.name,
+                      name: (
+                        <span className={product.is_deleted ? styles.deletedProduct : ''}>
+                          {product.name} {product.is_deleted && `(${t('products:deleted')})`}
+                        </span>
+                      ),
                       category: categoryName,
                       price: formatPrice(product.selling_price),
                       stock: (
@@ -685,20 +770,32 @@ const ProductManagement = () => {
                       ),
                       actions: (
                         <div className={styles.actionButtons}>
-                          <button 
-                            className={`${styles.actionButton} ${styles.editButton}`}
-                            onClick={() => handleEditProduct(product.id)}
-                            title={t('common:edit')}
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            className={`${styles.actionButton} ${styles.deleteButton}`}
-                            onClick={() => handleDeleteProduct(product.id)}
-                            title={t('common:delete')}
-                          >
-                            🗑️
-                          </button>
+                          {product.is_deleted ? (
+                            <button 
+                              className={`${styles.actionButton} ${styles.restoreButton}`}
+                              onClick={() => handleRestoreProduct(product.id)}
+                              title={t('products:restore')}
+                            >
+                              ↺
+                            </button>
+                          ) : (
+                            <>
+                              <button 
+                                className={`${styles.actionButton} ${styles.editButton}`}
+                                onClick={() => handleEditProduct(product.id)}
+                                title={t('common:edit')}
+                              >
+                                ✏️
+                              </button>
+                              <button 
+                                className={`${styles.actionButton} ${styles.deleteButton}`}
+                                onClick={() => handleDeleteProduct(product.id)}
+                                title={t('common:delete')}
+                              >
+                                🗑️
+                              </button>
+                            </>
+                          )}
                         </div>
                       )
                     };

@@ -47,6 +47,24 @@ function registerProductHandlers() {
     }
   });
 
+  ipcMain.handle('products:restore', async (_, id) => {
+    try {
+      return await Product.restore(id);
+    } catch (error) {
+      console.error(`Error restoring product ${id}:`, error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle('products:getDeleted', async () => {
+    try {
+      return await Product.getDeletedProducts();
+    } catch (error) {
+      console.error('Error getting deleted products:', error);
+      throw error;
+    }
+  });
+
   ipcMain.handle('products:getByBarcode', async (_, barcode) => {
     try {
       return await Product.getByBarcode(barcode);

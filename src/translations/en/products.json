@@ -15,7 +15,10 @@
     "allStockLevels": "All Stock Levels",
     "inStock": "In Stock",
     "lowStock": "Low Stock",
-    "outOfStock": "Out of Stock"
+    "outOfStock": "Out of Stock",
+    "activeProducts": "Active Products",
+    "deletedProducts": "Deleted Products",
+    "allProducts": "All Products"
   },
   "categories": {
     "electronics": "Electronics",
@@ -129,10 +132,15 @@
   "reason": "Reason",
   "add": "Add",
   "remove": "Remove",
+  "deleteConfirmation": "Are you sure you want to delete this product? This action cannot be undone.",
+  "restoreConfirmation": "Are you sure you want to restore this deleted product?",
+  "deleted": "Deleted",
+  "restore": "Restore",
   "notifications": {
     "createSuccess": "Product created successfully",
     "updateSuccess": "Product updated successfully",
     "deleteSuccess": "Product deleted successfully",
+    "restoreSuccess": "Product restored successfully",
     "stockUpdateSuccess": "Stock updated successfully",
     "categoryCreateSuccess": "Category created successfully",
     "categoryUpdateSuccess": "Category updated successfully",
@@ -146,6 +154,8 @@
     "createFailed": "Failed to create product",
     "updateFailed": "Failed to update product",
     "deleteFailed": "Failed to delete product",
+    "restoreFailed": "Failed to restore product",
+    "hardDeleteFailed": "Failed to permanently delete product",
     "loadEditFailed": "Failed to load product for editing",
     "stockUpdateFailed": "Failed to update stock",
     "invalidQuantity": "Please enter a valid positive number",
@@ -155,8 +165,5 @@
     "supplierCreateFailed": "Failed to create supplier",
     "supplierUpdateFailed": "Failed to update supplier",
     "supplierDeleteFailed": "Failed to delete supplier"
-  },
-  "deleteConfirmation": "Are you sure you want to delete this product? This action cannot be undone.",
-  "categoryDeleteConfirmation": "Are you sure you want to delete this category? This action cannot be undone.",
-  "supplierDeleteConfirmation": "Are you sure you want to delete this supplier? This action cannot be undone."
+  }
 }

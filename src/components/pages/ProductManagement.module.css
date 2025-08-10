@@ -163,6 +163,20 @@
   border-color: #fca5a5;
 }
 
+.restoreButton {
+  color: #065f46;
+}
+
+.restoreButton:hover {
+  background-color: #d1fae5;
+  border-color: #34d399;
+}
+
+.deletedProduct {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
 .stockAdjustment {
   display: flex;
   align-items: center;

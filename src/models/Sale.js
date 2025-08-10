@@ -645,6 +645,7 @@ class Sale extends BaseModel {
         .join('products', 'sale_items.product_id', 'products.id')
         .leftJoin('categories', 'products.category_id', 'categories.id')
         .whereIn('sale_items.sale_id', salesIds)
+        .where('products.is_deleted', false)
         .select(
           'products.id as id',
           'products.name as name',

@@ -14,12 +14,12 @@ class Product extends BaseModel {
     super('products');
   }
   
-  // Get products with category and supplier information
-  async getAllWithDetails() {
+  // Get products with category and supplier information (excluding deleted by default)
+  async getAllWithDetails(options = {}) {
     try {
       const db = await this.getDb();
       // Get all products with joins
-      return await db(this.tableName)
+      let query = db(this.tableName)
         .select(
           'products.*',
           'categories.name as category_name',
@@ -27,23 +27,61 @@ class Product extends BaseModel {
         )
         .leftJoin('categories', 'products.category_id', 'categories.id')
         .leftJoin('suppliers', 'products.supplier_id', 'suppliers.id');
+      
+      // Apply soft delete filter unless explicitly requested to include deleted
+      if (!options.includeDeleted) {
+        query = query.where('products.is_deleted', false);
+      }
+      
+      return await query;
     } catch (error) {
       console.error('Error getting products with details:', error);
       throw error;
     }
   }
   
-  // Get product by barcode
+  // Get all products including deleted ones
+  async getAllWithDetailsIncludingDeleted() {
+    return this.getAllWithDetails({ includeDeleted: true });
+  }
+  
+  // Get only deleted products
+  async getDeletedProducts() {
+    try {
+      const db = await this.getDb();
+      return await db(this.tableName)
+        .select(
+          'products.*',
+          'categories.name as category_name',
+          'suppliers.company_name as supplier_name'
+        )
+        .leftJoin('categories', 'products.category_id', 'categories.id')
+        .leftJoin('suppliers', 'products.supplier_id', 'suppliers.id')
+        .where('products.is_deleted', true);
+    } catch (error) {
+      console.error('Error getting deleted products:', error);
+      throw error;
+    }
+  }
+  
+  // Get product by barcode (excluding deleted)
   async getByBarcode(barcode) {
+    const db = await this.getDb();
+    return db(this.tableName).where({ barcode }).where('is_deleted', false).first();
+  }
+  
+  // Get product by barcode including deleted
+  async getByBarcodeIncludingDeleted(barcode) {
     const db = await this.getDb();
     return db(this.tableName).where({ barcode }).first();
   }
   
-  // Get products with low stock
+  // Get products with low stock (excluding deleted)
   async getLowStock() {
     const db = await this.getDb();
     return db(this.tableName)
       .whereRaw('stock_quantity <= min_stock_threshold')
+      .where('is_deleted', false)
       .select('*');
   }
   
@@ -52,8 +90,8 @@ class Product extends BaseModel {
     const db = await this.getDb();
     // Start a transaction
     return db.transaction(async trx => {
-      // Get current product
-      const product = await trx(this.tableName).where({ id }).first();
+      // Get current product (excluding deleted)
+      const product = await trx(this.tableName).where({ id }).where('is_deleted', false).first();
       
       if (!product) {
         throw new Error(`Product with ID ${id} not found`);
@@ -85,18 +123,58 @@ class Product extends BaseModel {
     });
   }
   
-  // Get total count of products
+  // Soft delete a product
+  async softDelete(id) {
+    const db = await this.getDb();
+    const result = await db(this.tableName)
+      .where({ id })
+      .where('is_deleted', false) // Ensure we're not deleting an already deleted product
+      .update({ 
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    
+    return result;
+  }
+  
+  // Restore a deleted product
+  async restore(id) {
+    const db = await this.getDb();
+    const result = await db(this.tableName)
+      .where({ id })
+      .where('is_deleted', true) // Ensure we're only restoring a deleted product
+      .update({ 
+        is_deleted: false,
+        deleted_at: null,
+        updated_at: new Date().toISOString()
+      });
+    
+    return result;
+  }
+  
+  // Hard delete a product (for maintenance)
+  async hardDelete(id) {
+    const db = await this.getDb();
+    return db(this.tableName).where({ id }).del();
+  }
+  
+  // Get total count of products (excluding deleted)
   async getTotalCount() {
     const db = await this.getDb();
-    const result = await db(this.tableName).count('id as count').first();
+    const result = await db(this.tableName)
+      .where('is_deleted', false)
+      .count('id as count')
+      .first();
     return result ? result.count : 0;
   }
   
-  // Get count of low stock products
+  // Get count of low stock products (excluding deleted)
   async getLowStockCount() {
     const db = await this.getDb();
     const result = await db(this.tableName)
       .whereRaw('stock_quantity <= min_stock_threshold')
+      .where('is_deleted', false)
       .count('id as count')
       .first();
     return result ? result.count : 0;
@@ -112,7 +190,7 @@ class Product extends BaseModel {
     }
   }
   
-  // Get inventory value by category
+  // Get inventory value by category (excluding deleted products)
   async getInventoryValueByCategory() {
     try {
       const db = await this.getDb();
@@ -125,6 +203,7 @@ class Product extends BaseModel {
           db.raw('COUNT(products.id) as product_count')
         )
         .where('products.stock_quantity', '>', 0)
+        .where('products.is_deleted', false)
         .groupBy('categories.id', 'categories.name');
       
       return results.map(category => ({
@@ -139,7 +218,7 @@ class Product extends BaseModel {
     }
   }
   
-  // Get inventory value by supplier
+  // Get inventory value by supplier (excluding deleted products)
   async getInventoryValueBySupplier() {
     try {
       const db = await this.getDb();
@@ -152,6 +231,7 @@ class Product extends BaseModel {
           db.raw('COUNT(products.id) as product_count')
         )
         .where('products.stock_quantity', '>', 0)
+        .where('products.is_deleted', false)
         .groupBy('suppliers.id', 'suppliers.company_name');
       
       return results.map(supplier => ({
@@ -166,11 +246,12 @@ class Product extends BaseModel {
     }
   }
   
-  // Get current inventory value
+  // Get current inventory value (excluding deleted products)
   async getCurrentInventoryValue() {
     try {
       const db = await this.getDb();
       const result = await db(this.tableName)
+        .where('is_deleted', false)
         .select(db.raw('SUM(stock_quantity * cost_price) as value'))
         .first();
       return result && result.value ? parseFloat(result.value) : 0;
@@ -251,6 +332,7 @@ class Product extends BaseModel {
           db.raw('SUM(stock_quantity * cost_price) as value')
         )
         .where('stock_quantity', '>', 0)
+        .where('is_deleted', false)
         .groupBy(db.raw("strftime('%Y-%m', date('now'), 'localtime')"));
 
       // Get historical inventory values from stock adjustments
@@ -261,6 +343,7 @@ class Product extends BaseModel {
           db.raw('SUM(stock_adjustments.quantity_change * products.cost_price) as value')
         )
         .where('stock_adjustments.created_at', '>=', startDateStr)
+        .where('products.is_deleted', false)
         .groupBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at, 'localtime')"))
         .orderBy(db.raw("strftime('%Y-%m', stock_adjustments.created_at, 'localtime')"), 'desc')
         .limit(months);
