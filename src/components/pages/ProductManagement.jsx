@@ -756,7 +756,12 @@ const ProductManagement = () => {
                     }
                     
                     return {
-                      name: product.name,
+                      name: (
+                      <span className={product.is_deleted ? styles.deletedProduct : ''}>
+                        {product.name}
+                        {product.is_deleted ? ` (${t('products:deleted')})` : ''}
+                      </span>
+                      ),
                       category: categoryName,
                       price: formatPrice(product.selling_price),
                       stock: (
