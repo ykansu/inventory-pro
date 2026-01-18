@@ -10,17 +10,16 @@ const useSalesHistory = (initialPage = 1, initialPageSize = 10) => {
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(initialPageSize);
-  
+
   // Get current date and year
   const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  
-  // Default date range: last 30 days to current day, using current year
+
+  // Default date range: last 30 days to current day
   const [dateRange, setDateRange] = useState({
-    start: format(subDays(currentDate, 30), 'yyyy-MM-dd').replace(/^\d{4}/, currentYear.toString()),
-    end: format(currentDate, 'yyyy-MM-dd').replace(/^\d{4}/, currentYear.toString())
+    start: format(subDays(currentDate, 30), 'yyyy-MM-dd'),
+    end: format(currentDate, 'yyyy-MM-dd')
   });
-  
+
   const [paymentFilter, setPaymentFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -29,26 +28,26 @@ const useSalesHistory = (initialPage = 1, initialPageSize = 10) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Prepare filters
       const filters = {
         paymentMethod: paymentFilter,
         query: searchQuery
       };
-      
+
       // Fetch paginated data
       const result = await SaleService.getPaginatedSales(
-        dateRange.start, 
+        dateRange.start,
         dateRange.end,
         currentPage,
         pageSize,
         filters
       );
-      
+
       if (result.success === false) {
         throw new Error(result.error || 'Failed to load sales data');
       }
-      
+
       setSales(result.sales || []);
       setTotalCount(result.totalCount || 0);
       setTotalPages(result.totalPages || 0);
@@ -68,33 +67,33 @@ const useSalesHistory = (initialPage = 1, initialPageSize = 10) => {
     if (start !== undefined && end !== undefined) {
       setDateRange({ start, end });
     }
-    
+
     if (payment !== undefined) {
       setPaymentFilter(payment);
     }
-    
+
     if (query !== undefined) {
       setSearchQuery(query);
     }
-    
+
     if (page !== undefined) {
       setCurrentPage(page);
     }
-    
+
     if (itemsPerPage !== undefined) {
       setPageSize(itemsPerPage);
     }
-    
+
     // When filters change, reset to page 1
-    if ((start !== undefined && end !== undefined) || 
-        payment !== undefined || 
-        query !== undefined) {
+    if ((start !== undefined && end !== undefined) ||
+      payment !== undefined ||
+      query !== undefined) {
       setCurrentPage(1);
     }
-    
+
     // Don't reload here, useEffect will handle it when dependencies change
   }, []);
-  
+
   // Handle page change
   const handlePageChange = useCallback((newPage) => {
     setCurrentPage(newPage);
